@@ -1,15 +1,20 @@
 <template>
-  <div id="app"> <Counter/></div>
+  <div id="app">
+    <router-view name='header'></router-view>
+    <main>
+      <transition mode="out-in" :duration="250">
+        <router-view/>
+      </transition>
+    </main>
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-
-import Counter from './components/Counter.vue'
+import { defineComponent, Transition } from 'vue'
 
 export default defineComponent({
   components: {
-    Counter
+    Transition
   }
 })
 
