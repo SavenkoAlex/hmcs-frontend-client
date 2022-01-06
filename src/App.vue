@@ -1,15 +1,14 @@
 <template>
-  <div id="app"> <Counter/></div>
+  <div id="app"> <Main/></div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-
-import Counter from './components/Counter.vue'
+import Main from '@/components/Main.vue'
 
 export default defineComponent({
   components: {
-    Counter
+    Main
   }
 })
 
