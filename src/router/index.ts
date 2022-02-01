@@ -1,12 +1,13 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 
 const home = {
-  template: '<div>home</div>'
+  template: '<div>Log in</div>'
 }
 
 const about = {
   template: '<div>about</div>'
 }
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
