@@ -1,20 +1,32 @@
 <template>
-  <div id="loginForm">
-    <h1> Hello page </h1>
-    <label for="login">e-mail</label>
-    <input type="email" name="login" v-model="email" placeholder="your email">
-    <label for="password">Password</label>
-    <input type="password" name="password" v-model="password">
-    <input id="submit" type="submit" value="Submit" @click="login">
+  <div class="loginFormContainer">
+    <va-form style="width: 300px" tag="form" @submit.prevent="login">
+     <va-input
+      v-model="email"
+      label="Email"
+    />
+    <va-input
+      v-model="password"
+      label="Password"
+    />
+    <va-button type="submit" class="mt-2">
+      Login
+    </va-button>
+    </va-form>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { VaForm, VaInput } from 'vuestic-ui'
+
 import loginApi from '../api/login'
 
 export default defineComponent({
-
+  components: {
+    'va-form': VaForm,
+    'va-input': VaInput
+  },
   data () {
     return {
       email: '',
@@ -31,17 +43,17 @@ export default defineComponent({
 </script>
 
 <style scoped>
-  #loginForm {
-    max-width: 200px;
-    max-height: 300px;
-    padding-left: calc(50% - 100px);
+  .loginFormContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  form {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
+    margin-top: 15%
   }
-  #submit {
-    padding: 2px 52px;
-    margin: 10px;
+  input {
+    flex: 1
   }
 </style>
