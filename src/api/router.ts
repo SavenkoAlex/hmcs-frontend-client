@@ -1,17 +1,11 @@
 import axios from 'axios'
+import {
+  IMenuItem,
+  IMenu
+} from '@backend/db/models/appStructure'
 
-interface IMenuItem {
-  label: string,
-  path: string,
-  icon: string | null
-}
-
-interface IMenu {
-  menuItems: IMenuItem[]
-}
-
-async function getNavigationItems (): Promise < [IMenu] | null> {
-  const response = await axios.request <[IMenu]>({
+async function getNavigationItems (): Promise < [IMenu<IMenuItem>] | null> {
+  const response = await axios.request <[IMenu<IMenuItem>]>({
     url: '/api/view/menu/all',
     method: 'GET'
   })
