@@ -15,11 +15,10 @@
   </va-navbar>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  //
+<script lang="ts" setup>
+import { reactive } from 'vue'
+const routes = reactive({
+  items: 
 })
 </script>
 

@@ -18,10 +18,9 @@
       "chai"
     ],
     "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@backend/*": ["../backend/src/*"]
+      "@/*": ["src/*"],
+      "@backend/*": ["../backend/src/*"],
+      "@store/*": ["src/store/*"]
     },
     "lib": [
       "esnext",

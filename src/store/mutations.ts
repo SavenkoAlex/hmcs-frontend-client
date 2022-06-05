@@ -6,9 +6,17 @@ export type StoreMessageDefault = Payload & {
   value: string
 }
 
-export const i = 2
+export type MenuItems = Payload & {
+  value: {path: string, label: string}[]
+}
+
+
 export const mutations = {
   [MutationTypes.SET_DEFAULT_STORE_MESSAGE]: (state: State, payload: StoreMessageDefault): void => {
-    state.defaultStoreMessage = payload.value
+    state.main.defaultStoreMessage = payload.value
+  },
+
+  [MutationTypes.SET_MENU_ITEMS]: (state: State, payload: MenuItems): void => {
+    state.main.menuItems = payload.value
   }
 }

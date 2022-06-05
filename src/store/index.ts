@@ -1,11 +1,20 @@
 import { createStore, Store } from 'vuex'
 import { InjectionKey } from 'vue'
-import { mutations } from './mutations'
-import { getters } from './getters'
+import { mutations } from '@store/mutations'
+import { getters } from '@store/getters'
+
+export interface MainState {
+  defaultStoreMessage: 'Main store is working!' | string
+  menuItems: {path: string, label: string}[]
+}
+
+export interface DeviceState {
+  defaultStoreMessage: 'Device store is working!' | string
+}
 
 export interface State {
-  [key: string]: unknown
-  defaultStoreMessage: 'Store is working!' | string
+  main: MainState,
+  devices: DeviceState
 }
 
 const devices = {
@@ -24,7 +33,7 @@ const main = {
 
 export const key: InjectionKey <Store<State>> = Symbol('store')
 
-export const store = createStore <State>({
+export const store = createStore({
   modules: {
     main,
     devices

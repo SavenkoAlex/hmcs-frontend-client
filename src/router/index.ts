@@ -7,16 +7,7 @@ import {
 import {
   getNavigationItems
 } from '@/api/router'
-import { Vue } from 'vue-class-component'
-import { Component } from 'vue'
-/*
-const home = {
-  template: '<div>Log in</div>'
-}
-const about = {
-  template: '<div>about</div>'
-}
-*/
+
 const routes: RouteRecordRaw[] = []
 
 getNavigationItems().then(response => {
@@ -27,7 +18,7 @@ getNavigationItems().then(response => {
     return {
       path: item.path,
       name: item.label,
-      component: require(`@/components/${item.label}`)
+      component: require(`@/components/${item.label[0].toUpperCase() + item.label.slice(1, item.label.length)}.vue`)
     }
   })
 
