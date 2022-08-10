@@ -1,5 +1,5 @@
 import { MutationTypes } from './mutation-types'
-import { State } from './index'
+import { ModuleState } from './index'
 import { Payload } from 'vuex'
 
 export type StoreMessageDefault = Payload & {
@@ -11,11 +11,11 @@ export type MenuItems = Payload & {
 }
 
 export const mutations = {
-  [MutationTypes.SET_DEFAULT_STORE_MESSAGE]: (state: State, payload: StoreMessageDefault): void => {
-    state.main.defaultStoreMessage = payload.value
+  [MutationTypes.SET_DEFAULT_STORE_MESSAGE]: (state: ModuleState <'main'>, payload: StoreMessageDefault): void => {
+    state.defaultStoreMessage = payload.value
   },
 
-  [MutationTypes.SET_MENU_ITEMS]: (state: State, payload: MenuItems): void => {
-    state.main.menuItems = payload.value
+  [MutationTypes.SET_MENU_ITEMS]: (state: ModuleState <'main'>, payload: MenuItems): void => {
+    state.menuItems = payload.value
   }
 }

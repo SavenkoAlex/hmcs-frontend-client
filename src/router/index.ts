@@ -11,6 +11,7 @@ import {
 const routes: RouteRecordRaw[] = []
 
 getNavigationItems().then(response => {
+  /*
   if (response === null) {
     return
   }
@@ -23,6 +24,7 @@ getNavigationItems().then(response => {
   })
 
   routes.push(...serverRoutes)
+  */
 })
 
 const router = createRouter({

@@ -1,4 +1,4 @@
-import { createStore, Store } from 'vuex'
+import { createStore, Store, useStore as baseUseStore } from 'vuex'
 import { InjectionKey } from 'vue'
 import { mutations } from './mutations'
 import { mainGetters, deviceGetters } from './getters'
@@ -17,21 +17,28 @@ export interface State {
   devices: DeviceState
 }
 
+export type ModuleState <T extends keyof State> = State[T]
+
 const devices = {
-  namespace: true,
+  state: () => ({
+    defaultStoreMessage: 'Hoi'
+  }),
   mutations,
   actions: {},
   deviceGetters
 }
 
 const main = {
-  state: () => ({}),
+  state: () => ({
+    defaultStoreMessage: 'Hey'
+  }),
   mutations,
   actions: {},
   mainGetters
 }
 
-export const key: InjectionKey <Store<State>> = Symbol('store')
+export const keyMain: InjectionKey <Store<State>> = Symbol('main')
+export const keyDevices: InjectionKey <Store<State>> = Symbol('devices')
 
 export const store = createStore({
   modules: {
@@ -39,3 +46,17 @@ export const store = createStore({
     devices
   }
 })
+
+export function useStore (key?: keyof State): Store <State> {
+  switch (key) {
+    case 'main' : {
+      return baseUseStore(keyMain)
+    }
+    case 'devices' : {
+      return baseUseStore(keyDevices)
+    }
+    default: {
+      return baseUseStore(keyMain)
+    }
+  }
+}
