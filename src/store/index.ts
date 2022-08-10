@@ -1,7 +1,7 @@
 import { createStore, Store } from 'vuex'
 import { InjectionKey } from 'vue'
-import { mutations } from '@store/mutations'
-import { getters } from '@store/getters'
+import { mutations } from './mutations'
+import { mainGetters, deviceGetters } from './getters'
 
 export interface MainState {
   defaultStoreMessage: 'Main store is working!' | string
@@ -18,17 +18,17 @@ export interface State {
 }
 
 const devices = {
-  state: () => ({}),
+  namespace: true,
   mutations,
   actions: {},
-  getters
+  deviceGetters
 }
 
 const main = {
   state: () => ({}),
   mutations,
   actions: {},
-  getters
+  mainGetters
 }
 
 export const key: InjectionKey <Store<State>> = Symbol('store')
