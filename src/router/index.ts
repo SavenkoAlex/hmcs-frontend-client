@@ -11,7 +11,7 @@ const routes: RouteRecordRaw[] = []
 
 const serverRoutes = [
   {
-    path: '/',
+    path: '/home',
     component: Main
   }, {
     path: '/login',

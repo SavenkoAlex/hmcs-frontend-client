@@ -1,5 +1,5 @@
  <template>
-  <div class="footer">
+  <div class='footer'>
     <blockquote class="va-blockquote">
     <p>
      Я скоро сделаю тебе логотип
@@ -23,6 +23,7 @@ export default defineComponent({
 
 <style scoped>
   .footer {
-    max-height: 50px
+    display: flex;
+    min-height: 50px;
   }
 </style>
