@@ -1,10 +1,18 @@
-import { ActionContext } from 'vuex'
+import { ActionContext, Payload } from 'vuex'
 import { State, store } from '@store/index'
 import { MutationTypes } from '@store/mutation-types'
-import { StoreMessageDefault } from '@store/mutations'
+import loginApi from '@/api/login'
 
 export const actions = {
-  setDefaultStoreMessage: function (context: ActionContext <typeof store, State>, payload: StoreMessageDefault): void {
-    context.commit(MutationTypes.SET_DEFAULT_STORE_MESSAGE, payload)
+  login: <T extends { email: string, password: string }> (context: ActionContext <typeof store, State>, payload: T) => {
+    const { email, password } = payload
+    
+    loginApi.login(email, password).then(result => {
+      context.commit(MutationTypes.SET_USER_DATA, { 
+        type: MutationTypes.SET_USER_DATA,
+        value: result
+       })
+    })
+
   }
 }

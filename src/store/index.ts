@@ -6,6 +6,10 @@ import { mainGetters, deviceGetters } from './getters'
 export interface MainState {
   defaultStoreMessage: 'Main store is working!' | string
   menuItems: {path: string, label: string}[]
+  user: {
+    readonly id: string,
+    readonly token: string
+  }
 }
 
 export interface DeviceState {

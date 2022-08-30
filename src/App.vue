@@ -2,8 +2,8 @@
   <div id="app">
     <div id="nav">
       <va-app-bar>
-        <router-link to="/home">
-          <va-button icon="home" color="#fff" flat :rounded="false" />
+        <router-link to="/">
+          <va-button icon="home" color="#fff" flat :rounded="false"></va-button>
         </router-link>
         <va-spacer />
         <router-link to="/login">
@@ -19,7 +19,7 @@
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  data () {
+  setup () {
     return {}
   }
 })

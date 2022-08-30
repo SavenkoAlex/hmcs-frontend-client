@@ -2,11 +2,11 @@
   <div class="loginFormContainer">
     <va-form style="width: 300px" tag="form" @submit.prevent="login">
      <va-input
-      v-model="email"
+      v-model="credentials.email"
       label="Email"
     />
     <va-input
-      v-model="password"
+      v-model="credentials.password"
       label="Password"
     />
     <va-button type="submit" class="mt-2">
@@ -17,26 +17,30 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, reactive } from 'vue'
 import { VaForm, VaInput } from 'vuestic-ui'
-
-import loginApi from '../api/login'
+import { useStore } from '@/store'
 
 export default defineComponent({
   components: {
     'va-form': VaForm,
     'va-input': VaInput
   },
-  data () {
-    return {
+
+  setup () {
+    const store = useStore()
+    const credentials = reactive({
       email: '',
       password: ''
-    }
-  },
+    })
 
-  methods: {
-    login (): void {
-      loginApi.login(this.email, this.password)
+    function login (): void {
+      store.dispatch('login', credentials)
+    }
+
+    return {
+      credentials,
+      login
     }
   }
 })

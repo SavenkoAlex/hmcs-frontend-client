@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 
 export default {
   login: async (email: string, password: string): Promise <unknown> => {
@@ -14,6 +14,6 @@ export default {
       }
     })
 
-    return response
+    return response as AxiosResponse <unknown, unknown>
   }
 }

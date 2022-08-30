@@ -1,26 +1,36 @@
 <template>
-  <div class="content">
-      <MainBody/>
-      <Footer/>
-  </div>
+    <div class="main">
+      <h2> {{ defaultMessage }} </h2>
+      <va-input label="enter new mewssage" v-model="text">
+      </va-input>
+      <va-button @click="setDefaultMessage"> Cnange message </va-button>
+    </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import MainBody from './MainBody.vue'
-import Footer from './Footer.vue'
+import { defineComponent, computed } from 'vue'
+import { useStore } from '../store'
 
 export default defineComponent({
-
-  components: {
-    MainBody,
-    Footer
-  },
-
   setup () {
+    const store = useStore()
+    const { state: { main: state } } = store
+    const text = ''
+
     return {
+      text,
+      defaultMessage: computed(() => state.defaultStoreMessage),
+      setDefaultMessage: () => {
+        store.commit('SET_DEFAULT_STORE_MESSAGE', { value: text })
+      }
     }
   }
 })
 </script>
 
+<style scoped>
+  .main {
+    display: flex;
+    flex-direction: column;
+  }
+</style>
