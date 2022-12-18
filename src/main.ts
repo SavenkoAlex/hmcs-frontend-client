@@ -5,17 +5,20 @@ import router from './router'
 // import { store, keyMain, keyDevices } from './store'
 import { VuesticPlugin } from 'vuestic-ui'
 import 'vuestic-ui/dist/vuestic-ui.css'
-import VueApollo from 'vue-apollo'
-import { apolloClient } from './apollo/apolloClient'
+import { createApolloProvider } from '@vue/apollo-option'
+import { apolloClient, restClient } from './apollo/apolloClient'
 
-const apolloProvider = new VueApollo({
-  defaultClient: apolloClient
+const apolloProvider = createApolloProvider({
+  defaultClient: apolloClient,
+  clients: {
+    restClient
+  }
 })
 
 createApp(App)
   // .use(store, keyMain, keyDevices)
+  .use(apolloProvider)
   .use(router)
   .use(VuesticPlugin)
   .use(vueCookies)
-  .use(apolloProvider)
   .mount('#app')

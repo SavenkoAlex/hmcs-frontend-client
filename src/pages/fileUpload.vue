@@ -9,7 +9,10 @@ import {
   defineComponent,
   ref
 } from 'vue'
+
 import fileStApi from '../api/fileStorage'
+import { gql } from 'graphql-tag'
+
 export default defineComponent({
 
   setup () {
@@ -34,7 +37,26 @@ export default defineComponent({
       const formData = new FormData()
       formData.append('file', this.pureFile, this.pureFile.name)
 
-      fileStApi.saveFile(formData)
+      // fileStApi.saveFile(formData)
+      console.log('rest execution')
+      this.$apolloProvider.clients.restClient.query({
+        query: gql`query upload ($file: File!)   {
+          post (body: $file)
+          @rest (
+            type: "File"
+            path: "/api/file/store"
+            method: "POST"
+            bodySerializer: "fileEncode"
+            bodyKey: "body"
+            ) {
+              res
+          }
+        }
+        `,
+        variables: {
+          file: formData
+        }
+      })
     }
   }
 })
