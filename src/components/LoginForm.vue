@@ -31,8 +31,8 @@ export default defineComponent({
 
   data () {
     return {
-      email: '' as string,
-      password: '' as string
+      email: '',
+      password: ''
     }
   },
 
