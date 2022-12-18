@@ -7,7 +7,7 @@ import { VuesticPlugin } from 'vuestic-ui'
 import 'vuestic-ui/dist/vuestic-ui.css'
 
 createApp(App)
-  .use(store, keyMain, keyDevices)
+  // .use(store, keyMain, keyDevices)
   .use(router)
   .use(VuesticPlugin)
   .use(vueCookies)

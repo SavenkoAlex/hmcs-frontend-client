@@ -12,15 +12,18 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "typeRoots": [
+    ],
     "types": [
       "webpack-env",
       "mocha",
-      "chai"
+      "chai",
     ],
     "paths": {
       "@/*": ["src/*"],
       "@backend/*": ["../backend/src/*"],
-      "@store/*": ["src/store/*"]
+      "@store/*": ["src/store/*"],
+      "@svg/*": ["assets/icons/*"]
     },
     "lib": [
       "esnext",
@@ -34,7 +37,8 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "tests/**/*.tsx",
+    "assets/icons/*.svg"
   ],
   "exclude": [
     "node_modules"

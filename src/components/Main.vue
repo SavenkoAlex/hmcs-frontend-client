@@ -9,12 +9,13 @@
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue'
-import { useStore } from '../store'
+import { useStore } from '@/store'
 
 export default defineComponent({
   setup () {
-    const store = useStore()
-    const { state: { main: state } } = store
+    // eslint-disable-next-line no-undef
+    const store = useStore(tp.StoreKey.MAIN)
+    const state = store.state
     const text = ''
 
     return {

@@ -4,21 +4,22 @@ import {
   RouteRecordRaw
 } from 'vue-router'
 
-import Root from '@/components/Root.vue'
-import Login from '@/components/Login.vue'
+import Home from '@/pages/home.vue'
+import Login from '@/pages/login.vue'
+import FileUpload from '@/pages/fileUpload.vue'
 
 const routes: RouteRecordRaw[] = []
 
 const serverRoutes = [
   {
     path: '/',
-    component: Root,
-    meta: {
-      requiresAuth: true
-    }
+    component: Home
   }, {
     path: '/login',
     component: Login
+  }, {
+    path: '/upload',
+    component: FileUpload
   }
 ]
 

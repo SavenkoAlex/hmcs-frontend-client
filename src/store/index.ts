@@ -1,57 +1,60 @@
-import { createStore, Store, useStore as baseUseStore } from 'vuex'
+import { createStore, Store, useStore as baseUseStore, Module } from 'vuex'
 import { InjectionKey } from 'vue'
-import { mutations } from './mutations'
-import { mainGetters, deviceGetters } from './getters'
+import { actions as mainActions } from '@/store/main/actions'
+import { getters as mainGetters } from '@/store/main/getters'
+import { mutations as mainMutations } from '@/store/main/mutations'
 
 export interface MainState {
-  defaultStoreMessage: 'Main store is working!' | string
-  menuItems: {path: string, label: string}[]
-  user: {
-    readonly id: string,
-    readonly token: string
-  }
+  defaultStoreMessage: string
+  userCredentials: tp.UserCredentials,
+  user: tp.User
 }
 
 export interface DeviceState {
-  defaultStoreMessage: 'Device store is working!' | string
+  defaultStoreMessage: string
 }
 
 export interface State {
-  main: MainState,
-  devices: DeviceState
+  main: MainState
+  device: DeviceState
 }
-
-export type ModuleState <T extends keyof State> = State[T]
 
 const devices = {
-  state: () => ({
+  namespaced: true,
+  state: {
     defaultStoreMessage: 'Hoi'
-  }),
-  mutations,
-  actions: {},
-  deviceGetters
+  }
 }
 
-const main = {
+const main: Module <MainState, State > = {
+  namespaced: true,
   state: () => ({
-    defaultStoreMessage: 'Hey'
+    defaultStoreMessage: 'Hey',
+    userCredentials: {
+      email: null,
+      password: null
+    },
+    user: {
+      id: null,
+      token: null
+    }
   }),
-  mutations,
-  actions: {},
-  mainGetters
+  getters: mainGetters,
+  mutations: mainMutations,
+  actions: mainActions
 }
 
-export const keyMain: InjectionKey <Store<State>> = Symbol('main')
-export const keyDevices: InjectionKey <Store<State>> = Symbol('devices')
+export const keyMain: InjectionKey <Store <MainState>> = Symbol(tp.StoreKey.MAIN)
+export const keyDevices: InjectionKey <Store <DeviceState>> = Symbol(tp.StoreKey.DEVICES)
 
-export const store = createStore({
+export const store = createStore <State>({
   modules: {
     main,
     devices
   }
 })
 
-export function useStore (key?: keyof State): Store <State> {
+export function useStore (key?: tp.StoreKey): Store <typeof key extends 'main' ? MainState: DeviceState> {
   switch (key) {
     case 'main' : {
       return baseUseStore(keyMain)
