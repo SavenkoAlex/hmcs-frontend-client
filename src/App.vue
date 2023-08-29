@@ -12,6 +12,9 @@
         <router-link to="/upload">
           <va-button  color="#fff" flat :rounded="false">Upload</va-button>
         </router-link>
+        <router-link to="/stream">
+          <va-button  color="#fff" flat :rounded="false">Stream</va-button>
+        </router-link>
       </va-app-bar>
     </div>
     <router-view></router-view>

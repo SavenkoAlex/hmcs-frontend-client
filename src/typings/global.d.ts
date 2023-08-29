@@ -11,6 +11,10 @@ declare module '*.svg' {
   export default content
 }
 
+declare module 'videojs-fetch-flv' {
+  export * from 'video.js'
+}
+
 declare namespace tp {
   export type UserCredentials = {
     email: string | null,

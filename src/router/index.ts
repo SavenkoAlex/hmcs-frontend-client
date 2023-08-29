@@ -7,6 +7,8 @@ import {
 import Home from '@/pages/home.vue'
 import Login from '@/pages/login.vue'
 import FileUpload from '@/pages/fileUpload.vue'
+import Stream from '@/pages/stream.vue'
+import Suscriber from '@/pages/subscriber.vue'
 
 const routes: RouteRecordRaw[] = []
 
@@ -20,6 +22,12 @@ const serverRoutes = [
   }, {
     path: '/upload',
     component: FileUpload
+  }, {
+    path: '/stream',
+    component: Stream
+  }, {
+    path: '/live/:id',
+    component: Suscriber
   }
 ]
 
