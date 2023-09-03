@@ -4,9 +4,6 @@ import {
   RouteRecordRaw
 } from 'vue-router'
 
-import Home from '@/pages/home.vue'
-import Login from '@/pages/login.vue'
-import FileUpload from '@/pages/fileUpload.vue'
 import Stream from '@/pages/stream.vue'
 import Suscriber from '@/pages/subscriber.vue'
 
@@ -14,15 +11,6 @@ const routes: RouteRecordRaw[] = []
 
 const serverRoutes = [
   {
-    path: '/',
-    component: Home
-  }, {
-    path: '/login',
-    component: Login
-  }, {
-    path: '/upload',
-    component: FileUpload
-  }, {
     path: '/stream',
     component: Stream
   }, {

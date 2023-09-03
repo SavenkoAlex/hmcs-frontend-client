@@ -13,11 +13,10 @@
     "sourceMap": true,
     "baseUrl": ".",
     "typeRoots": [
+    
     ],
     "types": [
-      "webpack-env",
-      "mocha",
-      "chai",
+      "vite/client"
     ],
     "paths": {
       "@/*": ["src/*"],
@@ -29,7 +28,6 @@
       "esnext",
       "dom",
       "dom.iterable",
-      "scripthost"
     ]
   },
   "include": [
@@ -42,5 +40,6 @@
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "isolatedModules": true,
 }

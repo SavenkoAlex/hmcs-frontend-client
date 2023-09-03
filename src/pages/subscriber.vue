@@ -6,15 +6,15 @@ import {
   ref
 } from 'vue'
 
-import videojs from 'video.js'
+// import videojs from 'video.js'
 import streamApi from '@/api/stream'
 // import * as fetchFlv from 'videojs-fetch-flv'
-import 'video.js/dist/video-js.css'
+// import 'video.js/dist/video-js.css'
 
 export default defineComponent({
 
   name: 'Subscriber',
-
+  /*
   setup () {
     const key = ref<string | null>(null)
 
@@ -93,6 +93,7 @@ export default defineComponent({
   beforeUnmount () {
     this.player.dispose()
   }
+  */
 })
 </script>
 
