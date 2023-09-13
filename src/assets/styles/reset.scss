@@ -39,7 +39,6 @@ input[type="text"] {
 
 body {
   width: 100%;
-  max-width: 68rem;
   margin: 0 auto;
   font:
     1.6rem/1.25 "Helvetica Neue",
@@ -47,7 +46,6 @@ body {
     Arial,
     sans-serif;
   background-color: $primary-1;
-  color: #4d4d4d;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
 }

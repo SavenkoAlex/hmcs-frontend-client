@@ -15,6 +15,9 @@
     "bootstrap-vue": "^2.23.1",
     "element-plus": "^2.3.12",
     "primevue": "^3.33.0",
+    "rollup-plugin-includepaths": "^0.2.4",
+    "three": "^0.156.1",
+    "video.js": "^8.5.2",
     "vite": "^4.4.9",
     "vite-svg-loader": "^4.0.0",
     "vue": "3.3",
@@ -25,6 +28,9 @@
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {
+    "@rollup/plugin-alias": "^5.0.0",
+    "@rollup/plugin-commonjs": "^25.0.4",
+    "@rollup/plugin-node-resolve": "^15.2.1",
     "@types/axios": "^0.14.0",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^5.2.4",
@@ -40,6 +46,8 @@
     "eslint-plugin-standard": "^4.0.0",
     "eslint-plugin-vue": "^8.7.1",
     "node-sass": "^9.0.0",
+    "rollup-plugin-amd": "^4.0.0",
+    "safe-json-parse": "^4.0.0",
     "sass": "^1.66.1",
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.2",

@@ -1,9 +1,9 @@
-<script lang="ts">
 
 import {
   defineComponent,
   computed,
-  ref
+  ref,
+  VNode
 } from 'vue'
 
 // import videojs from 'video.js'
@@ -94,16 +94,20 @@ export default defineComponent({
     this.player.dispose()
   }
   */
-})
-</script>
 
-<template>
-  <h2> Subscriber </h2>
-  <div
-    class="palyer-wrapper"
-  >
-      <video ref='videoNode' width=600 height=300 class="video-js" controls>
-        Тег video не поддерживается вашим браузером.
-      </video>
-  </div>
-</template>
+  render (): VNode {
+    return <div class="stream">
+      <h2> Subscriber </h2>
+        <div
+          class="palyer-wrapper"
+        >
+            <video ref='videoNode' width={600} height={300} class="video-js" controls>
+              Тег video не поддерживается вашим браузером.
+            </video>
+        
+
+        </div>
+        </div>
+
+      } 
+})

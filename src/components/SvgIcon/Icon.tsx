@@ -5,7 +5,7 @@ import {
 } from 'vue'
 
 export default defineComponent({
-  
+
   name: 'icon',
 
   props: {
@@ -16,13 +16,32 @@ export default defineComponent({
   },
 
   computed: {
-    component (): VNode {
-      const path = `../../assets/icons/${this.iconName}.svg`
+    path (): string {
+      const path = import(`${this.iconName}.svg?url`)
       return path
     }
   },
 
+  data () {
+    return {
+      svg: null
+    }
+  },
+
+  watch: {
+    iconName: {
+      handler: () => this.svg = import(`${this.iconName}.svg?url`),
+      immedate: true
+    }
+  },
+
+  methods: {
+    importSvg (path: string) {
+      return import(path)      
+    }
+  },
+  
   render (): VNode {
-    <img src={this.path} alt={this.iconName}/>  
+    return this.svg
   }
 })

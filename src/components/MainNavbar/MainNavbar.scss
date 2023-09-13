@@ -1,0 +1,61 @@
+.navbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+
+  caret-color:  transparent;
+
+  height: 100%;
+  width: 100%;
+  background-color: $primary-5;
+
+  &__logo {
+    padding: 8px;
+    cursor: none;
+  }
+
+  &__menu {
+    padding: 0 24px;
+  }
+
+  &__option { 
+
+    &__hidden {
+      display: none;
+    }
+
+    &_visible {
+      display: block;
+    }
+  }
+}
+
+ul {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 11px;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:link {
+  color: $primary-3;
+}
+
+a:visited {
+  color: $primary-3;
+}
+
+a:active {
+  color: $primary-4;
+}
+
+a:focus {
+  color: $primary-2;
+  text-decoration: underline;
+}

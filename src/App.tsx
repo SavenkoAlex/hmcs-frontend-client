@@ -5,6 +5,7 @@ import {
 
 import MainNavbar from '@/components/MainNavbar/MainNavbar'
 import DefaultLayout from '@/layouts/default'
+import { RouterView } from 'vue-router'
 
 export default defineComponent({
 
@@ -15,10 +16,15 @@ export default defineComponent({
     MainNavbar
   },
 
+  created () {
+    localStorage.setItem('isAuthenticated', 'false')
+  },
+
   render(): VNode {
     return <DefaultLayout>
     {{
-      header: () => <MainNavbar/>
+      header: () => <MainNavbar/>,
+      default: () => <RouterView/>
     }}
     </DefaultLayout>
   }

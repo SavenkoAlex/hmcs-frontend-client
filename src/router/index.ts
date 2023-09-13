@@ -4,18 +4,37 @@ import {
   RouteRecordRaw
 } from 'vue-router'
 
-import Stream from '@/pages/stream.vue'
-import Suscriber from '@/pages/subscriber.vue'
+import StreamsList from '@/pages/StreamsList'
+import Stream from '@/pages/Stream'
+import User from '@/pages/User'
+import Main from '@/pages/Main'
 
 const routes: RouteRecordRaw[] = []
 
 const serverRoutes = [
   {
-    path: '/stream',
-    component: Stream
-  }, {
+    // all streams list
+    name: 'streams',
+    path: '/streams',
+    component: StreamsList
+  }, 
+  {
+    // dedicated stream
+    name: 'live',
     path: '/live/:id',
-    component: Suscriber
+    component: Stream
+  },
+  {
+    // user profile
+    name: 'user',
+    path: '/user',
+    component: User
+  },
+  {
+    // root page
+    name: 'home',
+    path: '/',
+    component: Main
   }
 ]
 
@@ -24,6 +43,10 @@ routes.push(...serverRoutes)
 const router = createRouter({
   history: createWebHashHistory(),
   routes
+})
+
+router.beforeEach((_to, _from) => {
+  
 })
 /*
 
