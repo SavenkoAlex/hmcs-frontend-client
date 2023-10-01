@@ -6,11 +6,13 @@ import {
   CanvasHTMLAttributes
 } from 'vue'
 
+/** Player */
 import videojs from 'video.js'
 
 /** Style */
 import './StreamPreview.scss'
-/** Player */
+import 'video.js/dist/video-js.css'
+
 
 export default defineComponent({
   
@@ -26,17 +28,26 @@ export default defineComponent({
 
   computed: {
     options () {
-      return { title: 'Stream', source: 'https://cdn.flowplayer.com/a30bd6bc-f98b-47bc-abf5-97633d4faea0/v-de3f6ca7-2db3-4689-8160-0f574a5996ad.mp4' }
+      return { 
+        title: 'Stream', 
+        liveui: true,
+        sources: [{
+           src: 'http://192.168.0.110:8887/live/qwerty1/index.m3u8',
+           type:'application/x-mpegURL'
+        }]
+      }
     }
   },
 
   setup () {
+    const video = videojs
     const player = ref()
     const videoNode = ref<HTMLElement>()
     const preview = ref<HTMLElement>()
     const canvas = ref<CanvasHTMLAttributes>()
 
     return {
+      video,
       videoNode,
       preview,
       canvas,
@@ -49,12 +60,21 @@ export default defineComponent({
       return
     }
     
-    this.player = videojs(this.videoNode, this.options, () => {
+    this.video.use('*', function player () {
+      return {
+        setSource: function setSource (srcObject: any, next: (arg0: null, arg1: any) => void) {
+          // console.log('setSource', srcObject)
+          next(null, srcObject)
+        }
+      }
+    })
+    this.player = this.video(this.videoNode, this.options, () => {
       this.player.log('onPlayerReady', this);
     });
   },
 
   beforeUnmount () {
+    this.player.dispose()
   },
 
   methods: {
@@ -73,7 +93,7 @@ export default defineComponent({
       onFocusin={$event => this.onPreviewFocused($event)}
       onFocusout={$event => this.onPreviewLeaveFocus($event)}
     >
-      <video ref={'videoNode'}  src={this.options.source} controls>
+      <video ref={'videoNode'} controls class='vide-js'>
         Тег video не поддерживается вашим браузером.
       </video>
     </div>
