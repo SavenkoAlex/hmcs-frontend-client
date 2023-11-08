@@ -6,7 +6,7 @@ import {
 
 import StreamsList from '@/pages/StreamsList'
 import Stream from '@/pages/Stream'
-import User from '@/pages/User'
+import User from '@/pages/Publisher/Publisher'
 import Main from '@/pages/Main'
 
 const routes: RouteRecordRaw[] = []
@@ -16,7 +16,7 @@ const serverRoutes = [
     // all streams list
     name: 'streams',
     path: '/streams',
-    component: StreamsList
+    component: Stream
   }, 
   {
     // dedicated stream

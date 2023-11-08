@@ -5,16 +5,22 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build -w",
-    "serve": "vite preview",
+    "serve": "vite preview --port 8888",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src"
   },
   "dependencies": {
+    "@videojs/http-streaming": "^3.5.3",
+    "@vitejs/plugin-basic-ssl": "^1.0.1",
     "@vitejs/plugin-vue": "^4.3.4",
     "@vitejs/plugin-vue-jsx": "^3.0.2",
     "bootstrap": "^5.3.1",
     "bootstrap-vue": "^2.23.1",
     "element-plus": "^2.3.12",
+    "hls.js": "^1.4.12",
+    "janus-gateway": "^1.2.0",
     "primevue": "^3.33.0",
+    "pro-flv.js": "^2.0.2",
+    "r": "^0.0.5",
     "rollup-plugin-includepaths": "^0.2.4",
     "three": "^0.156.1",
     "video.js": "^8.5.2",
@@ -25,7 +31,8 @@
     "vue-loader": "^17.2.2",
     "vue-router": "^4.0.0-0",
     "vuestic-ui": "1.7.5",
-    "vuex": "^4.0.0-0"
+    "vuex": "^4.0.0-0",
+    "webrtc-adapter": "^8.2.3"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^5.0.0",

@@ -32,6 +32,7 @@ export default defineComponent({
   },
 
   mounted () {
+    /*
     streamApi.getStreams().then((res) => {
       if (!res) {
         return
@@ -43,6 +44,7 @@ export default defineComponent({
         }
       })
     })
+    */
   },
 
   render (): VNode {

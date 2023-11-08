@@ -4,6 +4,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import svgLoader from 'vite-svg-loader'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
+import fs from 'fs'
 
 const path = require('path')
 
@@ -17,7 +18,7 @@ export default defineConfig({
     commonjs(),
     resolve({
       exportConditions: ['node']
-    })
+    }),
   ],
   resolve: {
     alias: {
@@ -29,9 +30,23 @@ export default defineConfig({
     jsxFactory: 'h',
   },
   server: {
+    https: {
+      key: fs.readFileSync(path.resolve(__dirname, 'certs/taro.key')),
+      cert: fs.readFileSync(path.resolve(__dirname, 'certs/taro.cert'))
+    },
     cors: {
-      origin: true
-    }
+      origin: false
+    },
+    proxy: {
+      '/api' : {
+        target: 'https://192.168.0.110:8887',
+        changeOrigin: true,
+      },
+      '/janus': {
+        target: 'https://192.168.0.115',
+        secure: false
+      }
+    },
   },
   css: {
     preprocessorOptions: {
@@ -48,22 +63,6 @@ export default defineConfig({
       include: [/node_modules/],
       esmExternals: true
     },
-    rollupOptions: {
-      /*
-      external: [
-        'global/window', 
-        'global/document', 
-        'safe-json-parse/tuple', 
-        '@videojs/vhs-utils/es/byte-helpers',
-        '@videojs/vhs-utils/es/id3-helpers',
-        '@videojs/vhs-utils/es/resolve-url',
-        '@videojs/vhs-utils/es/media-groups',
-        '@videojs/vhs-utils/es/decode-b64-to-uint8-array',
-        'mux.js/lib/tools/parse-sidx',
-        'mux.js/lib/utils/clock',
-        '@videojs/vhs-utils/es/containers'
-      ]
-      */
-    },
   },
 })
+

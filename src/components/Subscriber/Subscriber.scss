@@ -1,0 +1,42 @@
+.rooms-selector {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+
+  select {
+    padding: 2px 5px
+  }
+  margin: 3px;
+}
+
+.publisher-selector {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+
+  select {
+    padding: 2px 5px
+  }
+  margin: 3px;
+}
+
+.videoContainer {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.localvideo {
+  display: grid;
+}
+.remotevideo {
+  display: grid;
+}
+
+button {
+  padding: 5px 0;
+  margin: 5px;
+}
