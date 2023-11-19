@@ -11,8 +11,6 @@ import adapter from 'webrtc-adapter'
 
 // Style
 import './Publisher.scss'
-import { ContentSteeringController } from 'hls.js'
-import stream from '@/api/stream'
 
 export default defineComponent({
 
@@ -102,9 +100,6 @@ export default defineComponent({
             Janus.attachMediaStream(this.clientNode, this.clientStream)
           }
         }, 
-        onremotetrack: (track, mid, on, metadata) => {
-          console.warn('!!! REMOTE TRACK !!!')
-        },
       })
     },
 
@@ -141,8 +136,7 @@ export default defineComponent({
         const message = {
           request: 'create',
           room: this.roomId,
-          permanent: true,
-          description: 'filterIT',
+          description: 'RoomOwner',
         }
 
         this.pluginHandler?.send({
@@ -182,7 +176,6 @@ export default defineComponent({
         const message = {
           request: 'destroy',
           room: this.roomId,
-          permanent: true
         }
 
         this.pluginHandler?.send({
@@ -287,7 +280,7 @@ export default defineComponent({
 
         const message = {
           request: 'publish',
-          display: `filterIT`,
+          display: `roomOwner`,
           audio: false,
           video: true,
           descriptions: [{
@@ -315,7 +308,6 @@ export default defineComponent({
       const event = msg['videoroom']
 
       if (event === 'joined') {
-        console.warn('!!! JOINED !!!')
         this.createOffer().then(jsep => {
           if (jsep) {
             this.publish(jsep).then(() => console.warn('CONFIGURED'))
@@ -333,13 +325,13 @@ export default defineComponent({
 
     getPublishers () {
       const message = {
-        request: 'listparticipants',
-        room: this.roomId
+        request: 'list',
       }
 
       this.pluginHandler?.send({
         message,
-        success: (res) => { this.publishers = res; console.log(res) }
+        success: (res) => { this.publishers = res.list || [] },
+        error: (err) => { this.publishers = []; console.error(err) }
       })
     },
 
@@ -351,8 +343,6 @@ export default defineComponent({
         console.error('no JSEP')
         return
       }
-
-      // this.publish(jsep)
     }
 
   },

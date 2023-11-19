@@ -16,7 +16,7 @@ const serverRoutes = [
     // all streams list
     name: 'streams',
     path: '/streams',
-    component: Stream
+    component: StreamsList
   }, 
   {
     // dedicated stream
