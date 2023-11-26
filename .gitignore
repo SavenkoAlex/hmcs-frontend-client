@@ -21,3 +21,8 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+certs/cert.pem
+.gitignore
+certs/key.pem
+certs/taro.cert
+certs/taro.key

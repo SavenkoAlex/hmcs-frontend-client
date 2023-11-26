@@ -2,8 +2,8 @@ import Janus, { JanusJS } from 'janus-gateway'
 import adapter from 'webrtc-adapter'
 import eventEmitter from 'events'
 
-interface StreamDescription {
-  streamId: number
+export interface StreamDescription {
+  streamId: string
   displayName: string
   mountId: number
 }
@@ -15,6 +15,11 @@ type WebRTCHandlerConstructor = {
 }
 
 type Handler = JanusJS.PluginHandle
+
+type initResult <T extends StreamHandler> = null | T | {
+  handler: JanusJS.PluginHandle,
+  emitter: eventEmitter.EventEmitter
+}
 
 const webRTCInstance = <T extends Handler> (): Promise <{ handler: T, emitter: eventEmitter.EventEmitter}> => {
   const emitter = new eventEmitter.EventEmitter()
@@ -62,7 +67,7 @@ export abstract class StreamHandler {
       this.emitter = emitter
     }
 
-  static async init (plugin: typeof Janus, options?: StreamDescription) {
+  static async init <T extends StreamHandler>(plugin: typeof Janus, options?: StreamDescription): Promise <initResult <T>> {
     plugin.init({
       debug: true,
       dependencies: Janus.useDefaultDependencies({ adapter })

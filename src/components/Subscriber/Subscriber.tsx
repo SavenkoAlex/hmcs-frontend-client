@@ -192,7 +192,7 @@ export default defineComponent({
       destroyed: () => console.warn('janus destroyed')
     })
     this.roomId = Number.parseInt(this.$route.path.split('/')[2], 10)
-    this.getPublisher()
+    // this.getPublisher()
   },
 
   render (): VNode {

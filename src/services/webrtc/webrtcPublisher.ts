@@ -1,6 +1,9 @@
 import Janus, { JanusJS } from 'janus-gateway'
 import eventEmitter from 'events'
-import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
+import { 
+  StreamHandler,
+  StreamDescription
+ } from  '@/services/webrtc/webrtcAbstract'
 
 /**
  * Some WebRTC plugin with init (activate) function
@@ -8,12 +11,6 @@ import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
 export interface WebRTCPlugin <T extends Record <string, unknown>, P extends Record <string, unknown>> {
   init: (options?: T) => void | boolean
   getHandler?: Promise <P>
-}
-
-interface StreamDescription {
-  streamId: string
-  displayName: string
-  mountId: number
 }
 
 /**
@@ -52,7 +49,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   }
 
   // Static constructor
-  static async init (plugin: typeof Janus, options: StreamDescription) {
+  static async init <T extends PublisherStreamHandler> (plugin: typeof Janus, options: Required<StreamDescription>) {
     const result = await super.init(plugin)
     if (!result) {
       return null
