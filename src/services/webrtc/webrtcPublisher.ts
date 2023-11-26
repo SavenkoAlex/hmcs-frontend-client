@@ -1,37 +1,6 @@
 import Janus, { JanusJS } from 'janus-gateway'
-import adapter from 'webrtc-adapter'
 import eventEmitter from 'events'
-import { tr } from 'element-plus/es/locale'
-
-type Handler = JanusJS.PluginHandle
-
-const webRTCInstance = <T extends Handler> (): Promise <{ handler: T, emitter: eventEmitter.EventEmitter}> => {
-  const emitter = new eventEmitter.EventEmitter()
-  
-  return new Promise ((resolve, reject) => {
-    const janusInstance = new Janus ({
-      server: import.meta.env.webrtc_server,
-      success: () => {
-        if (!janusInstance) {
-          reject('webrtc plugin is not available')
-        }
-
-        janusInstance.attach({
-          plugin: 'import.meta.env.webrtcplugin',
-          success: (janusHandler) => resolve({ handler: janusHandler as T, emitter }),
-          onmessage: (msg: JanusJS.Message, jsep: JanusJS.JSEP | undefined) => {
-              emitter.emit('message', { msg, jsep })
-          },
-          onremotetrack: (track: MediaStreamTrack, mid: string, on: boolean, metadata?: unknown) => {
-            emitter.emit('remotetrack', track, mid, on, metadata)
-          }
-        })
-      }
-
-    })
-
-  })
-}
+import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
 
 /**
  * Some WebRTC plugin with init (activate) function
@@ -42,13 +11,9 @@ export interface WebRTCPlugin <T extends Record <string, unknown>, P extends Rec
 }
 
 interface StreamDescription {
-  streamId: number
+  streamId: string
   displayName: string
   mountId: number
-  constraints: {
-    audio: boolean
-    video: boolean
-  }
 }
 
 /**
@@ -56,9 +21,9 @@ interface StreamDescription {
  */
 export interface WebRTCHandler {
   createStream: (track: MediaStreamTrack) => Promise <boolean>
-  destroyStream: (streamId: number) => Promise <boolean>
-  modifyToPrivate?: (subscribers: unknown[], streamId: number) => Promise <boolean>
-  modifyToPublic?: (streamId: number) => Promise <boolean>
+  destroyStream: (mountId: number) => Promise <boolean>
+  modifyToPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
+  modifyToPublic?: (mointId: number) => Promise <boolean>
 }
 
 type WebRTCHandlerConstructor = {
@@ -68,14 +33,11 @@ type WebRTCHandlerConstructor = {
   options: StreamDescription
 }
 
-export class StreamHandler implements WebRTCHandler { 
+export class PublisherStreamHandler extends StreamHandler implements  WebRTCHandler { 
   
-  plugin: typeof Janus
-  handler: JanusJS.PluginHandle
-  emitter: eventEmitter.EventEmitter
-  roomNumber: number
-  options: StreamDescription
+  roomNumber: number | null
   mediaTrack: MediaStreamTrack | null
+  options: StreamDescription
 
   private constructor ({
     plugin,
@@ -83,32 +45,30 @@ export class StreamHandler implements WebRTCHandler {
     emitter,
     options
   }: WebRTCHandlerConstructor) {
-    this.plugin = plugin
-    this.handler = handler
-    this.emitter = emitter
-    this.roomNumber = Math.floor(Math.random() * 10000) + Math.floor(Math.random() * 1000)
+    super({plugin, handler, emitter})
+    this.roomNumber = null
     this.options = options
     this.mediaTrack = null
   }
 
   // Static constructor
   static async init (plugin: typeof Janus, options: StreamDescription) {
-    plugin.init({
-      debug: true,
-      dependencies: Janus.useDefaultDependencies({ adapter })
-    })
-
-    const { handler, emitter } = await webRTCInstance()
-    const streamHandler = new StreamHandler({plugin, handler, emitter, options})
+    const result = await super.init(plugin)
+    if (!result) {
+      return null
+    }
+    const { handler, emitter } = result
+    const streamHandler = new PublisherStreamHandler({plugin, handler, emitter, options})
     streamHandler.listen()
+    return streamHandler
   }
 
   // attach a event listener on janus events
-  private listen () {
+  protected listen () {
     // Catching Janus on message event
-    this.emitter.on('message', (msg: JanusJS.Message, jsep?: JanusJS.JSEP) => {
-      
-      if (msg['videoroom'] === 'joined') {
+    this.emitter.on('message', ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+      const msgType = msg.videoroom
+      if (msgType === 'joined') {
         this.createOffer().then(jsep => {
           if (jsep) {
             this.publish(jsep)
@@ -141,11 +101,12 @@ export class StreamHandler implements WebRTCHandler {
         request: 'create',
         room: options.mountId,
         description: options.displayName,
+        permanent: false
       }
 
       this.handler?.send({
         message,
-        success: (roomNumber: number) => {
+        success: (roomNumber) => {
           resolve(roomNumber)
         },
         error: (err) => {
@@ -170,8 +131,8 @@ export class StreamHandler implements WebRTCHandler {
       const message = {
         request: 'join',
         ptype: 'publisher',
-        room: this.roomNumber,
-        id: this.options.streamId,
+        room: this.options.mountId,
+        id: this.options.mountId,
         display: this.options.displayName
       }
 
@@ -202,6 +163,7 @@ export class StreamHandler implements WebRTCHandler {
         video: true,
         descriptions: [{
           mid: this.options.streamId || String(0),
+          description: `${this.options.streamId} stream`
         }]
       }
 
@@ -209,7 +171,7 @@ export class StreamHandler implements WebRTCHandler {
         message,
         jsep,
         success: () =>  resolve(true),
-        error: () => resolve(false)
+        error: (err) => { console.log(err); resolve(false) }
       })
     })
   }
@@ -251,13 +213,32 @@ export class StreamHandler implements WebRTCHandler {
       displayName: this.options.displayName 
     })
 
-    if (roomNumber !== this.roomNumber) {
-      console.error('room number is now match requested room')
+    if (!roomNumber) {
+      console.error('room is not available')
       return false
     }
 
     const result = await this.joinAsPublisher()
     return result
+  }
+
+  async destroyStream (): Promise<boolean> {
+    return new Promise ((resolve, reject) => {
+        if (!this.handler) {
+          reject('No plugin available')
+        }
+
+        const message = {
+          request: 'destroy',
+          room: this.options.mountId,
+        }
+
+        this.handler?.send({
+          message,
+          success: () => resolve(true),
+          error: () => resolve(false)
+        })
+      })
   }
 
 }

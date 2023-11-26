@@ -2,12 +2,13 @@
 import {
   defineComponent,
   VNode,
-  ref
+  ref,
+  inject
 } from 'vue'
 
 // janus
-import Janus, { JanusJS } from 'janus-gateway'
-import adapter from 'webrtc-adapter'
+import Janus from 'janus-gateway'
+import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 
 // Style
 import './Publisher.scss'
@@ -16,6 +17,12 @@ export default defineComponent({
 
   name: 'Publisher',
 
+  computed: {
+    isHandlerAvailable (): boolean {
+      return !!this.pluginHandler
+    }
+  },
+
   setup () {
     const publisherNode = ref <HTMLMediaElement> ()
     const clientNode = ref <HTMLVideoElement> ()
@@ -23,40 +30,29 @@ export default defineComponent({
     const publisherStream = ref <MediaStream> ()
     const clientStream = ref <MediaStream> ()
 
-    const roomId = Math.floor(Math.random() * 10000)
-    const publisherId = Math.floor(Math.random() * 100)
+    const publisherId = ref<number>()
 
     const constraints = {
       audio: false,
       video: true
     }
 
-    const janus = Janus.init({
-      debug: true,
-      dependencies: Janus.useDefaultDependencies({ adapter })
-    })
-
-    const janusUnit = ref <Janus> ()
-    const pluginHandler = ref <JanusJS.PluginHandle> ()
-
+    const pluginHandler = ref <PublisherStreamHandler> ()
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
-    const publishers = ref <{id: number, display: string, publisher: boolean}[]> ()
+    const crypto = inject<Crypto>('crypto')
 
     return {
       publisherNode,
       clientNode,
       publisherStream,
       clientStream,
-      roomId,
       publisherId,
       constraints,
-      janus,
-      janusUnit,
       pluginHandler,
       videoTrack,
       audioTrack,
-      publishers
+      crypto
     }
   },
 
@@ -75,42 +71,6 @@ export default defineComponent({
 
   methods: {
 
-    /**
-     * Init Janus plugin
-     */
-    attachPlugin () {
-      if (!this.janusUnit) {
-        throw new Error ('No janus instanse available') 
-      }
-
-      this.janusUnit?.attach({
-        plugin: 'janus.plugin.videoroom',
-
-        success: (handler) => {
-          this.pluginHandler = handler
-        },
-
-        onmessage: this.onMessage,
-        webrtcState: this.onWebrtcState,
-        onlocaltrack: (track: MediaStreamTrack, on: boolean) => {
-          console.warn('LOCAL Track', on, track)
-          this.clientStream = new MediaStream([track])
-
-          if (this.clientStream && this.clientNode) {
-            Janus.attachMediaStream(this.clientNode, this.clientStream)
-          }
-        }, 
-      })
-    },
-
-    onWebrtcState (isConnected: boolean): void | undefined {
-      Janus.log("Janus says our WebRTC PeerConnection is " + (isConnected ? "up" : "down") + " now");
-    },
-
-    /**
-     * Obtains an user media stream 
-     * @returns media stream or null if not available
-     */
     getUserMedia (): Promise <MediaStream | null> {
       return navigator.mediaDevices.getUserMedia(this.constraints)
         .then(stream => {
@@ -122,237 +82,70 @@ export default defineComponent({
         })
     },
 
-    /**
-     * create room request 
-     * @returns 
-     */
-    create (): Promise <true | false> {
-
-      return new Promise ((resolve, reject) => {
-        if (!this.pluginHandler) {
-          reject('No plugin available')
-        }
-
-        const message = {
-          request: 'create',
-          room: this.roomId,
-          description: 'RoomOwner',
-        }
-
-        this.pluginHandler?.send({
-          message,
-          success: (result) => {
-            console.warn(`room ${this.roomId} created`, result)
-            resolve(true)
-          },
-          error: (err) => {
-            console.error('Error while requesting room creation ', err)
-            resolve(false)
-          }
-        })
-      })
-    },
-
-    createAndJoin() {
-      this.create().then((result) => {
-        if (result) {
-          this.joinAsPublisher()
-        } else {
-          Janus.debug('Can not create a room')
-        }
-      })
-    },
 
     /**
      * destroy room request
      * @returns 
      */
-    destroyRoom (): Promise <true | false> {
-      return new Promise ((resolve, reject) => {
-        if (!this.pluginHandler) {
-          reject('No plugin available')
-        }
-
-        const message = {
-          request: 'destroy',
-          room: this.roomId,
-        }
-
-        this.pluginHandler?.send({
-          message,
-          success: () => resolve(true),
-          error: () => resolve(false)
-        })
-      })
-    },
-
-    /**
-     * Join room request
-     */
-    joinAsPublisher (): Promise <true | false> {
-      return new Promise ((resolve, reject) => {
-        if (!this.pluginHandler) {
-          reject('No plugin available')
-        }
-
-        const message = {
-          request: 'join',
-          ptype: 'publisher',
-          room: this.roomId,
-          id: this.publisherId,
-          display: 'filterIT'
-        }
-
-        this.pluginHandler?.send({
-          message,
-          success: () => resolve(true),
-          error: () => resolve(false)
-        })
-      })
-    },
-
-    /**
-     * 
-     * @param streams 
-     * @returns 
-     */
-    configure (streams: { mid: string }[] | undefined): Promise < true | false > {
-
-      return new Promise ((resolve, reject) => {
-        if (!this.pluginHandler) {
-          reject('No plugin available')
-          return
-        }
-
-        const message: { 
-          request: string, 
-          keyframe: boolean, 
-          streams?: unknown[] 
-        } = {
-          request: 'configure',
-          keyframe: true,
-          streams: []
-        }
-
-        if (streams) {
-          for (const stream of streams) {
-            stream.mid = this.publisherStream?.id || String(0)
-          }
-          message.streams = streams
-        }        
-
-        this.pluginHandler.send({
-          message,
-          success: () => resolve(true),
-          error: () => resolve(false)
-        })
-      })
-    },
-
-    createOffer (): Promise <JanusJS.JSEP | false> {
-      return new Promise ((resolve, reject) => {
-        
-        if (!this.pluginHandler || !this.videoTrack) {
-          reject('No plugin available')
-          return
-        }
-
-        this.pluginHandler?.createOffer({
-          tracks: [{
-            type: 'video',
-            capture: this.videoTrack
-          }],
-          success: (jsep) => resolve (jsep),
-          error: (err) => resolve(false)
-        })
-      })
-    },
-
-    /**
-     * publish request
-     */
-    publish (jsep: JanusJS.JSEP): Promise <true | false> {
-
-      return new Promise ((resolve, reject) => {
-        if (!this.pluginHandler) {
-          reject('No plugin available')
-        }
-
-        const message = {
-          request: 'publish',
-          display: `roomOwner`,
-          audio: false,
-          video: true,
-          descriptions: [{
-            mid: this.publisherStream?.id || String(0),
-            description: 'poxui'
-          }]
-        }
-
-        this.pluginHandler?.send({
-          message,
-          jsep,
-          success: (result) => { console.log('PUBLISH REQUEST SEND'); resolve(true) },
-          error: err => resolve(false)
-        })
-      })
-    },
-    
-    /**
-     * On message event handler
-     * @param msg 
-     * @param jsep 
-     */
-    onMessage (msg: JanusJS.Message, jsep: JanusJS.JSEP | undefined): void {
-      
-      const event = msg['videoroom']
-
-      if (event === 'joined') {
-        this.createOffer().then(jsep => {
-          if (jsep) {
-            this.publish(jsep).then(() => console.warn('CONFIGURED'))
-          } else {
-            Janus.error('No offer generated')
-          }
-        })
-      }
-
-      if (jsep) {
-        this.pluginHandler?.handleRemoteJsep({jsep})
-      }
-
-    },
-
-    getPublishers () {
-      const message = {
-        request: 'list',
-      }
-
-      this.pluginHandler?.send({
-        message,
-        success: (res) => { this.publishers = res.list || [] },
-        error: (err) => { this.publishers = []; console.error(err) }
-      })
-    },
-
-    async startStream (): Promise <void> {
-
-      const jsep = await this.createOffer()
-
-      if (!jsep) {
-        console.error('no JSEP')
+    destroyRoom (): Promise <true | false> | undefined {
+      if (!this.pluginHandler) {
+        console.error('no webrtc plugin availabell')
         return
       }
+
+      return this.pluginHandler.destroyStream()
+    },
+
+
+    
+
+    async startStream (): Promise <void> {
+      if (!this.pluginHandler) {
+        console.error('no webrtc plugin availabele')
+        return
+      }
+
+      if (!this.videoTrack) {
+        console.error('local video not detected')
+        return
+      }
+
+      this.pluginHandler.createStream(this.videoTrack)
+    },
+
+    getNewPublisherId (): number | null {
+      if (!this.crypto) {
+        return null
+      }
+
+      const randomBuffer = new Uint32Array(1)
+      this.crypto.getRandomValues(randomBuffer)
+      const fraction = randomBuffer[0]
+      const publisherId = Math.floor(fraction * 6) + 1
+      return publisherId
     }
 
   },
 
-  mounted () {
-    this.janusUnit = new Janus({
-      server: '/janus',
-      success: this.attachPlugin,
-      error: err => console.log('jauns erroor: ', err),
-      destroyed: () => console.warn('janus destroyed'),
+  async mounted () {
+
+    const publisherId  = this.getNewPublisherId()
+    if (!publisherId) {
+     console.error('Can not generate id')
+     return
+    }
+    this.publisherId = publisherId
+   
+    PublisherStreamHandler.init(Janus, {
+      streamId: String(this.publisherId),
+      displayName: `${this.publisherId} stream`,
+      mountId: this.publisherId
+    }).then((handler) => {
+      if (handler) {
+        this.pluginHandler = handler
+      } else {
+        throw new Error('no webrtc plugin available')
+      }
     })
 
     this.getUserMedia().then(result => {
@@ -377,25 +170,14 @@ export default defineComponent({
       <div class="controls col-12">
         <button
           class='col-3'
-          onClick={this.createAndJoin}
+          onClick={() => this.startStream()}
+          disabled={!this.isHandlerAvailable}
         > 
           Create Room 
         </button>
         
         <button
-          class='col-3'
-          onClick={this.startStream}
-        > 
-          Publish 
-        </button> 
-        <button
-          class='col-3'
-          onClick={this.getPublishers}
-        >
-          get participants
-        </button>
-        <button
-          onClick={() => console.log(this.pluginHandler?.getId())}
+          onClick={() => console.log(this.publisherId)}
         >
           Get ID
         </button>
