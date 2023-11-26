@@ -3,7 +3,7 @@ import adapter from 'webrtc-adapter'
 import eventEmitter from 'events'
 
 export interface StreamDescription {
-  streamId: string
+  streamId?: string
   displayName: string
   mountId: number
 }
