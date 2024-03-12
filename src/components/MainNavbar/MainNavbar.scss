@@ -1,61 +1,91 @@
-.navbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
+@media screen {
 
-  caret-color:  transparent;
+  .navbar {
+    
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: $primary-4;
+    
 
-  height: 100%;
-  width: 100%;
-  background-color: $primary-5;
+    &__logo {
+        padding: 8px;
+        cursor: none;
+      }
 
-  &__logo {
-    padding: 8px;
-    cursor: none;
-  }
-
-  &__menu {
-    padding: 0 24px;
-  }
-
-  &__option { 
-
-    &__hidden {
-      display: none;
+    &__menu {
+      padding: 0 24px;
     }
 
-    &_visible {
-      display: block;
+    &__option { 
+
+      &_hidden {
+        display: none;
+      }
+
+      &_visible {
+        display: block;
+      }
+    }
+
+    ul {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: baseline;
+      gap: 11px;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    a:link {
+      color: $primary-2;
+    }
+
+    a:visited {
+      color: $primary-3;
+    }
+
+    a:active {
+      color: $primary-4;
+    }
+
+    a:focus {
+      color: $primary-2;
+      text-decoration: underline;
     }
   }
-}
 
-ul {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: baseline;
-  gap: 11px;
-}
 
-a {
-  text-decoration: none;
-}
+  @media (min-width: 1200px) {
+    .navbar {
+      
+      ul {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: baseline;
+        gap: 11px;
+      }
+    }
+  }
 
-a:link {
-  color: $primary-3;
-}
+  @media (max-width: 767px) {
+    .navbar {   
+      ul {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: baseline;
+        gap: 18px;
+      }
 
-a:visited {
-  color: $primary-3;
-}
+      
+    }
 
-a:active {
-  color: $primary-4;
-}
-
-a:focus {
-  color: $primary-2;
-  text-decoration: underline;
+    
+  }
 }

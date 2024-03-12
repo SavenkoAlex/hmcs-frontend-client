@@ -8,6 +8,7 @@ import './MainNavbar.scss'
 
 /** Components */
 import LogoIcon from '@/assets/images/logo48.svg'
+
 import { RouterLink } from 'vue-router'
 
 export default defineComponent({
@@ -16,18 +17,17 @@ export default defineComponent({
 
   data () {
     return {
-      isAuthenticated: localStorage.getItem('isAuthenticated')
+      isAuthenticated: false
     }
   },  
 
   render(): VNode {
 
-    return <div class={'row'}>
-      <div class={'col-12 col-s-12 navbar'}>
-        <div class={'col-4 col-s-4 navbar__logo'}>
+    return <div class={'navbar'}>
+        <div class={'navbar__logo'}>
           <LogoIcon/>
         </div>
-        <div class={'col-8 col-s-8 navbar__menu'}>
+        <div class={'navbar__menu'}>
             <ul>
               <li>
                 <div class="navbar__option">
@@ -35,13 +35,17 @@ export default defineComponent({
                 </div>
               </li>
               <li>
-                <div class={this.isAuthenticated !== 'null' ? 'navbar__option_visible' : 'navbar__option_hidden' }>
+                <div class={this.isAuthenticated ? 'navbar__option_visible' : 'navbar__option_hidden' }>
                   <RouterLink to={'/user'}> { 'User' } </RouterLink>
+                </div>
+              </li>
+              <li>
+                <div class={this.isAuthenticated ? 'navbar__option_hidden': 'navbar__option_visible'  }>
+                  <RouterLink to={'/login'}> { 'Login' } </RouterLink>
                 </div>
               </li>
             </ul>
         </div>
       </div>
-    </div>
   }
 })

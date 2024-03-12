@@ -1,7 +1,8 @@
 /*reset.css*/
 /* RESETS */
 @import 'colors.scss';
-@import 'grid.scss';
+@import 'mixins.scss';
+//@import 'grid.scss';
 
 *,
 *::before,
@@ -33,10 +34,6 @@ input {
   overflow: visible;
 }
 
-input[type="text"] {
-  border-radius: 0;
-}
-
 body {
   width: 100%;
   margin: 0 auto;
@@ -45,7 +42,6 @@ body {
     Helvetica,
     Arial,
     sans-serif;
-  background-color: $primary-1;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
 }

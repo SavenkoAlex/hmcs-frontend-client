@@ -66,9 +66,11 @@ export default defineComponent({
       displayName: this.subscriberName  
     })
 
-    handler?.emitter.on('remotetrack', description => {
+    handler?.emitter.on('track', description => {
       this.onremotetrack(description)
     }) 
+    
+    await handler?.join()
   },
 
   render (): VNode {

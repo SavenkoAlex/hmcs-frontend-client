@@ -71,7 +71,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     })
 
     this.emitter.on('remotetrack', (track, mid, on, metadata) => {
-      this.emitter.emit('remotetrack', {
+      this.emitter.emit('track', {
         track,
         mid,
         on,
@@ -103,7 +103,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
    */
   private async getPublisher (): Promise <Publisher | null> {
     const publishers = await this.getPublishers()
-    if (!publishers || publishers.length) {
+    if (!publishers || !publishers.length) {
       return null
     }
     

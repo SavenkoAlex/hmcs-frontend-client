@@ -1,0 +1,17 @@
+@media screen {
+  .input-checkbox-container {
+    display: flex;
+    align-items: flex-start;
+
+    @media (min-width: 1200px) {
+      input {
+        height: 18px;
+        width: 18px;
+        margin: 0;
+        background-color: $primary-5;
+      }
+    }
+  }
+
+  
+}

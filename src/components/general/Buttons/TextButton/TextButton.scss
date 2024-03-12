@@ -1,0 +1,18 @@
+@media screen {
+
+  .text-button {
+    @include text-button ($primary-7, $primary-2);
+
+    &:active {
+      @include text-button ($primary-2, $primary-7);
+    }
+  }
+
+  @media (max-width: 1200px) {
+  }
+
+  @media (max-width: 767px) {
+
+  }
+  
+}

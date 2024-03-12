@@ -1,0 +1,30 @@
+{
+  "userType": {
+    "user": "пользователь"
+  },
+  "copyRights": "All rights reserved",
+  "pages": {
+    "loginForm": {
+      "title": "Вход",
+      "isPublisher": "являюсь сотрудником",
+      "submit": "войти",
+      "username": "имя пользователся",
+      "login": "логин",
+      "password": "пароль",
+      "register": "регистрация",
+      "success": "успешно",
+      "error": "ошибка входа"
+    },
+
+    "registerForm": {
+      "title": "Регистрация",
+      "isPublisher": "являюсь сотрудником",
+      "submit": "зарегистрироваться",
+      "username": "имя пользователся",
+      "login": "логин",
+      "password": "пароль",
+      "repeatPassword": "повторите пароль",
+      "register": "регистрация"
+    }
+  } 
+}

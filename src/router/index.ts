@@ -7,7 +7,8 @@ import {
 import StreamsList from '@/pages/StreamsList'
 import Stream from '@/pages/Stream'
 import User from '@/pages/Publisher/Publisher'
-import Main from '@/pages/Main'
+import Login from '@/pages/Login/Login'
+import Register from '@/pages/Register/Register'
 
 const routes: RouteRecordRaw[] = []
 
@@ -31,10 +32,16 @@ const serverRoutes = [
     component: User
   },
   {
-    // root page
-    name: 'home',
-    path: '/',
-    component: Main
+    // LoginPage
+    name: 'login',
+    path: '/login',
+    component: Login
+  },
+  // register page
+  {
+    name: 'register',
+    path: '/register',
+    component: Register
   }
 ]
 

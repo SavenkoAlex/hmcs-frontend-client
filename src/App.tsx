@@ -3,8 +3,13 @@ import {
   VNode
 } from 'vue'
 
+/** components */
 import MainNavbar from '@/components/MainNavbar/MainNavbar'
+import MainFooter from '@/components/MainFooter/MainFooter'
+
+/** layouts */
 import DefaultLayout from '@/layouts/default'
+
 import { RouterView } from 'vue-router'
 
 export default defineComponent({
@@ -13,7 +18,8 @@ export default defineComponent({
 
   components: {
     DefaultLayout,
-    MainNavbar
+    MainNavbar,
+    MainFooter
   },
 
   created () {
@@ -24,7 +30,8 @@ export default defineComponent({
     return <DefaultLayout>
     {{
       header: () => <MainNavbar/>,
-      default: () => <RouterView/>
+      default: () => <RouterView/>,
+      footer: () => <MainFooter/>
     }}
     </DefaultLayout>
   }

@@ -1,0 +1,22 @@
+
+@media screen {
+
+  .input-text-container {
+
+    input {
+      @include text-input($primary-7, $primary-2);
+      
+      &:focus {
+        background-color: $primary-3
+      }
+    }
+      
+    &_error {
+      input {
+        @include text-input($primary-10, $primary-3);
+      }      
+    }
+  }
+
+  
+}
