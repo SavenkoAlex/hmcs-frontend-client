@@ -18,6 +18,10 @@ import { emptyfieldValidation } from '@/helpers/helper'
 /** types */
 import { Data } from '@/components/LoginForm/Types'
 
+/** api */
+import { authentificate } from '@/api/login'
+
+
 export default defineComponent({
 
   name: 'LoginForm',
@@ -38,10 +42,11 @@ export default defineComponent({
   },
 
   methods: {
-    login () {
-      this.loginStatus = {
-        message: this.$t('pages.loginForm.success'),
-        success: true
+    async authorize () {
+      const response = await authentificate(this.login, this.password)
+
+      if (!response) {
+        return
       }
     }
   },
@@ -81,7 +86,7 @@ export default defineComponent({
       <div class='loogin-page__submit-button'>
         <TextButton 
           text={this.$t('pages.loginForm.submit')}
-          onClick={() => this.login()}
+          onClick={() => this.authorize()}
         />
       </div>
     </div>

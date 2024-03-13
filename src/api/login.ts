@@ -1,19 +1,24 @@
-import axios, { AxiosResponse } from 'axios'
+import axios  from 'axios'
+import { LoginResponse } from '@/api/types'
 
-export default {
-  login: async (email: string, password: string): Promise <unknown> => {
-    const response = await axios.request({
+export const authentificate =  async (login: string, password: string): Promise <LoginResponse | null> => {
+  try {
+    const response = await axios.request<{login: string, password: string}, LoginResponse>({
       url: '/api/auth/login',
       method: 'POST',
       headers: {
         'content-type': 'application/json'
       },
       data: {
-        email,
-        hashPassword: password
+        login,
+        password
       }
     })
 
-    return response as AxiosResponse <unknown, unknown>
+    return response
+  } catch (err) {
+    console.error(err)
+    return null
   }
+  
 }
