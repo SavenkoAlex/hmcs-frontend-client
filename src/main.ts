@@ -1,11 +1,9 @@
-import { createApp, provide } from 'vue'
+import { createApp } from 'vue'
 import App from '@/App'
 import vueCookies from 'vue-cookies'
 import router from './router'
-import { store, keyMain, keyDevices } from './store'
+import { store } from './store'
 import { createI18n } from 'vue-i18n'
-// import '@/assets/styles/reset.scss'
-
 import ruLocale from '@/langs/ru.json'
 import enLocale from '@/langs/en.json'
 
@@ -24,5 +22,6 @@ createApp(App)
   .use(router)
   .use(vueCookies)
   .use(i18n)
+  .use(store)
   .provide <Crypto> ('crypto', globalThis.crypto)
   .mount('#app')

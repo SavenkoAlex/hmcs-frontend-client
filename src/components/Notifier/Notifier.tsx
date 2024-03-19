@@ -27,7 +27,6 @@ export default defineComponent({
       type: String as PropType <ElementScale>,
       default: ElementScale.MEDIUM
     },
-
     position: {
       type: String as PropType <DisplayLocation>,
       default: DisplayLocation.BOTTOM

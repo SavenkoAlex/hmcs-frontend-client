@@ -39,13 +39,14 @@ export default defineConfig({
     },
     proxy: {
       '/api' : {
-        target: 'https://192.168.0.110:8887',
-        changeOrigin: true,
+        target: 'https://localhost:3000',
+        changeOrigin: false,
+        secure: false
       },
       '/janus': {
         target: 'https://192.168.0.115',
         secure: false
-      }
+      },
     },
   },
   css: {

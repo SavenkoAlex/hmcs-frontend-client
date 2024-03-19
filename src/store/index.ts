@@ -1,69 +1,39 @@
-import { createStore, Store, useStore as baseUseStore, Module } from 'vuex'
-import { InjectionKey } from 'vue'
-import { actions as mainActions } from '@/store/main/actions'
-import { getters as mainGetters } from '@/store/main/getters'
-import { mutations as mainMutations } from '@/store/main/mutations'
+import { createStore, Store, useStore as getStore } from 'vuex'
+import { UserState, AppState, State, States } from '@/global/store'
 
-export interface MainState {
-  defaultStoreMessage: string
-  userCredentials: tp.UserCredentials,
-  user: tp.User
-}
+/** states */
+import { app, appStateKey } from '@/store/modules/app'
+import { user, userStateKey } from '@/store/modules/user'
 
-export interface DeviceState {
-  defaultStoreMessage: string
-}
-
-export interface State {
-  main: MainState
-  device: DeviceState
-}
-
-const devices = {
-  namespaced: true,
-  state: {
-    defaultStoreMessage: 'Hoi'
-  }
-}
-
-const main: Module <MainState, State > = {
-  namespaced: true,
-  state: () => ({
-    defaultStoreMessage: 'Hey',
-    userCredentials: {
-      email: null,
-      password: null
-    },
-    user: {
-      id: null,
-      token: null
-    }
-  }),
-  getters: mainGetters,
-  mutations: mainMutations,
-  actions: mainActions
-}
-
-export const keyMain: InjectionKey <Store <MainState>> = Symbol(tp.StoreKey.MAIN)
-export const keyDevices: InjectionKey <Store <DeviceState>> = Symbol(tp.StoreKey.DEVICES)
-
-export const store = createStore <State>({
+export const store = createStore<State>({
   modules: {
-    main,
-    devices
+    user,
+    app
   }
 })
 
-export function useStore (key?: tp.StoreKey): Store <typeof key extends 'main' ? MainState: DeviceState> {
+type StoreModule <T extends States> = T extends States.USER 
+  ? Store <UserState> 
+  : Store <AppState>
+
+function useStore (key: States): StoreModule<typeof key> {
   switch (key) {
-    case 'main' : {
-      return baseUseStore(keyMain)
+    case States.USER : {
+      return getStore(userStateKey)
     }
-    case 'devices' : {
-      return baseUseStore(keyDevices)
+
+    case 'app' : {
+      return getStore(appStateKey)
     }
+
     default: {
-      return baseUseStore(keyMain)
+      return getStore(appStateKey)
     }
   }
+}
+
+export { 
+  userStateKey, 
+  appStateKey,
+  useStore,
 }

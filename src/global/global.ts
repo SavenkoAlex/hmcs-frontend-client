@@ -70,3 +70,11 @@ export type ErrorBucket = {
 export type Maybe <T extends string | number | Record <string, unknown>> = T | null | undefined
 
 export type NotifierStatus = 'error' | 'warn' | 'success'
+
+export type User = {
+  login: Maybe <string>,
+  username?: Maybe <string>,
+  role?: Maybe<string>,
+  type?: Maybe<UserRole>,
+  id?: Maybe<string>
+}
