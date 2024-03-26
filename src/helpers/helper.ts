@@ -20,20 +20,24 @@ type FlexOrientation = {
 
 export const getFlexOrientation = (side: SidePosition): FlexOrientation => {
   const direction: 'row' | 'column' = side === SidePosition.LEFT || side === SidePosition.RIGHT
-        ? 'row'
-        : 'column'
+    ? 'row'
+    : 'column'
 
-      const justify: 'flex-start' | 'flex-end' = side === SidePosition.TOP || side === SidePosition.LEFT
-        ? 'flex-start'
-        : 'flex-end'
+  const justify: 'flex-start' | 'flex-end' = side === SidePosition.TOP || side === SidePosition.LEFT
+    ? 'flex-start'
+    : 'flex-end'
 
-      return {
-        'flex-direction': direction,
-        'justify-content': justify
-      }
+  return {
+    'flex-direction': direction,
+    'justify-content': justify
+  }
 }
 
-
+/**
+ * empty field check
+ * @param value 
+ * @returns 
+ */
 export const emptyfieldValidation = (value: Maybe <string>) => {
 
   if (value && value?.length) {

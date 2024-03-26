@@ -1,10 +1,10 @@
-import { defineComponent, VNode } from 'vue'
+import { defineComponent, Transition, VNode } from 'vue'
 
 /** types */
-import { Data } from '@/pages/Login/Type'
+import { Data } from '@/pages/Auth/Type'
 
 /** style */
-import '@/pages/Login/Login.scss'
+import '@/pages/Auth/Auth.scss'
 
 /** components */
 import LoginForm from '@/components/LoginForm/LoginForm'
@@ -12,7 +12,7 @@ import RegisterForm from '@/components/RegisterForm/RegisterForm'
 
 export default defineComponent({
   
-  name: 'LoginPage',
+  name: 'AuthorizationPage',
 
   components: {
     LoginForm,
@@ -38,7 +38,9 @@ export default defineComponent({
         <span> | </span>
         <a onClick={() => this.toggle('register')}>{this.$t('pages.loginForm.register')}</a>
       </div>
-      {  this.activeForm === 'login' ? <LoginForm/> : <RegisterForm/> }
+      <Transition>
+        {  this.activeForm === 'login' ? <LoginForm/> : <RegisterForm/> }
+      </Transition>
     </div>
   }
 })

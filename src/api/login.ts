@@ -3,7 +3,8 @@ import { LoginResponse } from '@/api/types'
 
 export const authentificate =  async (login: string, password: string): Promise <LoginResponse | null> => {
   try {
-    const response = await axios.request<{login: string, password: string}, LoginResponse>({
+    const response = await axios.request<{login: string, password: string},
+     {data: LoginResponse}>({
       url: '/api/auth/login',
       method: 'POST',
       headers: {
@@ -15,7 +16,7 @@ export const authentificate =  async (login: string, password: string): Promise 
       }
     })
 
-    return response
+    return response.data
   } catch (err) {
     console.error(err)
     return null

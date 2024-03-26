@@ -14,6 +14,7 @@ export const enum States {
   'USER' = 'user',
   'APP' = 'app'
 }
+
 export interface State {
   [States.USER]: UserState,
   [States.APP]: AppState

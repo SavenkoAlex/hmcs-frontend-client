@@ -6,9 +6,9 @@ import {
 
 import StreamsList from '@/pages/StreamsList'
 import Stream from '@/pages/Stream'
-import User from '@/pages/Publisher/Publisher'
-import Login from '@/pages/Login/Login'
-import Register from '@/pages/Register/Register'
+import User from '@/pages/User/User'
+import Auth from '@/pages/Auth/Auth'
+import NotFound from '@/pages/NotFound/NotFound'
 
 const routes: RouteRecordRaw[] = []
 
@@ -33,15 +33,15 @@ const serverRoutes = [
   },
   {
     // LoginPage
-    name: 'login',
-    path: '/login',
-    component: Login
+    name: 'auth',
+    path: '/auth',
+    component: Auth
   },
-  // register page
   {
-    name: 'register',
-    path: '/register',
-    component: Register
+    // not found
+    name: 'not-found',
+    path: '/:pathMatch(.*)*',
+    component: NotFound
   }
 ]
 

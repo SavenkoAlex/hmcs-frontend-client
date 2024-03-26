@@ -5,7 +5,7 @@ import { UserState, AppState, State, States } from '@/global/store'
 import { app, appStateKey } from '@/store/modules/app'
 import { user, userStateKey } from '@/store/modules/user'
 
-export const store = createStore<State>({
+const store = createStore<State>({
   modules: {
     user,
     app
@@ -22,7 +22,7 @@ function useStore (key: States): StoreModule<typeof key> {
       return getStore(userStateKey)
     }
 
-    case 'app' : {
+    case States.APP : {
       return getStore(appStateKey)
     }
 
@@ -33,6 +33,7 @@ function useStore (key: States): StoreModule<typeof key> {
 }
 
 export { 
+  store,
   userStateKey, 
   appStateKey,
   useStore,

@@ -17,10 +17,14 @@ import { emptyfieldValidation } from '@/helpers/helper'
 
 /** types */
 import { Data } from '@/components/LoginForm/Types'
+import { States } from '@/global/store'
 
 /** api */
 import { authentificate } from '@/api/login'
 
+/** store */
+import { mapActions } from 'vuex'
+import { userStateKey } from '@/store'
 
 export default defineComponent({
 
@@ -42,12 +46,23 @@ export default defineComponent({
   },
 
   methods: {
+    ...mapActions(States.USER, ['setUserProperty', 'setUser', 'blabla']),
+
     async authorize () {
       const response = await authentificate(this.login, this.password)
 
       if (!response) {
         return
       }
+
+      const { user } = response
+
+      if (!user || !user.id || !user.login || !user.role || !user.type || !user.username) {
+        return
+      }
+
+      await this.setUser(user)
+      this.$router.replace('user')
     }
   },
 

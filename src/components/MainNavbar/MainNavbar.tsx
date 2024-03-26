@@ -41,7 +41,7 @@ export default defineComponent({
               </li>
               <li>
                 <div class={this.isAuthenticated ? 'navbar__option_hidden': 'navbar__option_visible'  }>
-                  <RouterLink to={'/login'}> { 'Login' } </RouterLink>
+                  <RouterLink to={'/auth'}> { 'Auth' } </RouterLink>
                 </div>
               </li>
             </ul>

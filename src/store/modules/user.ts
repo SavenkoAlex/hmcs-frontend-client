@@ -3,6 +3,7 @@ import { Store, Module } from 'vuex'
 import { InjectionKey } from 'vue'
 import { actions } from '@/store/user/actions'
 import { getters } from '@/store/user/getters'
+import { mutations } from '@/store/user/mutations'
 
 export const user: Module<UserState, State> = {
   namespaced: true,
@@ -16,7 +17,8 @@ export const user: Module<UserState, State> = {
     accessToken: null
   },
   actions,
-  getters
+  getters,
+  mutations
 }
 
 export const userStateKey: InjectionKey <Store <UserState>> = Symbol()
