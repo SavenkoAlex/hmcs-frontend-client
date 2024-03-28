@@ -31,7 +31,8 @@ export type Room = {
 
 export const enum UserRole {
   USER = 'user',
-  WORKER = 'worker'
+  WORKER = 'worker',
+  ANONYMOUS = 'anonymous'
 }
 
 export type InputLabel = {
@@ -77,4 +78,19 @@ export type User = {
   role?: Maybe<string>,
   type?: Maybe<UserRole>,
   id?: Maybe<string>
+}
+
+export const storeUserKeyMap: Record <keyof User, string> = {
+  login: 'nl',
+  username: 'eu',
+  role: 'er',
+  type: 'et',
+  id: 'di'
+}
+
+/** session storage key */
+export const enum SessionStorageKeys {
+  // secret key to encrypt localstorage values
+  KEY = 'cne',
+  IV = 'vi'
 }

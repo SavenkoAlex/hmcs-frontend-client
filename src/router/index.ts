@@ -14,6 +14,12 @@ const routes: RouteRecordRaw[] = []
 
 const serverRoutes = [
   {
+    // root
+    name: 'root',
+    path: '/',
+    redirect: 'streams'
+  },
+  {
     // all streams list
     name: 'streams',
     path: '/streams',

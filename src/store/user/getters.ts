@@ -1,5 +1,5 @@
 import { UserState } from '@/global/store'
-import { User } from '@/global/global'
+import { User, UserRole } from '@/global/global'
 
 export const getters = {
   
@@ -11,7 +11,6 @@ export const getters = {
    */
   getUser: function <T extends keyof User >(state: UserState, field?: T, payload?: T): User[T] | User {
 
-    console.log(...arguments)
     // return whole user object
     return {
       // id property
@@ -25,5 +24,13 @@ export const getters = {
       // role property
       role: state.role
     }
+  },
+
+  userType: function (state: UserState) {
+    return state.type || UserRole.ANONYMOUS
+  },
+
+  isAuthetificated: function (state: UserState) {
+    return state.id && state.role && state.username && state.login
   }
 }
