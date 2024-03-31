@@ -39,9 +39,7 @@ export default defineComponent({
         {
           this.$slots.header?.()
         }
-        {
-          this.$slots.default?.()
-        }
+        <form> { this.$slots.default?.()} </form>
         { 
           this.$slots?.footer?.()
         }

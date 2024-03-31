@@ -9,7 +9,7 @@ import Janus, { JanusJS } from 'janus-gateway'
 import adapter from 'webrtc-adapter'
 
 // Style
-import './Streams.scss'
+import '@/components/Streams/Streams.scss'
 
 // Types
 import { Room } from '@/global/global'
@@ -115,14 +115,14 @@ export default defineComponent({
   },
     
   render (): VNode {
-    return <div class="rooms">
+    return <div class='rooms-list'>
         {
           this.rooms?.map(room => {
-            return <div class='room_item col-3'>
+            return <div class='room_item'>
               <div class='room_container'>
                 <h5> {`Room № ${room.room}`} </h5>
                 <h6> { room.description || 'No description' } </h6>
-                <RouterLink to={`live/${room.room}`}>
+                <RouterLink to={{name: 'live', params: { id: room.room }}}>
                   <LogoIcon/>
                 </RouterLink>
               </div>

@@ -4,11 +4,12 @@ import {
   RouteRecordRaw
 } from 'vue-router'
 
-import StreamsList from '@/pages/StreamsList'
-import Stream from '@/pages/Stream'
+import StreamsList from '@/pages/Streams/StreamsList'
+import Stream from '@/pages/Publisher/Stream'
 import User from '@/pages/User/User'
 import Auth from '@/pages/Auth/Auth'
 import NotFound from '@/pages/NotFound/NotFound'
+import Live from '@/pages/Live/Subscriber'
 
 const routes: RouteRecordRaw[] = []
 
@@ -25,11 +26,17 @@ const serverRoutes = [
     path: '/streams',
     component: StreamsList
   }, 
+  /** publisher stream */
   {
-    // dedicated stream
+    stream: 'stream',
+    path: '/stream',
+    component: Stream
+  },
+  {
+    // dedicated stream on client side
     name: 'live',
     path: '/live/:id',
-    component: Stream
+    component: Live
   },
   {
     // user profile

@@ -26,7 +26,7 @@ export default defineComponent({
     Label
   },
 
-  emits: ['update:modelValue'],
+  emits: ['update:modelValue', 'enter'],
 
   props: {
     label: {
@@ -52,6 +52,10 @@ export default defineComponent({
     validators: {
       type: Object as PropType <Array<(value: string) => InputError>>,
       default: []
+    },
+    autocomplete: {
+      type: String as PropType <string>,
+      default: 'on'
     }
   },
 
@@ -90,7 +94,6 @@ export default defineComponent({
   methods: {
     onInput (payload: Event) {
       const target = payload.target
-      
       this.$emit('update:modelValue', (target as HTMLInputElement)?.value)
     },
 
@@ -112,8 +115,10 @@ export default defineComponent({
         <input
           type={this.type}
           placeholder={this.placeholder}
+          autocomplete={this.autocomplete}
           value={this.modelValue}
           onInput={ event => this.onInput(event)}
+          onKeypress={(event: KeyboardEvent) => event.key === 'Enter' && this.$emit('enter', event)}
         />
       </Transition>
     </div>

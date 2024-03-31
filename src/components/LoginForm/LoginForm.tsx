@@ -23,8 +23,9 @@ import { States } from '@/global/store'
 import { authentificate } from '@/api/login'
 
 /** store */
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import { userStateKey } from '@/store'
+import { UserRole } from '@/global/global'
 
 export default defineComponent({
 
@@ -45,8 +46,14 @@ export default defineComponent({
     }
   },
 
+  computed:  {
+    ...mapGetters({
+      userType: 'user/userType'
+    })
+  },
+
   methods: {
-    ...mapActions(States.USER, ['setUserProperty', 'setUser', 'blabla']),
+    ...mapActions(States.USER, ['setUserProperty', 'setUser']),
 
     async authorize () {
       const response = await authentificate(this.login, this.password)
@@ -62,7 +69,19 @@ export default defineComponent({
       }
 
       await this.setUser(user)
-      this.$router.replace('user')
+    },
+
+    async loginAndRedirect () {
+      try {
+        await this.authorize()
+      } catch (error) {
+        console.log(error)
+      }
+
+
+      this.userType === UserRole.WORKER
+        ? this.$router.push('stream' )
+        : this.$router.push('streams' )
     }
   },
 
@@ -101,7 +120,7 @@ export default defineComponent({
       <div class='loogin-page__submit-button'>
         <TextButton 
           text={this.$t('pages.loginForm.submit')}
-          onClick={() => this.authorize()}
+          onClick={() => this.loginAndRedirect()}
         />
       </div>
     </div>

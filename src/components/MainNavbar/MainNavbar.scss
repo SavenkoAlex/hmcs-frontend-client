@@ -1,13 +1,11 @@
 @media screen {
 
   .navbar {
-    
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     background-color: $primary-4;
-    
 
     &__logo {
         padding: 8px;
@@ -30,11 +28,6 @@
     }
 
     ul {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-end;
-      align-items: baseline;
-      gap: 11px;
     }
 
     a {
@@ -68,7 +61,6 @@
         flex-direction: row;
         justify-content: flex-end;
         align-items: baseline;
-        gap: 11px;
       }
     }
   }
@@ -77,15 +69,11 @@
     .navbar {   
       ul {
         display: flex;
-        flex-direction: row;
-        justify-content: flex-end;
-        align-items: baseline;
-        gap: 18px;
+        flex-direction: row-reverse;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
       }
-
-      
     }
-
-    
   }
 }

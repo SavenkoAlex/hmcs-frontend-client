@@ -30,7 +30,7 @@ export const getters = {
     return state.type || UserRole.ANONYMOUS
   },
 
-  isAuthetificated: function (state: UserState) {
+  isAuthentificated: function (state: UserState) {
     return state.id && state.role && state.username && state.login
   }
 }

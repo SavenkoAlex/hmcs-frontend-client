@@ -6,13 +6,13 @@ import {
   VNode
 } from 'vue'
 
-import Subscriber from '@/components/Subscriber/Subscriber'
+import Publisher from '@/components/Publisher/Publisher'
 
 export default defineComponent({
 
   name: 'SubscriberPage',
 
   render (): VNode {
-    return <Subscriber/>
+    return <Publisher/>
   }
 })

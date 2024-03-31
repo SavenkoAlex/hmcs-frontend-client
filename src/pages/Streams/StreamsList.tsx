@@ -5,20 +5,20 @@ import {
 } from 'vue'
 
 /** API */
-import streamApi, { StreamPublisher } from '../api/stream'
+import streamApi, { StreamPublisher } from '@/api/stream'
 
 /** Components */
-import Strems from '@/components/Streams/Streams'
+import Streams from '@/components/Streams/Streams'
 
 /** Style */
-import './StreamList.scss'
+import '@/pages/Streams/StreamList.scss'
 
 export default defineComponent({
   
   name: 'StreamList',
 
   components: {
-    Strems
+    Streams
   },
 
   setup () {
@@ -31,8 +31,7 @@ export default defineComponent({
 
   render (): VNode {
     return <div class={'stream-list'}> 
-      <h1> { this.title }  </h1>
-      <Strems/>
+      <Streams/>
     </div>
   }
 })

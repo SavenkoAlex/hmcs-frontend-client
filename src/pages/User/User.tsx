@@ -1,35 +1,30 @@
 import {
   defineComponent,
-  VNode
+  VNode,
 } from 'vue'
 
-/** vuex */
-import { mapGetters } from 'vuex'
-
-/** components */
-import Publisher from '@/components/Publisher/Publisher'
-import Subscriber from '@/components/Subscriber/Subscriber'
+/** styles */
+import './User.scss'
 
 /** types */
-import { States, UserState } from '@/global/store'
+import { Data } from './types'
 import { UserRole } from '@/global/global'
 
-export default defineComponent ({
+export default defineComponent({
 
-  name: 'PublisherPage',
+  name: 'UserPage',
 
-  composnents: {
-    Publisher,
-    Subscriber
-  },
-
-  computed: {
-    ...mapGetters(States.USER, ['getUser'])
+  data (): Data {
+    return {
+      userRole: UserRole.USER
+    }
   },
 
   render (): VNode {
+    return <div>
 
-    const a = this.getUser.UserRole
-    return a === UserRole.USER ? <Subscriber/> : <Publisher/>
+    </div>
   }
+
 })
+

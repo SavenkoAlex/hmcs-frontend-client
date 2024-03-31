@@ -1,8 +1,12 @@
-.rooms {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  max-width: 100%;
+.rooms-list {
+
+  @media (max-width: 767px) {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    gap: 12px;
+    margin: 8px 0;
+  }
 }
 
 .room_container {

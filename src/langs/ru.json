@@ -26,12 +26,17 @@
       "repeatPassword": "повторите пароль",
       "register": "регистрация"
     },
+    "publisher": {
+      "createRoom": "создать комнату",
+      "destroyRoom": "удалить комнату"
+    },
     "notFound": {
       "text": "Страница не найдена"
     }
   },
   "routes": {
     "streams": "Стримы",
+    "stream": "Стрим",
     "auth": "Вход",
     "user": "Профиль",
     "live": "Стрим"

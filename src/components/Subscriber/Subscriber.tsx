@@ -10,10 +10,16 @@ import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 // Style
 import '@/components/Subscriber/Subscriber.scss'
 
+/** components */
+import Chat from '@/components/Chat/Chat'
 
 export default defineComponent({
 
   name: 'Subscriber',
+
+  components: {
+    Chat
+  },
 
   setup () {
 
@@ -74,14 +80,15 @@ export default defineComponent({
   },
 
   render (): VNode {
-    return <div class='row'>
-      <div class="col-12">
-        <div class="remotevideo col-6">
+    return <div class='subscriber'>
+        <div class="subscriber__publisher-video">
           <video srcObject={this.remoteStream} ref={'remoteVideoNode'} autoplay > 
             Video is not supported 
           </video>
         </div>
+        <div class='subscriber__content'>
+          <Chat/>
+        </div>
       </div>
-    </div>
   }
 })

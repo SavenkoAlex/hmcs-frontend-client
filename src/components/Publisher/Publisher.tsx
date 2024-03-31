@@ -3,15 +3,19 @@ import {
   defineComponent,
   VNode,
   ref,
-  inject
+  inject,
+  Transition
 } from 'vue'
 
 // janus
 import Janus from 'janus-gateway'
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 
-// Style
+// style
 import './Publisher.scss'
+
+/** components */
+import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 
 export default defineComponent({
 
@@ -32,6 +36,8 @@ export default defineComponent({
 
     const publisherId = ref<number>()
 
+    const isPictureInPictureEnabled = ref <boolean> (false)
+
     const constraints = {
       audio: false,
       video: true
@@ -41,7 +47,9 @@ export default defineComponent({
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
     const crypto = inject<Crypto>('crypto')
+    const tarotPoster = ref <HTMLImageElement> ()
 
+    const isRoomCreated = ref<boolean> (false)
     return {
       publisherNode,
       clientNode,
@@ -52,7 +60,11 @@ export default defineComponent({
       pluginHandler,
       videoTrack,
       audioTrack,
-      crypto
+      crypto,
+      tarotPoster,
+      isPictureInPictureEnabled,
+      isRoomCreated
+
     }
   },
 
@@ -87,19 +99,22 @@ export default defineComponent({
      * destroy room request
      * @returns 
      */
-    destroyRoom (): Promise <true | false> | undefined {
+    async destroyRoom (): Promise <void> {
       if (!this.pluginHandler) {
         console.error('no webrtc plugin availabell')
         return
       }
 
-      return this.pluginHandler.destroyStream()
+      const destryed = await this.pluginHandler.destroyStream()
+      if (destryed) {
+        this.isRoomCreated = false
+      }
     },
 
 
     
 
-    async startStream (): Promise <void> {
+    async createRoom (): Promise <void> {
       if (!this.pluginHandler) {
         console.error('no webrtc plugin availabele')
         return
@@ -110,7 +125,7 @@ export default defineComponent({
         return
       }
 
-      this.pluginHandler.createStream(this.videoTrack)
+      this.isRoomCreated= await this.pluginHandler.createStream(this.videoTrack)
     },
 
     getNewPublisherId (): number | null {
@@ -123,8 +138,22 @@ export default defineComponent({
       const fraction = randomBuffer[0]
       const publisherId = Math.floor(fraction * 6) + 1
       return publisherId
-    }
+    },
 
+    onClientCanPlay (event: Event) {
+      const target = event.target as HTMLVideoElement
+      target.onenterpictureinpicture = (event: Event) => {
+        this.isPictureInPictureEnabled = true
+      }
+      target.onleavepictureinpicture = () => {
+        this.isPictureInPictureEnabled = false
+      }
+
+      target.requestPictureInPicture().catch((err) => {
+        console.error(err)
+        this.isPictureInPictureEnabled = false
+      })
+    }
   },
 
   async mounted () {
@@ -148,11 +177,20 @@ export default defineComponent({
       }
     })
 
+    this.clientNode?.addEventListener('enterpictureinpicture', (event: Event) => {
+      this.isPictureInPictureEnabled = true
+    })
+
+    this.clientNode?.addEventListener('leavepictureinpicture', () => {
+      this.isPictureInPictureEnabled = false
+    })
     this.getUserMedia().then(result => {
       if (result) {
         this.publisherStream = result
       }
     })
+
+
   },
 
   unmounted () {
@@ -160,27 +198,50 @@ export default defineComponent({
   },
 
   render (): VNode {
-    return <div class="container">
-      <div class="publisher">
-        <video srcObject={this.publisherStream} ref={'publisherNode'} autoplay> Video is not supportd </video>
+    return <div class="publisher-stream">
+      <div class="publisher-stream__publisher-video">
+        <Transition>
+          <video 
+            srcObject={this.publisherStream} 
+            ref={'publisherNode'} 
+            autoplay
+          > 
+            Video is not supportd 
+          </video>
+        </Transition>
       </div>
-      <div class='client'>
-        <video srcObject={this.clientStream} ref={'clientNode'} autoplay> Video is not supportd </video>
+      <div class={
+        this.isPictureInPictureEnabled 
+          ? 'publisher-stream__client_video_hidden' 
+          : 'publisher-stream__client-video'
+        }>
+        <Transition>
+          <video 
+            srcObject={this.publisherStream} 
+            ref={'clientNode'} 
+            autoplay
+            controls
+          > 
+            Video is not supportd
+          </video>
+        </Transition>
       </div>
-      <div class="controls col-12">
-        <button
-          class='col-3'
-          onClick={() => this.startStream()}
-          disabled={!this.isHandlerAvailable}
-        > 
-          Create Room 
-        </button>
-        
-        <button
+      <div class='publisher-stream__controls'>
+        <div class='publisher-stream__button'>
+          <TextButton
+            onClick={() => { this.isRoomCreated ? this.destroyRoom() : this.createRoom()}}
+            disabled={!this.isHandlerAvailable}
+            mode={this.isRoomCreated ? 'fourth' : 'tertiary'}
+            text={this.isRoomCreated ? this.$t('pages.publisher.destroyRoom') : this.$t('pages.publisher.createRoom')} 
+          /> 
+        </div>
+
+        <div class='publisher-stream__button'>
+        <TextButton
           onClick={() => console.log(this.publisherId)}
-        >
-          Get ID
-        </button>
+          text={'Get ID'}
+        />
+        </div>
       </div>
     </div>
   }

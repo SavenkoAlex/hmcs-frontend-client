@@ -1,18 +1,32 @@
 @media screen {
 
   .text-button {
-    @include text-button ($primary-7, $primary-2);
+    &__primary {
+      @include text-button ($primary-7, $primary-2);
+    }
+
+    &__tertiary {
+      @include text-button ($primary-7, $secondary-4);
+    }
+
+    &__fourth {
+      @include text-button ($primary-7, $secondary-6);
+    }
 
     &:active {
       @include text-button ($primary-2, $primary-7);
+    }
+
+    &_disabled {
+      @include text-button ($secondary-1, $secondary-4);
+    }
+
+    @media (max-width: 767px) {
     }
   }
 
   @media (max-width: 1200px) {
   }
 
-  @media (max-width: 767px) {
-
-  }
   
 }
