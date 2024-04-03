@@ -37,6 +37,7 @@ input {
 body {
   width: 100%;
   margin: 0 auto;
+  background-color: $primary-2;
   font:
     1.6rem/1.25 "Helvetica Neue",
     Helvetica,
@@ -44,7 +45,6 @@ body {
     sans-serif;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
-  background-color: $primary-2;
 }
 
 @media screen and (min-width: 620px) {

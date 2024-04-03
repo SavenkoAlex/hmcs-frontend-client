@@ -82,7 +82,12 @@ export default defineComponent({
   render (): VNode {
     return <div class='subscriber'>
         <div class="subscriber__publisher-video">
-          <video srcObject={this.remoteStream} ref={'remoteVideoNode'} autoplay > 
+          <video 
+            srcObject={this.remoteStream} 
+            ref={'remoteVideoNode'} 
+            autoplay 
+            playsinline
+          > 
             Video is not supported 
           </video>
         </div>

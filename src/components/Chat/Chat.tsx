@@ -28,7 +28,7 @@ export default defineComponent({
 
   props: {
     userId: {
-      type: String as PropType <string>,
+      type: [String, Number] as PropType <string | number>,
       default: '00011-01022001'
     },
 
@@ -36,9 +36,9 @@ export default defineComponent({
       type: Array as PropType <Chat[]>,
       default: () => [
         {id: '00011-01022001', name: 'общий', messages: [{
-          id: '00011-01022001', sender: 'sasha', text: 'привет', date: '01.02.2020'
+          id: '00011-01022001', sender: 'sasha', text: 'привет это текст-"рыба", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной "рыбой" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без', date: '01.02.2020'
         },{
-          id: '00013-01022001', sender: 'future-sasha', text: 'и те привет это текст-"рыба", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной "рыбой" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без', date: '01.02.2020'
+          id: '00013-01022001', sender: 'future-sasha', text: 'и те привет это текст-"рыба", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной "рыбой" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без текст-"рыба", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной "рыбой" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без', date: '01.02.2020'
         }]
       }, {
         id: '00012-01022001', name: 'приватный', messages: []
@@ -88,23 +88,24 @@ export default defineComponent({
         {
           this.chatLinks && Object.keys(this.chatLinks).map((chatId) => {
             const chat = this.chatLinks[chatId]
-            return <Transition><div
-              class={chat.id === this.currentChat ? 'chat__item chat__item_current' : 'chat__item'}
-              onClick={() => this.currentChat = chat.id}
-            > 
+            return <Transition>
+              <div
+                class={chat.id === this.currentChat ? 'chat__item chat__item_current' : 'chat__item'}
+                onClick={() => this.currentChat = chat.id}
+              > 
               <Label
                 text={this.chatLinks[chatId].name}
                 scale={ElementScale.LARGE}
               />
-            </div></Transition>
+            </div>
+            </Transition>
           })
         }
       </div>
       <div class='chat__content'>
         {
           this.currentChat && this.chatLinks[this.currentChat].messages.map((message) => {
-            return <div class={this.userId === message.id ? 'chat__row_my' : 'chat__row'}>
-              <div class={this.userId === message.id ? 'chat__message_my' : 'chat__message'}>
+            return <div class={/*this.userId*/ '00011-01022001' === message.id ? 'chat__message_my' : 'chat__message'}>
               <div class='chat__message_info'>
                 <Label
                   text={message.sender}
@@ -120,12 +121,10 @@ export default defineComponent({
               </div>
               
             </div> 
-            </div>
           })
         }
-               
       </div>
-      <div class='chat__message_input'>
+      <div class='chat__message-input'>
           <TextInput
             placeholder='Сообщение'
             onEnter={(event: KeyboardEvent) => this.addMessage(event)}

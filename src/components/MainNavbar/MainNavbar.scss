@@ -6,11 +6,15 @@
     justify-content: space-between;
     align-items: center;
     background-color: $primary-4;
+    height: 100%;
 
     &__logo {
-        padding: 8px;
-        cursor: none;
-      }
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 6px;
+      cursor: none;
+    }
 
     &__menu {
       padding: 0 24px;
@@ -25,9 +29,6 @@
       &_visible {
         display: block;
       }
-    }
-
-    ul {
     }
 
     a {

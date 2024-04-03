@@ -16,10 +16,16 @@ import './Publisher.scss'
 
 /** components */
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
+import Chat from '@/components/Chat/Chat'
 
 export default defineComponent({
 
   name: 'Publisher',
+
+  components: {
+    TextButton,
+    Chat
+  },
 
   computed: {
     isHandlerAvailable (): boolean {
@@ -50,6 +56,7 @@ export default defineComponent({
     const tarotPoster = ref <HTMLImageElement> ()
 
     const isRoomCreated = ref<boolean> (false)
+
     return {
       publisherNode,
       clientNode,
@@ -149,7 +156,7 @@ export default defineComponent({
         this.isPictureInPictureEnabled = false
       }
 
-      target.requestPictureInPicture().catch((err) => {
+      this.clientNode?.requestPictureInPicture().catch((err) => {
         console.error(err)
         this.isPictureInPictureEnabled = false
       })
@@ -159,6 +166,7 @@ export default defineComponent({
   async mounted () {
 
     const publisherId  = this.getNewPublisherId()
+
     if (!publisherId) {
      console.error('Can not generate id')
      return
@@ -177,13 +185,6 @@ export default defineComponent({
       }
     })
 
-    this.clientNode?.addEventListener('enterpictureinpicture', (event: Event) => {
-      this.isPictureInPictureEnabled = true
-    })
-
-    this.clientNode?.addEventListener('leavepictureinpicture', () => {
-      this.isPictureInPictureEnabled = false
-    })
     this.getUserMedia().then(result => {
       if (result) {
         this.publisherStream = result
@@ -205,16 +206,15 @@ export default defineComponent({
             srcObject={this.publisherStream} 
             ref={'publisherNode'} 
             autoplay
+            playsinline
           > 
             Video is not supportd 
           </video>
         </Transition>
       </div>
-      <div class={
-        this.isPictureInPictureEnabled 
-          ? 'publisher-stream__client_video_hidden' 
-          : 'publisher-stream__client-video'
-        }>
+      <div class={this.isPictureInPictureEnabled 
+        ? 'publisher-stream__client-video' 
+        : 'publisher-stream__client-video_hidden'}>
         <Transition>
           <video 
             srcObject={this.publisherStream} 
@@ -242,6 +242,11 @@ export default defineComponent({
           text={'Get ID'}
         />
         </div>
+      </div>
+      <div class='publisher-stream__chat'>
+        <Chat
+          userId={this.publisherId}
+        />
       </div>
     </div>
   }

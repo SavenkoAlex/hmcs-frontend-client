@@ -118,8 +118,8 @@ export default defineComponent({
     return <div class='rooms-list'>
         {
           this.rooms?.map(room => {
-            return <div class='room_item'>
-              <div class='room_container'>
+            return <div class='rooms-list__item'>
+              <div class='rooms-list__item_description'>
                 <h5> {`Room № ${room.room}`} </h5>
                 <h6> { room.description || 'No description' } </h6>
                 <RouterLink to={{name: 'live', params: { id: room.room }}}>
