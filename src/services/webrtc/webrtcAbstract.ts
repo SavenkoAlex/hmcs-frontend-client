@@ -5,7 +5,8 @@ import eventEmitter from 'events'
 export interface StreamDescription {
   streamId?: string
   displayName: string
-  mountId: number
+  mountId: number,
+  publisherId?: string
 }
 
 type WebRTCHandlerConstructor = {

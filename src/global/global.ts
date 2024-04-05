@@ -28,6 +28,23 @@ export type Room = {
   'transport_wide_cc_ext': boolean
 }
 
+/** Join response data */
+export type JoinResult = {
+  videoroom: 'joined',
+  room: string,
+  description: string,
+  id: string,
+  private_id: string,
+  publishers: Publisher[],
+}
+
+/** Stream ppublisher data */
+export type Publisher = {
+  id: string,
+  display: string,
+  dummy: boolean,
+  streams: unknown[]
+}
 
 export const enum UserRole {
   USER = 'user',

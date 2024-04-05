@@ -6,6 +6,7 @@ import {
 
 import Janus, { JanusJS } from 'janus-gateway'
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+import videojs from 'video.js'
 
 // Style
 import '@/components/Subscriber/Subscriber.scss'
@@ -63,6 +64,11 @@ export default defineComponent({
         Janus.attachMediaStream(this.remoteVideoNode, this.remoteStream)
       }
     },
+
+    collapseVideo (event: Event) {
+      const video = event.target as HTMLVideoElement
+      video.play()
+    }
   },
 
   async mounted () {
@@ -85,8 +91,8 @@ export default defineComponent({
           <video 
             srcObject={this.remoteStream} 
             ref={'remoteVideoNode'} 
-            autoplay 
-            playsinline
+            autoplay
+            controls
           > 
             Video is not supported 
           </video>

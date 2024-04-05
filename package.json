@@ -27,7 +27,6 @@
     "r": "^0.0.5",
     "rollup-plugin-includepaths": "^0.2.4",
     "three": "^0.156.1",
-    "video.js": "^8.5.2",
     "vite": "^4.4.9",
     "vite-svg-loader": "^4.0.0",
     "vue": "3.3",
@@ -64,6 +63,7 @@
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.2",
     "typescript": "~5.0.4",
+    "video.js": "^8.10.0",
     "vue-svg-inline-loader": "^2.1.5"
   }
 }

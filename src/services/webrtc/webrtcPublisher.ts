@@ -4,6 +4,7 @@ import {
   StreamHandler,
   StreamDescription
  } from  '@/services/webrtc/webrtcAbstract'
+import { JoinResult } from '@/global/global'
 
 /**
  * Some WebRTC plugin with init (activate) function
@@ -119,7 +120,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * @param options stream sys data
    * @returns true or false depending on response
    */
-  private joinAsPublisher (): Promise <true | false> {
+  private joinAsPublisher (): Promise <JoinResult | false> {
     return new Promise ((resolve, reject) => {
       if (!this.handler) {
         reject('No plugin available')
@@ -135,12 +136,34 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
 
       this.handler?.send({
         message,
-        success: () => resolve(true),
+        success: (data: JoinResult) => resolve(data),
         error: () => resolve(false)
       })
     })
   }
   
+  /**
+   * Forward stream to RTMP
+   * @returns { boolean } 
+   */
+  async forwardRTMP (): Promise <boolean> {
+    return new Promise ((resolve, reject) => {
+      if (!this.handler) {
+        reject('No plugin available')
+      }
+       
+      if (!this.options.publisherId) {
+        reject('No publisher id provided')
+      }
+
+      const message = {
+        request: 'rtp_forward',
+        room: this.options.mountId,
+        publisher_id: this.options.publisherId
+      }
+    })
+  }
+
   /**
    * 
    * @param jsep 
@@ -216,7 +239,12 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     }
 
     const result = await this.joinAsPublisher()
-    return result
+
+    if (result && result.publishers[0].id) {
+      this.options.publisherId = result.publishers[0].id 
+    }
+
+    return !!result
   }
 
   async destroyStream (): Promise<boolean> {

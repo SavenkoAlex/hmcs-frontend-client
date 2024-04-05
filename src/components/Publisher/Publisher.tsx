@@ -132,7 +132,7 @@ export default defineComponent({
         return
       }
 
-      this.isRoomCreated= await this.pluginHandler.createStream(this.videoTrack)
+      this.isRoomCreated = await this.pluginHandler.createStream(this.videoTrack)
     },
 
     getNewPublisherId (): number | null {
