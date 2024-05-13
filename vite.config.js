@@ -47,6 +47,10 @@ export default defineConfig({
         target: 'https://192.168.0.115',
         secure: false
       },
+      '/rtmp': {
+        target: 'https://192.168.0.115:1935/live',
+        secure: true  
+      }
     },
   },
   css: {

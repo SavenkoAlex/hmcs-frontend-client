@@ -4,7 +4,6 @@ import {
   StreamHandler,
   StreamDescription
  } from  '@/services/webrtc/webrtcAbstract'
-import { JoinResult } from '@/global/global'
 
 /**
  * Some WebRTC plugin with init (activate) function
@@ -65,13 +64,21 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   protected listen () {
     // Catching Janus on message event
     this.emitter.on('message', ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+      if (msg.error) {
+        console.error(msg.error)
+        this.emitter.emit('error', msg.error)
+        return
+      }
+
       const msgType = msg.videoroom
       if (msgType === 'joined') {
-        this.createOffer().then(jsep => {
+
+        this.createOffer().then(async jsep => {
           if (jsep) {
-            this.publish(jsep)
+            await this.publish(jsep)
+            this.forwardRTP()
           } else {
-            console.error('offer is not create')
+            console.error('offer is not created')
             return
           }
         })
@@ -120,7 +127,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * @param options stream sys data
    * @returns true or false depending on response
    */
-  private joinAsPublisher (): Promise <JoinResult | false> {
+  private joinAsPublisher (): Promise <boolean> {
     return new Promise ((resolve, reject) => {
       if (!this.handler) {
         reject('No plugin available')
@@ -136,7 +143,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
 
       this.handler?.send({
         message,
-        success: (data: JoinResult) => resolve(data),
+        success: (data) => resolve(true),
         error: () => resolve(false)
       })
     })
@@ -146,21 +153,32 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * Forward stream to RTMP
    * @returns { boolean } 
    */
-  async forwardRTMP (): Promise <boolean> {
+  async forwardRTP (): Promise <boolean> {
     return new Promise ((resolve, reject) => {
       if (!this.handler) {
         reject('No plugin available')
       }
        
-      if (!this.options.publisherId) {
+      if (!this.options.mountId) {
         reject('No publisher id provided')
       }
 
       const message = {
         request: 'rtp_forward',
         room: this.options.mountId,
-        publisher_id: this.options.publisherId
+        publisher_id: this.options.mountId,
+        host: '192.168.0.115',
+        streams: [{
+          mid: '0',
+          port: 12121
+        }]
       }
+
+      this.handler.send({
+        message,
+        success: () => resolve(true),
+        error: (err) => { console.error('err: ', err); resolve(false) }
+      })
     })
   }
 
@@ -172,7 +190,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   private async publish (jsep: JanusJS.JSEP): Promise <true | false> {
 
     return new Promise ((resolve, reject) => {
-      if (!this.handler) {
+      if (!this.handler || !this.options.streamId) {
         reject('No plugin available')
       }
 
@@ -182,7 +200,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         audio: false,
         video: true,
         descriptions: [{
-          mid: this.options.streamId || String(0),
+          mid: '0',
           description: `${this.options.streamId} stream`
         }]
       }
@@ -191,7 +209,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         message,
         jsep,
         success: () =>  resolve(true),
-        error: (err) => { console.log(err); resolve(false) }
+        error: (err) => { console.error('err: ', err); resolve(false) }
       })
     })
   }
@@ -239,12 +257,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     }
 
     const result = await this.joinAsPublisher()
-
-    if (result && result.publishers[0].id) {
-      this.options.publisherId = result.publishers[0].id 
-    }
-
-    return !!result
+    return result
   }
 
   async destroyStream (): Promise<boolean> {

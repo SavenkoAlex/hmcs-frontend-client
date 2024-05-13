@@ -97,6 +97,10 @@ export type User = {
   id?: Maybe<string>
 }
 
+export type UserAccount = {
+  amount: number
+}
+
 export const storeUserKeyMap: Record <keyof User, string> = {
   login: 'nl',
   username: 'eu',

@@ -16,7 +16,9 @@ import './Publisher.scss'
 
 /** components */
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
+import StateBar from '@/components/StateBar/StateBar'
 import Chat from '@/components/Chat/Chat'
+import { UserRole } from '@/global/global'
 
 export default defineComponent({
 
@@ -24,6 +26,7 @@ export default defineComponent({
 
   components: {
     TextButton,
+    StateBar,
     Chat
   },
 
@@ -70,8 +73,7 @@ export default defineComponent({
       crypto,
       tarotPoster,
       isPictureInPictureEnabled,
-      isRoomCreated
-
+      isRoomCreated,
     }
   },
 
@@ -118,9 +120,6 @@ export default defineComponent({
       }
     },
 
-
-    
-
     async createRoom (): Promise <void> {
       if (!this.pluginHandler) {
         console.error('no webrtc plugin availabele')
@@ -160,6 +159,15 @@ export default defineComponent({
         console.error(err)
         this.isPictureInPictureEnabled = false
       })
+    },
+
+    toggleStream (streamActive: boolean): void {
+      if (streamActive) {
+        this.destroyRoom()
+        return
+      }
+
+      this.createRoom()
     }
   },
 
@@ -174,7 +182,7 @@ export default defineComponent({
     this.publisherId = publisherId
    
     PublisherStreamHandler.init(Janus, {
-      streamId: String(this.publisherId),
+      streamId: this.publisherId,
       displayName: `${this.publisherId} stream`,
       mountId: this.publisherId
     }).then((handler) => {
@@ -183,14 +191,19 @@ export default defineComponent({
       } else {
         throw new Error('no webrtc plugin available')
       }
+    }).then(() => {
+      this.pluginHandler?.emitter.on('error', (err) => {
+        console.error(err)
+        this.isRoomCreated = false
+      })
     })
+
 
     this.getUserMedia().then(result => {
       if (result) {
         this.publisherStream = result
       }
     })
-
 
   },
 
@@ -228,20 +241,18 @@ export default defineComponent({
       </div>
       <div class='publisher-stream__controls'>
         <div class='publisher-stream__button'>
-          <TextButton
-            onClick={() => { this.isRoomCreated ? this.destroyRoom() : this.createRoom()}}
-            disabled={!this.isHandlerAvailable}
-            mode={this.isRoomCreated ? 'fourth' : 'tertiary'}
-            text={this.isRoomCreated ? this.$t('pages.publisher.destroyRoom') : this.$t('pages.publisher.createRoom')} 
-          /> 
-        </div>
-
-        <div class='publisher-stream__button'>
         <TextButton
+          style={{width: '50%', float: 'right'}}
           onClick={() => console.log(this.publisherId)}
           text={'Get ID'}
         />
         </div>
+      </div>
+      <div class='publisher-stream publisher-state'>
+        <StateBar userRole={UserRole.WORKER}
+          onStreamtoggle={(stream: boolean) => this.toggleStream(stream)}
+          streamAvailable={this.isHandlerAvailable}
+        />
       </div>
       <div class='publisher-stream__chat'>
         <Chat

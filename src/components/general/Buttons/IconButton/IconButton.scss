@@ -1,0 +1,50 @@
+@media screen {
+
+  .icon-button {
+    &__primary {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      @include icon-button ($primary-7, $primary-2);
+    }
+
+    &__tertiary {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      @include icon-button ($primary-7, $secondary-4);
+    }
+
+    &__fourth {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      @include icon-button ($primary-7, $secondary-6);
+    }
+
+    &:active {
+      display: flex;
+      flex-direction: row;
+      @include icon-button ($primary-2, $primary-7);
+    }
+
+    &_disabled {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      @include icon-button ($primary-7, $secondary-9);
+    }
+
+    @media (max-width: 767px) {
+    }
+  }
+
+  @media (max-width: 1200px) {
+  }
+
+  
+}

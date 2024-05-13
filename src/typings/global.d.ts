@@ -20,11 +20,7 @@ declare namespace tp {
     email: string | null,
     password: string | null
   }
-
-  export type User = {
-    id: string | null,
-    token: string | null
-  }
+ 
 
   export const enum StoreKey {
     MAIN = 'main',

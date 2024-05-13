@@ -10,9 +10,16 @@ import './User.scss'
 import { Data } from './types'
 import { UserRole } from '@/global/global'
 
+/** components */
+import UserGeneral from '@/components/UserGeneral/UserGeneral'
+
 export default defineComponent({
 
   name: 'UserPage',
+
+  components: {
+    UserGeneral
+  },
 
   data (): Data {
     return {
@@ -20,11 +27,17 @@ export default defineComponent({
     }
   },
 
+  methods: {
+    async getUser() {}
+  },
+
   render (): VNode {
     return <div>
 
+      <UserGeneral>
+
+      </UserGeneral>
     </div>
   }
-
 })
 

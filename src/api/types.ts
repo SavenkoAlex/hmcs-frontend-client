@@ -1,12 +1,9 @@
-export type UserRole = 'user' | 'worker'
+import {
+  User
+} from '@/typings/common'
 
-export type User = {
-  login: string,
-  username: string,
-  role: unknown,
-  type: UserRole,
-  id: string
-}
+
+
 export type LoginResponse = {
   user: User,
   accessToken: string 

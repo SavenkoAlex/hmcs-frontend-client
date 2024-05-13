@@ -32,6 +32,11 @@
     },
     "notFound": {
       "text": "Страница не найдена"
+    },
+    "stateBar": {
+      "startStream": "старт",
+      "stopStream": "стоп",
+      "stream": "стрим"
     }
   },
   "routes": {
@@ -40,5 +45,8 @@
     "auth": "Вход",
     "user": "Профиль",
     "live": "Стрим"
+  },
+  "common": {
+    "mainCurrency": ""
   }
 }

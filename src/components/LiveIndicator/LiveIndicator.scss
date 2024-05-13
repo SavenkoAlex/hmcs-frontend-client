@@ -1,0 +1,38 @@
+.live-indicator {
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  opacity: .7;
+
+  &_online {
+    display: inline-block;
+    background-color: $secondary-3;
+    opacity: .7;
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+    height: 16px;
+    width: 16px;
+  }
+
+  &_offline {
+    display: inline-block;
+    background-color: $secondary-6;
+    opacity: 0.7;
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+    height: 16px;
+    width: 16px;
+  }
+}
+
+@keyframes blink {
+  0% {
+    transform:  scale(1, 1);
+  }
+  50% {
+    transform:  scale(1.5, 1.5);
+  }
+  100% {
+    transform:  scale(1, 1);
+  }
+}
