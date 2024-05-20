@@ -2,6 +2,7 @@
 /* RESETS */
 @import 'colors.scss';
 @import 'mixins.scss';
+@import 'typography.scss';
 //@import 'grid.scss';
 
 *,
@@ -16,7 +17,6 @@ html {
 
 h1,
 h2 {
-  margin-bottom: 0;
 }
 
 ul {

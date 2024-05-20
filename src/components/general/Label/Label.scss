@@ -6,15 +6,20 @@
     margin: 2px 0;
 
     @media (max-width: 767px) {
-      font-weight: 200;
-      font-style: inherit;
-      font-display: fallback;
+      
+      label {
+        font-size: 16px;
+        font-weight: 400;
+        font-style: inherit;
+        letter-spacing: .8px;
+      }
     }
 
     @media (min-width: 768px) and (max-width: 991px) {
       font-weight: 200;
       font-style: inherit;
       font-display: fallback;
+      line-height: 21px;
     }
 
     @media (min-width: 992px) and (max-width: 1199px) {
@@ -29,4 +34,9 @@
       font-display: fallback;
     }
   }
+}
+
+.input-label {
+  // all inputs with type checkbox selector
+  
 }

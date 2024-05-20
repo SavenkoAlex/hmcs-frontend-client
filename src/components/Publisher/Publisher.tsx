@@ -17,6 +17,7 @@ import './Publisher.scss'
 /** components */
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import Chat from '@/components/Chat/Chat'
+import BaseVideo from '@/components/Video/Video'
 
 export default defineComponent({
 
@@ -24,7 +25,8 @@ export default defineComponent({
 
   components: {
     TextButton,
-    Chat
+    Chat,
+    BaseVideo
   },
 
   computed: {
@@ -202,27 +204,24 @@ export default defineComponent({
     return <div class="publisher-stream">
       <div class="publisher-stream__publisher-video">
         <Transition>
-          <video 
+          <BaseVideo
             srcObject={this.publisherStream} 
             ref={'publisherNode'} 
             autoplay
             playsinline
-          > 
-            Video is not supportd 
-          </video>
+          /> 
         </Transition>
       </div>
       <div class={this.isPictureInPictureEnabled 
         ? 'publisher-stream__client-video' 
         : 'publisher-stream__client-video_hidden'}>
         <Transition>
-          <video 
-            srcObject={this.publisherStream} 
-            ref={'clientNode'} 
-            autoplay
-            controls
-          > 
-            Video is not supportd
+            <video 
+              srcObject={this.publisherStream} 
+              ref={'clientNode'} 
+              autoplay
+              controls
+            >
           </video>
         </Transition>
       </div>

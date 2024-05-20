@@ -8,11 +8,6 @@
     justify-content: center;
     align-items: center;
 
-    &__publisher-video {
-      max-width: 100%;
-      margin: 0 auto;
-    }
-
     &__client-video {
       max-width: 100%;
       margin: 0 auto;
@@ -51,13 +46,6 @@
       padding: 3px 6px; 
     }
   }
-
-  video {
-    width: 100%;
-    height: auto;
-
-  }
-
 }
 
 :picture-in-picture {

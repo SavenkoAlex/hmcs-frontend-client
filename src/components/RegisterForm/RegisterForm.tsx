@@ -15,6 +15,9 @@ import '@/components/RegisterForm/RegisterForm.scss'
 /** helper */
 import { emptyfieldValidation } from '@/helpers/helper'
 
+/** types */
+import { SidePosition } from '@/global/global'
+
 export default defineComponent({
 
   name: 'LoginForm',
@@ -39,7 +42,7 @@ export default defineComponent({
 
   render (): VNode {
     const formHeader = <div class='login-form__header'>
-      <h4> { this.$t('pages.registerForm.title') } </h4>
+      <h2> { this.$t('pages.registerForm.title') } </h2>
     </div>
 
     const formBody = <div class='register-form__body'>
@@ -95,6 +98,7 @@ export default defineComponent({
           label={{
             text: this.$t('pages.registerForm.isPublisher')}
           }
+          labelPosition={SidePosition.RIGHT}
           modelValue={this.isPublisher}
           onUpdate:modelValue={(value) => this.isPublisher = value}
         />

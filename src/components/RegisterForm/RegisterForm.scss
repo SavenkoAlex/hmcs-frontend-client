@@ -2,14 +2,20 @@
 
   @media (max-height: 1199px) {
     .register-form {
-      width: 60%;
+
+      width: 100%;
+      padding: 0 16px;
+      
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
 
       &__body {
         width: 100%;
       }
       
       &__input {
-        margin-top: 12px
+        margin-top: 12px;
       }
 
       &__submit-button {

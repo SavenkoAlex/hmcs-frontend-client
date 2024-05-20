@@ -87,7 +87,7 @@ export default defineComponent({
 
   render (): VNode {
     const formHeader = <div class='login-form__header'>
-      <h4> { this.$t('pages.loginForm.title') } </h4>
+      <h2> { this.$t('pages.loginForm.title') } </h2>
     </div>
 
     const formBody = <div class='login-form__body'>
