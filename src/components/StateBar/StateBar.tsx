@@ -74,7 +74,7 @@ export default defineComponent({
       userAccountId: null,
       userId: null,
       live: false,
-      stream: true,
+      stream: false,
       isRequestActive: false,
       user: null,
       account: null,

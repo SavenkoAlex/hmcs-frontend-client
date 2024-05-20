@@ -2,12 +2,11 @@
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  opacity: .7;
 
   &_online {
     display: inline-block;
     background-color: $secondary-3;
-    opacity: .7;
+    opacity: .8;
     border-radius: 50%;
     animation: blink 1.5s infinite;
     height: 16px;
@@ -17,7 +16,7 @@
   &_offline {
     display: inline-block;
     background-color: $secondary-6;
-    opacity: 0.7;
+    opacity: 0.8;
     border-radius: 50%;
     animation: blink 1.5s infinite;
     height: 16px;
