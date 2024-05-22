@@ -11,6 +11,7 @@
     input {
       @include text-input($primary-2, $primary-3);
       
+      font-size: medium;
       &:focus {
         background-color: $primary-3;
         // add shadow

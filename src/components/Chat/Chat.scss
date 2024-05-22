@@ -1,50 +1,50 @@
 .chat {
   @media (max-width: 767px) {
-    width: 100%;
+    // width equals to screen width minus 36 pixels
+    height: calc(100vh - 100vw - 36px);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    align-items: stretch;
+    justify-content: flex-start;
+    align-items: center;
   }
 
   &__list {
-    height: 32px;
     width: 100%;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
-    margin-bottom: 3px;
+    margin-bottom: 12px;
     padding: 0 3px;
+    border-bottom: 1px solid $primary-4;
   }
 
   &__content {
     width: 100%;
-    height: calc(100vh - 100vw - 72px);
+    height: 100%;
     background-color: $primary-2;
     overflow-y: scroll;
   }
 
   &__message-input {
-    height: 38px;
+    height: fit-content;
     width: 100%;
   }
 
   &__item {
     cursor: pointer;
-    padding: 3px 6px;
-    background-color: $primary-3;
+    padding: 6px 18px 18px 18px;
+    background-color: transparent;
+    text-align: start;
 
 
     &_current {
-      background-color: $primary-4;
       transition: .2s ease-in;
-      border-top-right-radius : 3px;
-      border-top-left-radius: 3px;
-      padding: 3px 6px 3px 9px;
+      box-shadow: 0 8px 6px -6px $primary-7;
     }
   }
 
   &__message {
+    width: 100%;
     background-color: $primary-3;
     border-radius: 12px;
     padding: 3px 6px;

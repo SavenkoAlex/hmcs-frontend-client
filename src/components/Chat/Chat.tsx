@@ -93,10 +93,7 @@ export default defineComponent({
                 class={chat.id === this.currentChat ? 'chat__item chat__item_current' : 'chat__item'}
                 onClick={() => this.currentChat = chat.id}
               > 
-              <Label
-                text={this.chatLinks[chatId].name}
-                scale={ElementScale.LARGE}
-              />
+                <span>{this.chatLinks[chatId].name}</span>
             </div>
             </Transition>
           })
