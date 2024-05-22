@@ -1,0 +1,12 @@
+.base-video {
+  margin-top: 6px;
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  background-color: $primary-9;
+  
+  video {
+    width: 100%;
+    height: auto;
+  }
+}

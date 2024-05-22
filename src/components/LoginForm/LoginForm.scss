@@ -1,8 +1,14 @@
 @media screen {
 
-  @media (max-width: 1199px) {
+  @media (max-width: 768px) {
     .login-form {
-      width: 60%;
+      width: 100%;
+      padding: 0 16px;
+      
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      
 
       &__body {
         width: 100%;
@@ -13,12 +19,11 @@
       }
 
       &__submit-button {
-        margin: 18px 0 12px 0;
         width: 100%;
       }
 
       &__footer {
-        padding-top: 24px;
+        margin-top: 24px;
         width: 100%;
       }
     }
