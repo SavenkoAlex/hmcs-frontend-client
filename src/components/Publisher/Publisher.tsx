@@ -18,6 +18,7 @@ import './Publisher.scss'
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import StateBar from '@/components/StateBar/StateBar'
 import Chat from '@/components/Chat/Chat'
+import { UserRole } from '@/global/global'
 import BaseVideo from '@/components/Video/Video'
 
 export default defineComponent({
@@ -237,19 +238,12 @@ export default defineComponent({
         </Transition>
       </div>
       <div class='publisher-stream__controls'>
-        <div class='publisher-stream__button'>
-        <TextButton
-          style={{width: '50%', float: 'right'}}
-          onClick={() => console.log(this.publisherId)}
-          text={'Get ID'}
-        />
-        </div>
-      </div>
-      <div class='publisher-stream publisher-state'>
         <StateBar userRole={UserRole.WORKER}
           onStreamtoggle={(stream: boolean) => this.toggleStream(stream)}
           streamAvailable={this.isHandlerAvailable}
         />
+      </div>
+      <div class='publisher-stream publisher-state'>
       </div>
       <div class='publisher-stream__chat'>
         <Chat

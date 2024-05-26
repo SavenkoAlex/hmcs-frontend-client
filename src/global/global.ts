@@ -89,6 +89,8 @@ export type Maybe <T extends string | number | Record <string, unknown>> = T | n
 
 export type NotifierStatus = 'error' | 'warn' | 'success'
 
+export const zIndex = 1650
+
 export type User = {
   login: Maybe <string>,
   username?: Maybe <string>,
@@ -100,6 +102,7 @@ export type User = {
 export type UserAccount = {
   amount: number
 }
+
 
 export const storeUserKeyMap: Record <keyof User, string> = {
   login: 'nl',

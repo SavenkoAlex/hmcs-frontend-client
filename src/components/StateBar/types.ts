@@ -9,7 +9,7 @@ export type Data = {
   userAccountId: string | null,
   userId: string | null,
   live: boolean,
-  stream: boolean,
+  isStreamAvailable: boolean,
   isRequestActive: boolean,
   user: null | User,
   account: null | UserAccount,

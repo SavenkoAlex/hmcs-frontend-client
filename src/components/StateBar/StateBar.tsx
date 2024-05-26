@@ -21,13 +21,16 @@ import { BarConfiguration, BarConfigutations, StateBarElements } from '@/compone
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
 import LiveIndicator from '@/components/LiveIndicator/LiveIndicator'
+import Modal from '@/components/general/Modal/Modal'
+import Label from '@/components/general/Label/Label'
 
 /** icons */
-import PlayIcon from '@/assets/images/play_24.svg'
-import StopIcon from '@/assets/images/stop_24.svg'
-import CameraIcon from '@/assets/images/camera_24.svg'
-import AddCallIcon from '@/assets/images/phone.svg'
+import PlayIcon from '@/assets/images/play_32.svg'
+import StopIcon from '@/assets/images/stop_32.svg'
+import CameraIcon from '@/assets/images/camera_32.svg'
+import AddCallIcon from '@/assets/images/person_32.svg'
 import CoinIcon from '@/assets/images/currency_ruble_24dp_FILL0_wght400_GRAD0_opsz24.svg'
+import SimpleText from '../general/Text/SimpleText/SimpleText'
 export default defineComponent({
 
   name: 'StateBar',
@@ -39,7 +42,8 @@ export default defineComponent({
     StopIcon,
     CameraIcon,
     AddCallIcon,
-    CoinIcon
+    CoinIcon,
+    Modal
   },
 
   props: {
@@ -63,7 +67,7 @@ export default defineComponent({
     },
 
     streamButtonText () {
-      return this.stream 
+      return this.isStreamAvailable
         ? this.$t('pages.stateBar.stopStream')
         : this.$t('pages.stateBar.startStream')
     }
@@ -74,7 +78,7 @@ export default defineComponent({
       userAccountId: null,
       userId: null,
       live: false,
-      stream: false,
+      isStreamAvailable: true,
       isRequestActive: false,
       user: null,
       account: null,
@@ -90,12 +94,12 @@ export default defineComponent({
     </div>
 
     const joinreq = <div class='state-bar__joinreq'>
-      <IconButton
-        mode={'tertiary'}
-        disabled={!this.isRequestActive}
-      >
-        <AddCallIcon/>
-      </IconButton>
+        <IconButton
+          mode={'tertiary'}
+          disabled={!this.isRequestActive}
+        >
+          <AddCallIcon/>
+        </IconButton>
     </div>
     const camera = <div class='state-bar__camera'>
       <IconButton
@@ -115,13 +119,15 @@ export default defineComponent({
 
     </div>
     const fee = <div class='state-bar_fee'></div>
+
     const stream = <div class='state-bar__stream'>
       <IconButton 
-        mode={this.stream ? 'fourth' : 'tertiary'}
-        onClick={() => () => this.$emit('streamtoggle', this.stream)}  
-        disabled={this.streamAvailable}
+        mode={this.isStreamAvailable? 'active' : 'fourth'}
+        //onClick={() => this.$emit('streamtoggle', this.isStreamAvailable)}  
+        onClick={() => this.isStreamAvailable = !this.isStreamAvailable}
+        disabled={!this.streamAvailable}
       >
-        { this.stream ?  <StopIcon/> : <PlayIcon/> }
+        { this.isStreamAvailable ?  <PlayIcon/> : <StopIcon/> }
       </IconButton>
     </div>
 
@@ -136,6 +142,12 @@ export default defineComponent({
     }
 
     return <div class='state-bar'>
+      <Modal>
+        {{
+          header: () => <Label text='ВЫберете камеру'/>,
+          footer: () => [<TextButton text='Продолжить'/>, <TextButton text='Отмена'/>],
+        }}
+      </Modal>
       {
         this.barElements ? this.barElements.map((item) => elements[item] || null) : null
       }  

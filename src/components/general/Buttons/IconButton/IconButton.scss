@@ -6,6 +6,7 @@
       flex-direction: row;
       justify-content: center;
       align-items: center;
+      box-shadow: 0 0 6px -1px $primary-6;
       @include icon-button ($primary-7, $primary-2);
     }
 
@@ -22,13 +23,17 @@
       flex-direction: row;
       justify-content: center;
       align-items: center;
-      @include icon-button ($primary-7, $secondary-6);
+      box-shadow: 0 0 8px 2px $secondary-6;
+      @include icon-button ($primary-7, $primary-2);
     }
 
-    &:active {
+    &__active {
       display: flex;
       flex-direction: row;
-      @include icon-button ($primary-2, $primary-7);
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 8px 2px $secondary-3;
+      @include icon-button ($primary-7, $primary-2);
     }
 
     &_disabled {
@@ -36,7 +41,13 @@
       flex-direction: row;
       justify-content: center;
       align-items: center;
-      @include icon-button ($primary-7, $secondary-9);
+      box-shadow: 0 0 6px -1px $primary-6;
+      @include icon-button ($secondary-8, $secondary-7);
+    }
+
+    &:active {
+      box-shadow: 0 0 8px 2px $secondary-9;
+
     }
 
     @media (max-width: 767px) {

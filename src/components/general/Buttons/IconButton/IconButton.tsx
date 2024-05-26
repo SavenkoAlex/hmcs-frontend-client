@@ -25,7 +25,6 @@ export default defineComponent({
       type: String as PropType <ButtonMode>,
       default: 'primary'
     },
-
     reverseflow: {
       type: Boolean as PropType <boolean>,
       default: false

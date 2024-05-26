@@ -1,2 +1,2 @@
 
-export type ButtonMode = 'primary' | 'secondary' | 'tertiary' | 'fourth'
+export type ButtonMode = 'primary' | 'secondary' | 'tertiary' | 'fourth' | 'active'
