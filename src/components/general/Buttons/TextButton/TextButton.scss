@@ -31,8 +31,12 @@
         @include text-button ($primary-2, $primary-7);
       }
 
-      &_disabled {
-        @include text-button ($secondary-1, $secondary-4);
+      &__disabled {
+        padding: 12px 20px;
+        font-size: 16px;
+        line-height: 24px;
+        letter-spacing: .9px;
+        @include text-button ($primary-8, $secondary-7);
       }
     }
   }

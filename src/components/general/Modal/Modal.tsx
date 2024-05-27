@@ -9,25 +9,36 @@ import {
 
 /** style */
 import '@/components/general/Modal/Modal.scss'
+import { isVisible } from 'element-plus/es/utils'
 
 export default defineComponent({
 
   name: 'Modal',
 
+  emits: ['close'],
+
   props: {
+    /** modal z-index offset  */
     indexOffset: {
       type: Number as PropType <number>,
       default: 0
     },
+    /** is underneath content blocked flag */
     blockBackground: {
       type: Boolean as PropType <boolean>,
       default: true
     },
+    /** function to call on close */
     resolve: {
       type: Function as PropType <typeof Promise.resolve>,
       default: () => Promise.resolve({
         close: true
       })
+    },
+    /** modal visibility */
+    isVisible: {
+      type: Boolean as PropType <boolean>,
+      default: false
     }
   },
 
@@ -45,24 +56,25 @@ export default defineComponent({
   },
 
   render (): VNode {
-    return <Transition>
-      <div>
+    return <Transition name='modal'>
+      {
+        this.isVisible && <div class='modal'>
+          <div class="modal__background"></div>
 
-      <div class="modal__background"></div>
-      <div class='modal__content'>
-        <div class="modal__header">
-          
-          <div class='modal__title'>
-            {this.$slots.header?.()}
-          </div>
-          <div class='modal__close' onClick={() => this.resolve()}> 
-            <span> &#10005; </span> 
+          <div class='modal__content'>
+            <div class="modal__header">
+              <div class='modal__title'>
+                {this.$slots.header?.()}
+              </div>
+              <div class='modal__close' onClick={() => this.$emit('close')}> 
+                <span> &#10005; </span> 
+              </div>
+            </div>
+            <div class="modal__body"> {this.$slots.default?.()} </div>
+            <div class='modal__footer'> {this.$slots.footer?.() }</div>
           </div>
         </div>
-        <div class="modal__body"> {this.$slots.default?.()} </div>
-        <div class='modal__footer'> {this.$slots.footer?.() }</div>
-      </div>
-      </div>
+      }
     </Transition>
   }
 })

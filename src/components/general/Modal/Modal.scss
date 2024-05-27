@@ -17,7 +17,7 @@
       align-items: center;
       border-radius: 8px;
       margin: 16px 0;
-      transition: 0.2 ease-in-out;
+      transition: 1s ease-in-out;
       box-shadow: 0 0 6px 12px $primary-8;
       z-index: 1850;
     }
@@ -71,4 +71,14 @@
       opacity: 0.6;
     }
   }
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
 }

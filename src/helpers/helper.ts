@@ -19,17 +19,24 @@ export const getSizeHash = (small: string, medium: string, large: string) => {
   }
 }
 
+type FlexDirection = 'row' | 'column' | 'row-reverse' | 'column-reverse'
+type FlexJustify = 'flex-start' | 'flex-end'
+
 type FlexOrientation = {
-  'flex-direction': 'row' | 'column',
-  'justify-content': 'flex-start' | 'flex-end'
+  'flex-direction': FlexDirection
+  'justify-content': FlexJustify
 }
 
 export const getFlexOrientation = (side: SidePosition): FlexOrientation => {
-  const direction: 'row' | 'column' = side === SidePosition.LEFT || side === SidePosition.RIGHT
+  const direction: FlexDirection = side === SidePosition.LEFT
     ? 'row'
-    : 'column'
+    : side === SidePosition.RIGHT
+      ? 'row-reverse'
+      : side === SidePosition.TOP
+        ? 'column'
+        : 'column-reverse'
 
-  const justify: 'flex-start' | 'flex-end' = side === SidePosition.TOP || side === SidePosition.LEFT
+  const justify: FlexJustify = side === SidePosition.TOP || side === SidePosition.LEFT
     ? 'flex-start'
     : 'flex-end'
 

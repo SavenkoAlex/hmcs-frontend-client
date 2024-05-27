@@ -29,7 +29,7 @@ export default defineComponent({
 
   render (): VNode {
     return <button 
-      class={this.disabled ? `text-button__${this.mode}_disabled` : `text-button__${this.mode}`}
+      class={this.disabled ? `text-button__disabled` : `text-button__${this.mode}`}
       type='button'
       onClick={(event) => this.$emit('click', event)}
       disabled={this.disabled}

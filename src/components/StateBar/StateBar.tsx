@@ -21,8 +21,8 @@ import { BarConfiguration, BarConfigutations, StateBarElements } from '@/compone
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
 import LiveIndicator from '@/components/LiveIndicator/LiveIndicator'
-import Modal from '@/components/general/Modal/Modal'
 import Label from '@/components/general/Label/Label'
+import CameraController from '@/components/CameraController/CameraController'
 
 /** icons */
 import PlayIcon from '@/assets/images/play_32.svg'
@@ -30,7 +30,7 @@ import StopIcon from '@/assets/images/stop_32.svg'
 import CameraIcon from '@/assets/images/camera_32.svg'
 import AddCallIcon from '@/assets/images/person_32.svg'
 import CoinIcon from '@/assets/images/currency_ruble_24dp_FILL0_wght400_GRAD0_opsz24.svg'
-import SimpleText from '../general/Text/SimpleText/SimpleText'
+
 export default defineComponent({
 
   name: 'StateBar',
@@ -43,7 +43,7 @@ export default defineComponent({
     CameraIcon,
     AddCallIcon,
     CoinIcon,
-    Modal
+    CameraController
   },
 
   props: {
@@ -101,13 +101,7 @@ export default defineComponent({
           <AddCallIcon/>
         </IconButton>
     </div>
-    const camera = <div class='state-bar__camera'>
-      <IconButton
-        onClick={() => console.log('switch camera')}
-      >
-        <CameraIcon/>
-      </IconButton> 
-    </div>
+    const camera = <CameraController/>
     const increase = <div class='state-bar__increase'></div>
     const amount = null ?? <div class='state-bar__amount'>
       <div class='state-bar__amount_count'>
@@ -142,12 +136,6 @@ export default defineComponent({
     }
 
     return <div class='state-bar'>
-      <Modal>
-        {{
-          header: () => <Label text='ВЫберете камеру'/>,
-          footer: () => [<TextButton text='Продолжить'/>, <TextButton text='Отмена'/>],
-        }}
-      </Modal>
       {
         this.barElements ? this.barElements.map((item) => elements[item] || null) : null
       }  
