@@ -1,13 +1,7 @@
-
-export type Device = {
-  label: string,
-  value: string,
-  kind: MediaDeviceKind,
-  selected: boolean
-}
+import { MediaDevice } from '@/types/global' 
 
 export type Data = {
-  devices: Device[],
-  constraints: { video: true, audio: false },
-  isModalVisible: boolean
+  devices: MediaDevice[],
+  isModalVisible: boolean,
+  devicesValidationError: string | null | false
 }

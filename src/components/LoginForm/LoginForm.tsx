@@ -17,7 +17,7 @@ import { emptyfieldValidation } from '@/helpers/helper'
 
 /** types */
 import { Data } from '@/components/LoginForm/Types'
-import { States } from '@/global/store'
+import { States } from '@/types/store'
 
 /** api */
 import { authentificate } from '@/api/login'
@@ -25,7 +25,7 @@ import { authentificate } from '@/api/login'
 /** store */
 import { mapActions, mapGetters } from 'vuex'
 import { userStateKey } from '@/store'
-import { UserRole } from '@/global/global'
+import { UserRole } from '@/types/global'
 
 export default defineComponent({
 

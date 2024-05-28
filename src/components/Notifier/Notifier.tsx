@@ -5,7 +5,7 @@ import {
 } from 'vue'
 
 /** types */
-import { NotifierStatus, ElementScale, DisplayLocation } from '@/global/global'
+import { NotifierStatus, ElementScale, DisplayLocation } from '@/types/global'
 
 /** styles */
 import '@/components/Notifier/Notifier.scss'

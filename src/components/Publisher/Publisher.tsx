@@ -18,7 +18,7 @@ import './Publisher.scss'
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import StateBar from '@/components/StateBar/StateBar'
 import Chat from '@/components/Chat/Chat'
-import { UserRole } from '@/global/global'
+import { UserRole } from '@/types/global'
 import BaseVideo from '@/components/Video/Video'
 
 export default defineComponent({

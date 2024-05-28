@@ -11,7 +11,7 @@ import Label from '@/components/general/Label/Label'
 import '@/components/general/inputs/Checkbox/Checkbox.scss'
 
 /** types */
-import { InputLabel, SidePosition } from '@/global/global'
+import { InputLabel, SidePosition } from '@/types/global'
 
 /** helpers */
 import { getFlexOrientation } from '@/helpers/helper'

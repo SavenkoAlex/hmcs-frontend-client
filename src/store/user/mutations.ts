@@ -1,6 +1,6 @@
 import { UserMutationTypes } from '@/store/user/mutation-types'
-import { UserState } from '@/global/store'
-import { User } from '@/global/global'
+import { UserState } from '@/types/store'
+import { User } from '@/types/global'
 import { Payload } from 'vuex'
 
 export const mutations = {

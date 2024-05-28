@@ -5,7 +5,7 @@ import {
 } from 'vue'
 
 /** types */
-import { ElementScale, SidePosition } from '@/global/global'
+import { ElementScale, SidePosition } from '@/types/global'
 
 /** helpers */
 import { getSizeHash } from '@/helpers/helper'

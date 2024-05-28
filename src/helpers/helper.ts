@@ -6,7 +6,7 @@ import {
   SessionStorageKeys,
   User,
   storeUserKeyMap
-} from '@/global/global'
+} from '@/types/global'
 import { store } from '@/store'
 
 import { AES } from 'crypto-js'

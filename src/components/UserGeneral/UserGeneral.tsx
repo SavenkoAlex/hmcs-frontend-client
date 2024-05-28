@@ -5,7 +5,7 @@ import {
 } from 'vue'
 
 /** types */
-import { User } from '@/global/global'
+import { User } from '@/types/global'
 
 export default defineComponent({
 

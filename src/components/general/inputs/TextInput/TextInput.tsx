@@ -7,7 +7,7 @@ import {
 } from 'vue'
 
 /** styles */
-import { InputLabel, SidePosition } from '@/global/global'
+import { InputLabel, SidePosition } from '@/types/global'
 
 /** components */
 import Label from '@/components/general/Label/Label'
@@ -16,7 +16,7 @@ import Label from '@/components/general/Label/Label'
 import '@/components/general/inputs/TextInput/TextInput.scss'
 
 /** types */
-import { ErrorBucket, InputError } from '@/global/global'
+import { ErrorBucket, InputError } from '@/types/global'
 
 export default defineComponent({
 

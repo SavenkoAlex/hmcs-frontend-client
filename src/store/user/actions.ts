@@ -1,5 +1,5 @@
 import { ActionContext } from 'vuex'
-import { State, States, UserState } from '@/global/store'
+import { State, States, UserState } from '@/types/store'
 import { UserMutationTypes } from '@/store/user/mutation-types'
 
 type UserActionContext = ActionContext <UserState, State>

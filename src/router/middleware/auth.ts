@@ -3,7 +3,7 @@ import {
 } from 'vue-router'
 
 import { isAuthentificated } from '@/helpers/helper'
-import { storeUserKeyMap, UserRole } from '@/global/global'
+import { storeUserKeyMap, UserRole } from '@/types/global'
 import { RouteNames, UserRoutes } from '@/router/types'
 
 const userRoutes: Record <UserRole & 'anonymous', RouteNames[]> = {

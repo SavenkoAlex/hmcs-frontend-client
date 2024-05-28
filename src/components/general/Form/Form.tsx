@@ -5,7 +5,7 @@ import {
 } from 'vue'
 
 /** types */
-import { ErrorBucket } from '@/global/global'
+import { ErrorBucket } from '@/types/global'
 /** style*/
 import '@/components/general/Form/Form.scss'
 

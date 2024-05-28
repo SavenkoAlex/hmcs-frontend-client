@@ -14,7 +14,7 @@ import { RouterLink } from 'vue-router'
 import { mapGetters } from 'vuex'
 
 /** types */
-import { UserRole } from '@/global/global'
+import { UserRole } from '@/types/global'
 
 export default defineComponent({
 

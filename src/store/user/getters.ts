@@ -1,5 +1,5 @@
-import { UserState } from '@/global/store'
-import { User, UserRole } from '@/global/global'
+import { UserState } from '@/types/store'
+import { User, UserRole } from '@/types/global'
 
 export const getters = {
   

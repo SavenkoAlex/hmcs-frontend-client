@@ -8,7 +8,7 @@ import './User.scss'
 
 /** types */
 import { Data } from './types'
-import { UserRole } from '@/global/global'
+import { UserRole } from '@/types/global'
 
 /** components */
 import UserGeneral from '@/components/UserGeneral/UserGeneral'

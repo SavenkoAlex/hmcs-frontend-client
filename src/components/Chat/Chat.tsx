@@ -8,7 +8,7 @@ import {
 
 /** types */
 import { Chat } from '@/components/Chat/types'
-import { ElementScale } from '@/global/global'
+import { ElementScale } from '@/types/global'
 
 /** styles */
 import '@/components/Chat/Chat.scss'

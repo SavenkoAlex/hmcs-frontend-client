@@ -1,5 +1,5 @@
 import { createStore, Store, useStore as getStore } from 'vuex'
-import { UserState, AppState, State, States } from '@/global/store'
+import { UserState, AppState, State, States } from '@/types/store'
 
 /** states */
 import { app, appStateKey } from '@/store/modules/app'

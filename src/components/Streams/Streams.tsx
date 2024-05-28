@@ -12,7 +12,7 @@ import adapter from 'webrtc-adapter'
 import '@/components/Streams/Streams.scss'
 
 // Types
-import { Room } from '@/global/global'
+import { Room } from '@/types/global'
 
 //SVG
 import LogoIcon from '@/assets/images/logo48.svg'

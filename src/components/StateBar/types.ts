@@ -2,7 +2,7 @@ import {
   UserRole,
   User,
   UserAccount
- } from '@/global/global'
+ } from '@/types/global'
 
 
 export type Data = {

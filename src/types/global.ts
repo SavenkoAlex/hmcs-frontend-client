@@ -76,10 +76,13 @@ export const enum ElementScale {
 }
 
 export const enum ValidationError  {
-  EMPTY_FIELD = 'emtyField'
+  EMPTY_FIELD = 'emptyField',
+  INVALID_FIELD = 'invalidField',
+  CAMERAS_NUMBER_REACHED = 'camerasNumberReached',
+  CAMERAS_NUMBER_EMPTY = 'camerasNumberEmpty'
 } 
 
-export type InputError = null | false | ValidationError
+export type InputError = null | false | ValidationError.EMPTY_FIELD
 
 export type ErrorBucket = {
   [key: string]: InputError
@@ -117,4 +120,17 @@ export const enum SessionStorageKeys {
   // secret key to encrypt localstorage values
   KEY = 'cne',
   IV = 'vi'
+}
+/** enumerateDevices media devices kinds */
+export type MediaDevicesKind = 'audioinput' | 'videoinput' 
+export const AudioInputKind: MediaDevicesKind = 'audioinput'
+export const VideoInputKind: MediaDevicesKind = 'videoinput'
+export const MaxCameras = 2
+
+/** Media device */
+export type MediaDevice = {
+  label: string,
+  value: string,
+  kind: MediaDeviceKind,
+  selected: boolean
 }

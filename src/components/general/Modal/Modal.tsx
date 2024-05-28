@@ -1,4 +1,4 @@
-import { zIndex } from '@/global/global'
+import { zIndex } from '@/types/global'
 
 import {
   defineComponent,

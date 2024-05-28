@@ -1,4 +1,4 @@
-import { User, Maybe } from '@/global/global'
+import { User, Maybe, MediaDevice } from '@/types/global'
 
 
 export interface UserState extends User {
@@ -7,7 +7,7 @@ export interface UserState extends User {
 }
 
 export interface AppState {
-  [key: string]: unknown
+  cameras: Record<string, MediaDevice>,
 }
 
 export const enum States {

@@ -11,7 +11,7 @@ import '@/components/StateBar/StateBar.scss'
 import {
   UserRole,
   UserAccount
-} from '@/global/global'
+} from '@/types/global'
 
 import { Data } from '@/components/StateBar/types'
 

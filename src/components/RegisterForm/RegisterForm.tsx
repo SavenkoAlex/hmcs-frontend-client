@@ -16,7 +16,7 @@ import '@/components/RegisterForm/RegisterForm.scss'
 import { emptyfieldValidation } from '@/helpers/helper'
 
 /** types */
-import { SidePosition } from '@/global/global'
+import { SidePosition } from '@/types/global'
 
 export default defineComponent({
 

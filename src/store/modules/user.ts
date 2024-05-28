@@ -1,4 +1,4 @@
-import { UserState, State } from '@/global/store'
+import { UserState, State } from '@/types/store'
 import { Store, Module } from 'vuex'
 import { InjectionKey } from 'vue'
 import { actions } from '@/store/user/actions'

@@ -1,8 +1,10 @@
 .camera-controller {
-  &__list {
+  &__devices {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    justify-content: start;
 
     li {
       width: 100%;
