@@ -1,8 +1,14 @@
 import {
   defineComponent,
   VNode,
-  PropType
+  PropType,
 } from 'vue'
+
+/** store */
+import { 
+  mapActions,
+  mapGetters
+} from 'vuex'
 
 /** styles */
 import '@/components/CameraController/CameraController.scss'
@@ -40,6 +46,11 @@ export default defineComponent({
       deep: true,
     }
   },
+
+  computed: {
+    ...mapGetters('app', ['cameras']),
+  },
+
   data (): Data {
     return {
       devices: [],
@@ -49,6 +60,8 @@ export default defineComponent({
   },
 
   methods: {
+    ...mapActions('app', ['setCamera']),
+
     /**
      * validates media devices selection
      * @param devices 
@@ -58,7 +71,7 @@ export default defineComponent({
       let counter = 0
       for (const item of devices) {
         if (item.selected) {
-          counter =+ 1
+          counter += 1
         }
       }
 
@@ -85,14 +98,14 @@ export default defineComponent({
         const devices = await navigator.mediaDevices.enumerateDevices()
         return devices.filter(item => item.kind === VideoInputKind).map(item => ({
           label: item.label,
-          value: item.deviceId,
+          deviceId: item.deviceId,
           kind: item.kind,
-          selected: false
+          selected: this.cameras[item.deviceId]?.selected || false
         }))
 
       } catch (err) {
         console.error(err)
-        return null
+        return []
       }
     },
 
@@ -109,14 +122,14 @@ export default defineComponent({
         this.isModalVisible = true
       } catch (err) {
         console.error(err)
+        this.devices = []
       }
     },
 
     applySelectedCameras (): void {
       this.isModalVisible = false
       this.devices.forEach(item => {
-        if (item.selected) {
-        }
+        this.setCamera(item)
       })
     }
   },
@@ -129,19 +142,21 @@ export default defineComponent({
         onClose={() => this.isModalVisible = false}
       >
         {{
-          header: () => <Label text='Выберете камеру'/>,
-          default: () => <ul class={'camera-controller__devices'}>
-            {
-              this.devices.map(item => <li>
-                <Checkbox
-                  label={{text: item.label}}
-                  labelPosition={SidePosition.RIGHT}
-                  modelValue={item.selected}
-                  onUpdate:modelValue={(event) => item.selected = event}
-                />
-              </li>)
-            }
-          </ul>,
+          header: () => <Label text={this.$t('components.cameraController.selectCamera')}/>,
+          default: () => this.devices?.length
+            ? <ul class='camera-controller__devices'>
+              {
+                this.devices.map(item => <li>
+                  <Checkbox
+                    label={{text: item.label}}
+                    labelPosition={SidePosition.RIGHT}
+                    modelValue={item.selected}
+                    onUpdate:modelValue={(event) => item.selected = event}
+                  />
+                </li>)
+              }
+            </ul>
+            : <div class='camera-controller__no-devices'> <Label text={this.$t('components.cameraController.camerasNotFound')}/> </div>,
               
           footer: () => [<TextButton 
               text={this.$t('common.apply')}

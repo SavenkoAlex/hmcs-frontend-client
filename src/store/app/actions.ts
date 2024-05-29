@@ -7,7 +7,7 @@ type AppActionContext = ActionContext <AppState, State>
 
 export const actions = {
 
-  setCameras(context: AppActionContext, payload: MediaDevice) {
+  setCamera(context: AppActionContext, payload: MediaDevice) {
     context.commit(AppMutationTypes.SET_CAMERA, payload)
   },
 

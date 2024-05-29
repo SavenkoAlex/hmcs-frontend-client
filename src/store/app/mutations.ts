@@ -5,7 +5,7 @@ import { Payload } from 'vuex'
 
 export const mutations = {
   [AppMutationTypes.SET_CAMERA]: (state: AppState, payload: Payload & MediaDevice) => {
-    state.cameras[payload.label] = payload 
+    state.cameras[payload.deviceId] = payload 
   },
 
   [AppMutationTypes.REMOVE_ALL_CAMERAS]: (state: AppState) => {

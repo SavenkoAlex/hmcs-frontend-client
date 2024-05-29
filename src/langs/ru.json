@@ -49,5 +49,11 @@
   "common": {
     "apply": "Применить",
     "cancel": "Отменить"
+  },
+  "components": {
+    "cameraController": {
+      "camerasNotFound": "Камеры не найдены",
+      "selectCamera": "Выберите камеру"
+    }
   }
 }

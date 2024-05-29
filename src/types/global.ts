@@ -130,7 +130,7 @@ export const MaxCameras = 2
 /** Media device */
 export type MediaDevice = {
   label: string,
-  value: string,
+  deviceId: string,
   kind: MediaDeviceKind,
   selected: boolean
 }

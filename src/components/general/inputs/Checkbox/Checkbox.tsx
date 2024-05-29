@@ -74,8 +74,8 @@ export default defineComponent({
 
       <input
         type='checkbox'
-        value={this.modelValue}
         onChange={ event => this.onChange(event)}
+        checked={this.modelValue}
       />
     </div>
   }
