@@ -7,11 +7,11 @@ type AppActionContext = ActionContext <AppState, State>
 
 export const actions = {
 
-  setCamera(context: AppActionContext, payload: MediaDevice) {
-    context.commit(AppMutationTypes.SET_CAMERA, payload)
+  setDevice(context: AppActionContext, payload: MediaDevice) {
+    context.commit(AppMutationTypes.SET_DEVICE, payload)
   },
 
-  clearCameras(context: AppActionContext) {
-    context.commit(AppMutationTypes.REMOVE_ALL_CAMERAS)
+  clearDevices(context: AppActionContext) {
+    context.commit(AppMutationTypes.REMOVE_ALL_DEVICES)
   }
 }

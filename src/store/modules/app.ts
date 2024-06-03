@@ -8,7 +8,7 @@ import { mutations } from '@/store/app/mutations'
 export const app: Module <AppState, State> = {
   namespaced: true,
   state: {
-    cameras: {}
+    devices: {}
   },
   getters,
   actions,

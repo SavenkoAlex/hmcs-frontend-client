@@ -52,6 +52,13 @@ export const enum UserRole {
   ANONYMOUS = 'anonymous'
 }
 
+export const enum StreamRole {
+  PUBLISHER = 'publisher',
+  PUBLISHER_OFFLINE = 'publisherOffline',
+  SUBSCRIBER = 'subscriber',
+  OBSERVER = 'observer',
+}
+
 export type InputLabel = {
   scale?: ElementScale,
   text: string
@@ -79,7 +86,9 @@ export const enum ValidationError  {
   EMPTY_FIELD = 'emptyField',
   INVALID_FIELD = 'invalidField',
   CAMERAS_NUMBER_REACHED = 'camerasNumberReached',
-  CAMERAS_NUMBER_EMPTY = 'camerasNumberEmpty'
+  CAMERAS_NUMBER_EMPTY = 'camerasNumberEmpty',
+  MICS_NUMBER_REACHED = 'micsNumberReached',
+  MICS_NUMBER_EMPTY = 'micsNumberEmpty',
 } 
 
 export type InputError = null | false | ValidationError.EMPTY_FIELD
@@ -126,11 +135,13 @@ export type MediaDevicesKind = 'audioinput' | 'videoinput'
 export const AudioInputKind: MediaDevicesKind = 'audioinput'
 export const VideoInputKind: MediaDevicesKind = 'videoinput'
 export const MaxCameras = 2
+export const MaxMics = 1
 
 /** Media device */
 export type MediaDevice = {
   label: string,
   deviceId: string,
   kind: MediaDeviceKind,
+  muted: boolean,
   selected: boolean
 }

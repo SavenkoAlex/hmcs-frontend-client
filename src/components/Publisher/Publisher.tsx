@@ -4,7 +4,8 @@ import {
   VNode,
   ref,
   inject,
-  Transition
+  Transition,
+  TransitionGroup
 } from 'vue'
 
 // janus
@@ -18,8 +19,13 @@ import './Publisher.scss'
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import StateBar from '@/components/StateBar/StateBar'
 import Chat from '@/components/Chat/Chat'
-import { UserRole } from '@/types/global'
 import BaseVideo from '@/components/Video/Video'
+
+/** types */
+import { UserRole, MediaDevice } from '@/types/global'
+
+/** store */
+import { mapActions, mapGetters } from 'vuex'
 
 export default defineComponent({
 
@@ -32,32 +38,27 @@ export default defineComponent({
   },
 
   computed: {
+    ...mapGetters('app', ['devices']),
     isHandlerAvailable (): boolean {
       return !!this.pluginHandler
-    }
+    },
   },
 
   setup () {
-    const publisherNode = ref <HTMLMediaElement> ()
+    const publisherNode = ref <HTMLMediaElement[]> ([])
     const clientNode = ref <HTMLVideoElement> ()
-
-    const publisherStream = ref <MediaStream> ()
+    const publisherStream = ref <MediaStream[]> ([])
     const clientStream = ref <MediaStream> ()
-
     const publisherId = ref<number>()
-
-    const isPictureInPictureEnabled = ref <boolean> (false)
-
-    const constraints = {
+    const constraints: MediaStreamConstraints[] = [{
       audio: false,
       video: true
-    }
+    }]
 
     const pluginHandler = ref <PublisherStreamHandler> ()
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
     const crypto = inject<Crypto>('crypto')
-    const tarotPoster = ref <HTMLImageElement> ()
 
     const isRoomCreated = ref<boolean> (false)
 
@@ -72,38 +73,52 @@ export default defineComponent({
       videoTrack,
       audioTrack,
       crypto,
-      tarotPoster,
-      isPictureInPictureEnabled,
       isRoomCreated,
     }
   },
 
   watch: {
-    publisherStream (newValue : MediaStream | null) {
-      if (!newValue) {
+    publisherStream (newValue : MediaStream[] | null) {
+      if (!newValue || !newValue.length) {
         this.videoTrack = null
         this.audioTrack = null
         return
       }
 
-      this.videoTrack = newValue.getVideoTracks()[0]
-      this.audioTrack = newValue.getAudioTracks()[0]
+      this.videoTrack = newValue[0].getVideoTracks()[0]
+      this.audioTrack = newValue[0].getAudioTracks()[0]
     },
   },
 
   methods: {
-
-    getUserMedia (): Promise <MediaStream | null> {
-      return navigator.mediaDevices.getUserMedia(this.constraints)
-        .then(stream => {
-          return stream || null
-        })
-        .catch (err => {
-          console.error(err)
-          return null
-        })
+    ...mapActions('app', ['setDevice', 'clearDevices']),
+    getUserMedia (): Promise <void> {
+      return Promise.all(this.constraints.map((item: MediaStreamConstraints) => {
+        return navigator.mediaDevices.getUserMedia(item)
+      })).then((streams: MediaStream[]) => {
+        this.publisherStream = [...streams]
+      })
     },
 
+    applyDevices (): void {
+      const devicesArray: MediaDevice[] = Object.values(this.devices)
+      const videoTracks = devicesArray.filter((item: MediaDevice) => item.selected && item.kind === 'videoinput')
+      const audioTracks = devicesArray.filter((item: MediaDevice) => item.selected && item.kind === 'audioinput')
+
+
+      this.constraints = videoTracks.map((item: MediaDevice, index: number) => {
+        return {
+          video: {
+            deviceId: item.deviceId
+          },
+          audio: index ? false : {
+            deviceId: audioTracks[0].deviceId
+          }
+        }
+      })
+      
+      this.getUserMedia()
+    },
 
     /**
      * destroy room request
@@ -169,6 +184,22 @@ export default defineComponent({
       }
 
       this.createRoom()
+    },
+
+    muteVideo (): void {
+      this.publisherStream?.forEach(stream => stream.getVideoTracks().forEach(track => track.enabled = false))
+    },
+
+    unMuteVideo (): void {
+      this.publisherStream?.forEach(stream => stream.getVideoTracks().forEach(track => track.enabled = true))
+    },
+
+    muteAudio (): void {
+      this.publisherStream?.forEach(stream => stream.getAudioTracks().forEach(track => track.enabled = false))
+    },
+
+    unMuteAudio (): void {
+      this.publisherStream?.forEach(stream => stream.getAudioTracks().forEach(track => track.enabled = true))
     }
   },
 
@@ -200,12 +231,21 @@ export default defineComponent({
     })
 
 
-    this.getUserMedia().then(result => {
-      if (result) {
-        this.publisherStream = result
-      }
-    })
+    this.getUserMedia().then(() => {
 
+      this.publisherStream.forEach(stream => stream.getTracks().forEach(track => {
+        const deviceId = track.getSettings().deviceId
+        if (deviceId) {
+          this.setDevice({
+            kind: track.kind,
+            label: track.label,
+            deviceId: deviceId,
+            muted: track.muted,
+            selected: true
+          })
+        }
+      }))
+    })
   },
 
   unmounted () {
@@ -215,32 +255,29 @@ export default defineComponent({
   render (): VNode {
     return <div class="publisher-stream">
       <div class="publisher-stream__publisher-video">
-        <Transition>
-          <BaseVideo
-            srcObject={this.publisherStream} 
-            ref={'publisherNode'} 
-            autoplay
-            playsinline
-          /> 
-        </Transition>
-      </div>
-      <div class={this.isPictureInPictureEnabled 
-        ? 'publisher-stream__client-video' 
-        : 'publisher-stream__client-video_hidden'}>
-        <Transition>
-            <video 
-              srcObject={this.publisherStream} 
-              ref={'clientNode'} 
-              autoplay
-              controls
-            >
-          </video>
-        </Transition>
+        <TransitionGroup>
+          {
+            this.publisherStream.map((stream: MediaStream, index: number) => {
+              return <BaseVideo
+                srcObject={stream} 
+                autoplay
+                playsinline
+                pictureInPictureMode={!!index}
+              /> 
+            })
+          }
+        </TransitionGroup>
+      
+        
       </div>
       <div class='publisher-stream__controls'>
         <StateBar userRole={UserRole.WORKER}
           onStreamtoggle={(stream: boolean) => this.toggleStream(stream)}
-          streamAvailable={this.isHandlerAvailable}
+          isStreamActive={this.isRoomCreated}
+          isStreamAvailable={this.isHandlerAvailable}
+          onMuteVideo={(muted) => muted ? this.muteVideo() : this.unMuteVideo()}
+          onMuteAudio={(muted) => muted ? this.muteAudio() : this.unMuteAudio()}
+          onApplydevices={() => this.applyDevices()}
         />
       </div>
       <div class='publisher-stream publisher-state'>

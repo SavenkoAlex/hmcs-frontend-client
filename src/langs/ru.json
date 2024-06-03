@@ -51,9 +51,11 @@
     "cancel": "Отменить"
   },
   "components": {
-    "cameraController": {
-      "camerasNotFound": "Камеры не найдены",
-      "selectCamera": "Выберите камеру"
+    "deviceController": {
+      "devicesNotFound": "устройства не найдены",
+      "selectDevices": "Выберите устройства",
+      "cameras": "Камеры",
+      "mics": "Микрофоны"
     }
   }
 }

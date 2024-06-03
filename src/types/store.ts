@@ -7,7 +7,7 @@ export interface UserState extends User {
 }
 
 export interface AppState {
-  cameras: Record<string, MediaDevice>,
+  devices: Record<string, MediaDevice>,
 }
 
 export const enum States {

@@ -71,12 +71,12 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       }
 
       const msgType = msg.videoroom
+
       if (msgType === 'joined') {
 
         this.createOffer().then(async jsep => {
           if (jsep) {
             await this.publish(jsep)
-            this.forwardRTP()
           } else {
             console.error('offer is not created')
             return
