@@ -11,34 +11,50 @@ import adapter from 'webrtc-adapter'
 // Style
 import '@/components/Streams/Streams.scss'
 
-// Types
+/** types */
 import { Room } from '@/types/global'
+import { StreamsData } from '@/components/Streams/types'
 
 //SVG
-import LogoIcon from '@/assets/images/logo48.svg'
 import { RouterLink } from 'vue-router'
+
+/** api */
+import userApi from '@/api/user'
+
+/** components */
+import StreamItem from '@/components/Streams/StreamItem'
 
 export default defineComponent({
 
   name: 'Streams',
 
+  components: {
+    StreamItem
+  },
+
   setup () {
     const rooms = ref <Room[]>()
     const pluginHandler = ref <JanusJS.PluginHandle> ()
+    /*
     const janus = Janus.init({
       debug: true,
       dependencies: Janus.useDefaultDependencies({ adapter })
     })
-
+    */
     const janusUnit = ref <Janus> ()
 
     return {
       rooms,
-      janus,
       janusUnit,
-      pluginHandler
+      pluginHandler,
     }
 
+  },
+
+  data(): StreamsData {
+    return {
+      users: []
+    }
   },
 
   methods: {
@@ -52,11 +68,17 @@ export default defineComponent({
 
         success: (handler) => {
           this.pluginHandler = handler
-          this.getRooms().then(result => { this.rooms = result; console.log(result)})
+          this.getRooms()
+            .then(result => { this.rooms = result; console.log(result)})
+            .catch(err => { this.rooms = []; console.error(err) }) 
         },
 
         onmessage: (msg) => {
           Janus.debug(msg)
+        },
+
+        error: (err) => {
+          Janus.error(err)
         }
       })
     },
@@ -97,13 +119,20 @@ export default defineComponent({
   },
 
 
-  mounted () {
+  async mounted () {
+
+    const users  = await userApi.getUsers()
+    if (users && users.length > 0) {
+      this.users = users
+    }
+    /*
     this.janusUnit = new Janus({
       server: '/janus',
       success: this.attachPlugin,
       error: err => console.log('jauns erroor: ', err),
       destroyed: () => console.warn('janus destroyed'),
     })
+      */
 
   },
 
@@ -115,19 +144,13 @@ export default defineComponent({
   },
     
   render (): VNode {
-    return <div class='rooms-list'>
+    return <div class='streamer-list'>
         {
-          this.rooms?.map(room => {
-            return <div class='rooms-list__item'>
-              <div class='rooms-list__item_description'>
-                <h5> {`Room № ${room.room}`} </h5>
-                <h6> { room.description || 'No description' } </h6>
-                <RouterLink to={{name: 'live', params: { id: room.room }}}>
-                  <LogoIcon/>
-                </RouterLink>
-              </div>
+          this.users.map(user => 
+            <div class='streamer-list__item'>
+              <StreamItem stream={user} />
             </div>
-          })
+          )
         }
     </div>
 

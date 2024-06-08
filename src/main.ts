@@ -17,7 +17,6 @@ const i18n = createI18n({
   fallbackLocale: 'en-US'
 })
 
-
 createApp(App)
   // .use(store, keyMain, keyDevices)
   .use(router)

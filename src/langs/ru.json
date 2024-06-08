@@ -47,8 +47,9 @@
     "live": "Стрим"
   },
   "common": {
-    "apply": "Применить",
-    "cancel": "Отменить"
+    "apply": "применить",
+    "cancel": "отменить",
+    "join": "присоединиться"
   },
   "components": {
     "deviceController": {

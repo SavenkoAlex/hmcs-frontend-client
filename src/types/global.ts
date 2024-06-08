@@ -109,6 +109,8 @@ export type User = {
   role?: Maybe<string>,
   type?: Maybe<UserRole>,
   id?: Maybe<string>
+  streamId: Maybe<string>,
+  avatar?: string
 }
 
 export type UserAccount = {
@@ -121,7 +123,9 @@ export const storeUserKeyMap: Record <keyof User, string> = {
   username: 'eu',
   role: 'er',
   type: 'et',
-  id: 'di'
+  id: 'di',
+  avatar: 'av',
+  streamId: 'si'
 }
 
 /** session storage key */
