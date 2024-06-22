@@ -13,12 +13,33 @@ video {
     &>* {
       flex-shrink: 0;
     }
-
-    &__publisher-video {
-    }
-
+    
     &__content {
       flex-grow: 1;
     }
+
+    &__publisher-media {
+      width: 100%;
+      height: min-content;
+    }
+
+    &__publisher-avatar {
+      img {
+        max-width: 100%;
+        height: auto;
+        filter: blur(3px);
+      }
+
+    }
   }
+}
+
+.offline-enter-active,
+.offline-leave-active {
+  transition: opacity .8s ease;
+}
+
+.offline-enter-from,
+.offline-leave-to {
+  opacity: 0;
 }

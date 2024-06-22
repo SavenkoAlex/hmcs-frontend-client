@@ -17,7 +17,7 @@ export interface WebRTCPlugin <T extends Record <string, unknown>, P extends Rec
  * WebRTCHandler main functions to control webrtc connection
  */
 export interface WebRTCHandler {
-  createStream: (track: MediaStreamTrack) => Promise <boolean>
+  createStream: (track: MediaStreamTrack, mountPoint: number) => Promise <boolean>
   destroyStream: (mountId: number) => Promise <boolean>
   modifyToPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
   modifyToPublic?: (mointId: number) => Promise <boolean>
@@ -96,7 +96,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * Send create room request 
    * @returns { number | false } room number or false in case of fail
    */
-  private createRoom (options: Pick <StreamDescription, 'mountId' | 'displayName'>): Promise <number | false> {
+  private createRoom (options: Pick <StreamDescription, 'streamId' | 'displayName'>): Promise <number | false> {
     return new Promise ((resolve, reject) => {
       if (!this.handler) {
         reject('No plugin available')
@@ -104,7 +104,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
 
       const message = {
         request: 'create',
-        room: options.mountId,
+        room: options.streamId,
         description: options.displayName,
         permanent: false
       }
@@ -136,8 +136,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       const message = {
         request: 'join',
         ptype: 'publisher',
-        room: this.options.mountId,
-        id: this.options.mountId,
+        room: this.options.streamId,
+        id: this.options.streamId,
         display: this.options.displayName
       }
 
@@ -159,14 +159,14 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         reject('No plugin available')
       }
        
-      if (!this.options.mountId) {
+      if (!this.options.streamId) {
         reject('No publisher id provided')
       }
 
       const message = {
         request: 'rtp_forward',
-        room: this.options.mountId,
-        publisher_id: this.options.mountId,
+        room: this.options.streamId,
+        publisher_id: this.options.streamId,
         host: '192.168.0.115',
         streams: [{
           mid: '0',
@@ -247,7 +247,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     this.mediaTrack = track
 
     const roomNumber = await this.createRoom({ 
-      mountId: this.options.mountId, 
+      streamId: this.options.streamId, 
       displayName: this.options.displayName 
     })
 
@@ -268,7 +268,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
 
         const message = {
           request: 'destroy',
-          room: this.options.mountId,
+          room: this.options.streamId,
         }
 
         this.handler?.send({

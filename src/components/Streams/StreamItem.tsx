@@ -50,9 +50,12 @@ export default defineComponent({
 
   methods: {
     onJoin() {
-      this.$router.push({ name: 'live', params: { id: this.stream.streamId } })
+      this.$router.push({ name: 'publisher', params: { 
+        id: this.stream.id, 
+      }})
     }
   },
+
   render (): VNode {
     return <div  class='streamer-item'>
       <div class='streamer-item__description'>

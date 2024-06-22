@@ -12,7 +12,6 @@ import Subscriber from '@/components/Subscriber/Subscriber'
 
 /** types */
 import { States, UserState } from '@/types/store'
-import { UserRole } from '@/types/global'
 
 export default defineComponent ({
 

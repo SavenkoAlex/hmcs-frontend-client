@@ -55,8 +55,9 @@ export const BarConfigutations: BarConfiguration = {
     StateBarElements.STREAM,
   ],
   [StreamRole.OBSERVER]: [
+    StateBarElements.LIVE,
     StateBarElements.JOIN_REQ, 
     StateBarElements.INCREASE,
-    StateBarElements.FEE 
+    StateBarElements.FEE,
   ]
 }

@@ -109,7 +109,7 @@ export type User = {
   role?: Maybe<string>,
   type?: Maybe<UserRole>,
   id?: Maybe<string>
-  streamId: Maybe<string>,
+  streamId: Maybe<number>,
   avatar?: string
 }
 

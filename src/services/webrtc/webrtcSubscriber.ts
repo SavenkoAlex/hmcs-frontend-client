@@ -123,7 +123,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
 
       const message = {
         request: 'listparticipants',
-        room: this.options.mountId
+        room: this.options.streamId
       }
 
       this.handler?.send({
@@ -143,7 +143,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
       const message = {
         request: 'join',
         ptype: 'subscriber',
-        room: this.options.mountId,
+        room: this.options.streamId,
         streams: [{
           feed: this.publisher?.id
         }]

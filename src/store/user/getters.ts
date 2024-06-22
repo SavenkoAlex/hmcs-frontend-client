@@ -22,7 +22,8 @@ export const getters = {
       // type property
       type: state.type,
       // role property
-      role: state.role
+      role: state.role,
+      streamId: state.streamId,
     }
   },
 

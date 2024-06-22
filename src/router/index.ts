@@ -9,7 +9,7 @@ import Stream from '@/pages/Publisher/Stream'
 import User from '@/pages/User/User'
 import Auth from '@/pages/Auth/Auth'
 import NotFound from '@/pages/NotFound/NotFound'
-import Live from '@/pages/Live/Subscriber'
+import Subscriber from '@/pages/Subscriber/Subscriber'
 
 const routes: RouteRecordRaw[] = []
 
@@ -34,9 +34,9 @@ const serverRoutes = [
   },
   {
     // dedicated stream on client side
-    name: 'live',
-    path: '/live/:id',
-    component: Live
+    name: 'publisher',
+    path: '/publisher/:id',
+    component: Subscriber
   },
   {
     // user profile

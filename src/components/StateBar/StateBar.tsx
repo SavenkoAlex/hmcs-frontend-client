@@ -27,8 +27,9 @@ import CameraMuteController from '@/components/CameraMuteController/CameraMuteCo
 import StreamController from '@/components/StreamController/StreamController'
 
 /** icons */
-import AddCallIcon from '@/assets/images/person_32.svg'
+import AddCallIcon from '@/assets/images/video_call_32.svg'
 import CoinIcon from '@/assets/images/currency_ruble_24dp_FILL0_wght400_GRAD0_opsz24.svg'
+import PayIcon from '@/assets/images/credit_card_32.svg'
 
 export default defineComponent({
 
@@ -150,7 +151,13 @@ export default defineComponent({
       // TODO: Do check
       onUpdate:modelValue={this.onVideoMute}  
     />
-    const increase = <div class='state-bar__increase'></div>
+    const increase = <div class='state-bar__increase'>
+      <IconButton
+        mode={'primary'}
+      >
+        <PayIcon/>
+      </IconButton>
+    </div>
 
     const amount = null ?? <div class='state-bar__amount'>
       <div class='state-bar__amount_count'>

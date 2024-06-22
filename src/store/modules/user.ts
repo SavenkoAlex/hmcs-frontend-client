@@ -14,7 +14,8 @@ export const user: Module<UserState, State> = {
     role: null,
     type: null,
     amount: 0,
-    accessToken: null
+    accessToken: null,
+    streamId: null
   },
   actions,
   getters,

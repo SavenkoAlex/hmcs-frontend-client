@@ -39,6 +39,7 @@ export default defineComponent({
 
   computed: {
     ...mapGetters('app', ['devices']),
+    ...mapGetters('user', ['getUser']),
     isHandlerAvailable (): boolean {
       return !!this.pluginHandler
     },
@@ -162,21 +163,6 @@ export default defineComponent({
       return publisherId
     },
 
-    onClientCanPlay (event: Event) {
-      const target = event.target as HTMLVideoElement
-      target.onenterpictureinpicture = (event: Event) => {
-        this.isPictureInPictureEnabled = true
-      }
-      target.onleavepictureinpicture = () => {
-        this.isPictureInPictureEnabled = false
-      }
-
-      this.clientNode?.requestPictureInPicture().catch((err) => {
-        console.error(err)
-        this.isPictureInPictureEnabled = false
-      })
-    },
-
     toggleStream (streamActive: boolean): void {
       if (streamActive) {
         this.destroyRoom()
@@ -205,18 +191,18 @@ export default defineComponent({
 
   async mounted () {
 
-    const publisherId  = this.getNewPublisherId()
-
-    if (!publisherId) {
+    const streamId  = this.getNewPublisherId()
+    const publisherId = this.getUser?.streamId
+    if (!streamId || !publisherId) {
      console.error('Can not generate id')
      return
     }
     this.publisherId = publisherId
    
     PublisherStreamHandler.init(Janus, {
-      streamId: this.publisherId,
+      streamId: streamId,
       displayName: `${this.publisherId} stream`,
-      mountId: this.publisherId
+      mountId: publisherId
     }).then((handler) => {
       if (handler) {
         this.pluginHandler = handler

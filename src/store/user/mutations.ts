@@ -10,6 +10,7 @@ export const mutations = {
     state.username = payload.username
     state.role = payload.role
     state.type = payload.type
+    state.streamId = payload.streamId
   },
 
   [UserMutationTypes.SET_USER_PROPERTY]: <T extends keyof UserState> (state: UserState, payload: Pick <UserState, T>) => {

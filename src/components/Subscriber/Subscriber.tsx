@@ -1,25 +1,55 @@
 import {
   defineComponent,
   ref,
-  VNode
+  TransitionGroup,
+  Transition,
+  VNode,
 } from 'vue'
+
+/** store */
+import { mapGetters } from 'vuex'
 
 import Janus, { JanusJS } from 'janus-gateway'
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
-import videojs from 'video.js'
 
-// Style
+/** style */
 import '@/components/Subscriber/Subscriber.scss'
 
 /** components */
 import Chat from '@/components/Chat/Chat'
+import BaseVideo from '@/components/Video/Video'
+import StateBar from '@/components/StateBar/StateBar'
+
+/** api */
+import userApi from '@/api/user'
+
+/** types */
+import { Data } from '@/components/Subscriber/types'
+import { StreamRole } from '@/types/global'
 
 export default defineComponent({
 
   name: 'Subscriber',
 
   components: {
-    Chat
+    Chat,
+    BaseVideo,
+    StateBar
+  },
+
+  computed: {
+    ...mapGetters('user', ['getUser']),
+    publisherId () {
+      const publisherId: string | undefined = Array.isArray(this.$route.params?.id) 
+        ? this.$route.params.id[0]
+        : this.$route.params.id as string
+
+      if (!publisherId) {
+        return null
+      }
+
+      return publisherId
+    },
   },
 
   setup () {
@@ -29,7 +59,7 @@ export default defineComponent({
 
     const constraints = {
       audio: false,
-      video: false
+      video: true
     }
 
     const subscriberName = ref <string>('sasha the programmer')
@@ -52,7 +82,23 @@ export default defineComponent({
     }
   },
 
+  data (): Data {
+    return {
+      publisher: null,
+      publisherAccount: null
+    }
+  },
+
   methods: {
+    async getUserData () {
+      if (!this.publisherId) {
+        return null
+      }
+
+      const user = await userApi.getUser(this.publisherId)
+
+      return user || null
+    },
 
     onremotetrack (descripption: {on: boolean, track: MediaStreamTrack}) {
       const { on, track } = descripption
@@ -72,30 +118,60 @@ export default defineComponent({
   },
 
   async mounted () {
-    this.mountPoint = Number.parseInt(this.$route.path.split('/')[2], 10)
+
+    if (!this.publisherId) {
+      return
+    }
+
+    this.publisher = await this.getUserData()
+
+    if (!this.publisher) {
+      return
+    }
+
+    if (this.publisher.streamId) {
+      this.mountPoint = this.publisher.streamId
+    }
+
+    if (!this.mountPoint) {
+      return
+    }
+
     const handler = await SubscriberStreamHandler.init(Janus, { 
-      mountId: this.mountPoint, 
+      streamId: this.mountPoint, 
       displayName: this.subscriberName  
     })
 
     handler?.emitter.on('track', description => {
       this.onremotetrack(description)
-    }) 
+    })
     
-    await handler?.join()
+    handler?.join()
   },
 
   render (): VNode {
     return <div class='subscriber'>
-        <div class="subscriber__publisher-video">
-          <video 
-            srcObject={this.remoteStream} 
-            ref={'remoteVideoNode'} 
-            autoplay
-            controls
-          > 
-            Video is not supported 
-          </video>
+        <div class="subscriber__publisher-media">
+          { this.remoteStream 
+            
+            ? <TransitionGroup>
+              <BaseVideo
+                srcObject={this.remoteStream}
+                autoplay
+                playsinline
+              />
+              </TransitionGroup>
+            : <Transition name='offline'>
+                <div class={'subscriber__publisher-avatar'}>
+                  <img src={`data:image/jpg;base64,${this.publisher?.avatar}`}/>
+                </div>
+              </Transition>
+          }
+        </div>
+        <div class='subscriber__stream-controls'>
+          <StateBar
+            userRole={this.getUser?.role || StreamRole.OBSERVER}
+          />
         </div>
         <div class='subscriber__content'>
           <Chat/>

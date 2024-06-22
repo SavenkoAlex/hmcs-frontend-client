@@ -69,6 +69,7 @@ export default defineComponent({
       }
 
       await this.setUser(user)
+      
     },
 
     async loginAndRedirect () {
@@ -80,8 +81,8 @@ export default defineComponent({
 
 
       this.userType === UserRole.WORKER
-        ? this.$router.push('stream' )
-        : this.$router.push('streams' )
+        ? this.$router.push('stream')
+        : this.$router.push('streams')
     }
   },
 
