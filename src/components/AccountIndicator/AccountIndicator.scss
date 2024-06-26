@@ -1,0 +1,14 @@
+.account-indicator {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: flex-end;
+  gap: .4rem;
+
+  &__amount {}
+  &__icon {
+    height: 100%;
+    width: 100%;
+    line-height: 34px;
+  }
+}

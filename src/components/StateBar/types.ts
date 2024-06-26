@@ -32,6 +32,7 @@ export const enum StateBarElements {
   LIVE = 'live',
   FEE = 'fee',
   STREAM = 'stream',
+  EMPTY = 'empty'
 }
 
 export const BarConfigutations: BarConfiguration = {
@@ -41,7 +42,8 @@ export const BarConfigutations: BarConfiguration = {
     StateBarElements.MIC,
     StateBarElements.JOIN_REQ, 
     StateBarElements.INCREASE,
-    StateBarElements.FEE 
+    StateBarElements.FEE,
+    StateBarElements.AMOUNT
   ],
   [StreamRole.PUBLISHER]: [
     StateBarElements.LIVE,
@@ -55,9 +57,11 @@ export const BarConfigutations: BarConfiguration = {
     StateBarElements.STREAM,
   ],
   [StreamRole.OBSERVER]: [
-    StateBarElements.LIVE,
     StateBarElements.JOIN_REQ, 
     StateBarElements.INCREASE,
     StateBarElements.FEE,
+    StateBarElements.EMPTY,
+    StateBarElements.LIVE,
+    StateBarElements.AMOUNT,
   ]
 }

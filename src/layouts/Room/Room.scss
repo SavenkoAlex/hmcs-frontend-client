@@ -1,23 +1,23 @@
 @media (max-width: 767px) {
-  .main {
+  .room {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: calc(100vh - 54px - 30px);
     
-    &__header {
+    &__media {
       width: 100%;
-      height: 54px;
+      flex: 0 0 45%;
     }
 
     &__content {
       width: 100%;
-      height: calc(100vh - 54px - 30px);
-      overflow: hidden;
+      flex-grow: 0;
+      flex-shrink: 0;
     }
 
-    &__footer {
+    &__chat {
       width: 100%;
-      height: 30px;
+      flex: 1 1 54px;
     }
   }
 }

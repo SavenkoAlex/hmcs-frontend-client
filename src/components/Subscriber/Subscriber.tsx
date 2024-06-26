@@ -27,6 +27,9 @@ import userApi from '@/api/user'
 import { Data } from '@/components/Subscriber/types'
 import { StreamRole } from '@/types/global'
 
+/** layouts */
+import RoomLayout from '@/layouts/Room/Room'
+
 export default defineComponent({
 
   name: 'Subscriber',
@@ -34,11 +37,13 @@ export default defineComponent({
   components: {
     Chat,
     BaseVideo,
-    StateBar
+    StateBar,
+    RoomLayout
   },
 
   computed: {
     ...mapGetters('user', ['getUser']),
+
     publisherId () {
       const publisherId: string | undefined = Array.isArray(this.$route.params?.id) 
         ? this.$route.params.id[0]
@@ -150,32 +155,37 @@ export default defineComponent({
   },
 
   render (): VNode {
-    return <div class='subscriber'>
-        <div class="subscriber__publisher-media">
-          { this.remoteStream 
-            
-            ? <TransitionGroup>
-              <BaseVideo
-                srcObject={this.remoteStream}
-                autoplay
-                playsinline
-              />
-              </TransitionGroup>
-            : <Transition name='offline'>
-                <div class={'subscriber__publisher-avatar'}>
-                  <img src={`data:image/jpg;base64,${this.publisher?.avatar}`}/>
-                </div>
-              </Transition>
-          }
-        </div>
-        <div class='subscriber__stream-controls'>
-          <StateBar
-            userRole={this.getUser?.role || StreamRole.OBSERVER}
-          />
-        </div>
-        <div class='subscriber__content'>
-          <Chat/>
-        </div>
-      </div>
+    return <RoomLayout>
+        {{
+          media: () => <div class="subscriber__publisher-media">
+            { this.remoteStream 
+              
+              ? <TransitionGroup>
+                <BaseVideo
+                  srcObject={this.remoteStream}
+                  autoplay
+                  playsinline
+                />
+                </TransitionGroup>
+              : <Transition name='offline'>
+                  <div class={'subscriber__publisher-avatar'}>
+                    <img src={`data:image/jpg;base64,${this.publisher?.avatar}`}/>
+                  </div>
+                </Transition>
+            }
+          </div>,
+          controls: () => <div class='subscriber__stream-controls'>
+            <StateBar
+              userRole={this.getUser?.role || StreamRole.OBSERVER}
+              amount={this.publisherAccount?.amount}
+            />
+          </div>,
+
+          chat: () => <div class='subscriber__content'>
+            <Chat/>
+          </div>
+        }}
+      </RoomLayout>
   }
+
 })

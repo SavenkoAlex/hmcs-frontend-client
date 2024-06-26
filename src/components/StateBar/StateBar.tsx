@@ -11,6 +11,7 @@ import '@/components/StateBar/StateBar.scss'
 import {
   UserRole,
   StreamRole,
+  ElementScale
 } from '@/types/global'
 
 import { Data } from '@/components/StateBar/types'
@@ -25,10 +26,10 @@ import DeviceController from '@/components/DeviceController/DeviceController'
 import MicMuteController from '@/components/MicMuteController/MicMuteController'
 import CameraMuteController from '@/components/CameraMuteController/CameraMuteController'
 import StreamController from '@/components/StreamController/StreamController'
+import AccountIndicator from '@/components/AccountIndicator/AccountIndicator'
 
 /** icons */
 import AddCallIcon from '@/assets/images/video_call_32.svg'
-import CoinIcon from '@/assets/images/currency_ruble_24dp_FILL0_wght400_GRAD0_opsz24.svg'
 import PayIcon from '@/assets/images/credit_card_32.svg'
 
 export default defineComponent({
@@ -39,7 +40,8 @@ export default defineComponent({
     TextButton,
     IconButton,
     DeviceController,
-    MicMuteController
+    MicMuteController,
+    AccountIndicator
   },
 
   props: {
@@ -57,6 +59,10 @@ export default defineComponent({
     isStreamActive: {
       type: Boolean as PropType <boolean>,
       default: false
+    },
+    amount: {
+      type: Number as PropType <number>,
+      default: 0
     }
   },
 
@@ -159,15 +165,11 @@ export default defineComponent({
       </IconButton>
     </div>
 
-    const amount = null ?? <div class='state-bar__amount'>
-      <div class='state-bar__amount_count'>
-        <span> { this.account?.amount  || 0} </span>
-      </div>
-      <div class='state-bar__amount_currency'>
-        <CoinIcon/>
-      </div>
+    const amount = <AccountIndicator
+      mode={ElementScale.MEDIUM}
+      amount={this.amount}
+    />
 
-    </div>
     const fee = <div class='state-bar_fee'></div>
 
     const stream = <StreamController
@@ -175,6 +177,8 @@ export default defineComponent({
       onUpdate:modelValue={() => this.$emit('streamtoggle')}
       isHandlerAvailable={this.isStreamAvailable}
     />
+
+    const empty = <div></div>
 
     const elements: Record <StateBarElements, VNode> = {
       live,
@@ -185,12 +189,20 @@ export default defineComponent({
       increase,
       amount,
       fee,
-      stream
+      stream,
+      empty
     }
 
     return <div class='state-bar'>
       {
-        this.barElements ? this.barElements.map((item) => elements[item] || null) : null
+        this.barElements 
+          ? this.barElements.map((item, index) => {
+            return <div 
+              style={{ 'grid-column': `${index + 1} / ${index + 1}`, 'grid-row': 1 }}> 
+                { elements[item] || null } 
+              </div>
+          })
+          : null
       }  
     </div>
   }

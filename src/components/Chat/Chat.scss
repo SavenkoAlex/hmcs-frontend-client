@@ -1,11 +1,9 @@
 .chat {
   @media (max-width: 767px) {
-    // width equals to screen width minus 36 pixels
-    height: calc(100vh - 100vw - 54px - 24px);
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
     align-items: center;
+    height: 100%;
   }
 
   &__list {
@@ -16,18 +14,22 @@
     margin-bottom: 12px;
     padding: 0 3px;
     border-bottom: 1px solid $primary-4;
+    flex-grow: 0;
+    flex-shrink: 0;
   }
 
   &__content {
     width: 100%;
-    height: 100%;
     background-color: $primary-2;
+    flex: 1 1 24px;
     overflow-y: scroll;
   }
 
   &__message-input {
     height: fit-content;
-    width: 100%;
+    margin: 0 1%;
+    width: 98%;
+    flex: 0 2 54px; 
   }
 
   &__item {
