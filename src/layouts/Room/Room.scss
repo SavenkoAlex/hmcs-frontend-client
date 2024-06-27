@@ -6,7 +6,8 @@
     
     &__media {
       width: 100%;
-      flex: 0 0 45%;
+      flex-grow: 0;
+      flex-shrink: 0;
     }
 
     &__content {

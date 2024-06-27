@@ -50,11 +50,6 @@ export default defineComponent({
       type: String as PropType <UserRole>,
       required: true,
     },
-    /** is stream available */
-    isStreamAvailable: {
-      type: Boolean as PropType <boolean>,
-      default: false
-    },
     /** do we have a stream */
     isStreamActive: {
       type: Boolean as PropType <boolean>,
@@ -130,7 +125,7 @@ export default defineComponent({
     
     const live = <div class='state-bar__live'>
       <LiveIndicator
-        live={false}
+        live={this.isStreamActive}
       />
     </div>
 
@@ -175,7 +170,6 @@ export default defineComponent({
     const stream = <StreamController
       modelValue={this.isStreamActive}
       onUpdate:modelValue={() => this.$emit('streamtoggle')}
-      isHandlerAvailable={this.isStreamAvailable}
     />
 
     const empty = <div></div>

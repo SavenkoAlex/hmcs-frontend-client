@@ -46,11 +46,11 @@ export const BarConfigutations: BarConfiguration = {
     StateBarElements.AMOUNT
   ],
   [StreamRole.PUBLISHER]: [
-    StateBarElements.LIVE,
     StateBarElements.STREAM,
     StateBarElements.CAMERA,
     StateBarElements.MIC,
     StateBarElements.DEVICES, 
+    StateBarElements.LIVE,
   ],
   [StreamRole.PUBLISHER_OFFLINE]: [
     StateBarElements.DEVICES, 

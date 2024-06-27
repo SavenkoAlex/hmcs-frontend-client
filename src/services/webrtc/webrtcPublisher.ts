@@ -64,6 +64,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   protected listen () {
     // Catching Janus on message event
     this.emitter.on('message', ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+      console.log('message: ', msg)
       if (msg.error) {
         console.error(msg.error)
         this.emitter.emit('error', msg.error)
@@ -87,6 +88,10 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       if (jsep) {
         this.handler.handleRemoteJsep({ jsep })
       }
+    })
+
+    this.emitter.on('event', (event) => {
+      console.log('event: ', event)
     })
 
   }
@@ -244,20 +249,27 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       console.error('no media stream track detected')
       return false
     }
-    this.mediaTrack = track
 
-    const roomNumber = await this.createRoom({ 
-      streamId: this.options.streamId, 
-      displayName: this.options.displayName 
-    })
+    try {
 
-    if (!roomNumber) {
-      console.error('room is not available')
+      this.mediaTrack = track
+
+      const roomNumber = await this.createRoom({ 
+        streamId: this.options.streamId, 
+        displayName: this.options.displayName 
+      })
+
+      if (!roomNumber) {
+        console.error('room is not available')
+        return false
+      }
+
+      const result = await this.joinAsPublisher()
+      return result
+    } catch (err) {
+      console.error(err)
       return false
     }
-
-    const result = await this.joinAsPublisher()
-    return result
   }
 
   async destroyStream (): Promise<boolean> {

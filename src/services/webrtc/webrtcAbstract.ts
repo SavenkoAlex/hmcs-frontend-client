@@ -24,7 +24,7 @@ const webRTCInstance = <T extends Handler> (): Promise <{ handler: T, emitter: e
   const emitter = new eventEmitter.EventEmitter()
   
   return new Promise ((resolve, reject) => {
-    const server = import.meta.env
+    
     const janusInstance = new Janus ({
       server: import.meta.env.VITE_WEBRTC_SERVER,
       success: () => {
@@ -44,7 +44,6 @@ const webRTCInstance = <T extends Handler> (): Promise <{ handler: T, emitter: e
         })
       },
       error: (err) => console.error(err)
-
     })
 
   })

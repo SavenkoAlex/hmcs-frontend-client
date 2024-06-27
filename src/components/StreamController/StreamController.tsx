@@ -26,11 +26,6 @@ export default defineComponent({
       type: Boolean as PropType <boolean>,
       default: false
     },
-    /** is stream available */
-    isHandlerAvailable: {
-      type: Boolean as PropType <boolean>,
-      default: false
-    }
   },
 
   render (): VNode {
@@ -38,7 +33,6 @@ export default defineComponent({
       <IconButton 
         mode={this.modelValue ? 'fourth' : 'active'}
         onClick={() => this.$emit('update:modelValue', !this.modelValue)}
-        disabled={!this.isHandlerAvailable}
       >
         { this.modelValue ?  <StopIcon/> : <PlayIcon/>  }
       </IconButton>

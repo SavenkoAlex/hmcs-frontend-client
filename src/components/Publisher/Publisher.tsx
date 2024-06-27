@@ -27,6 +27,9 @@ import { UserRole, MediaDevice } from '@/types/global'
 /** store */
 import { mapActions, mapGetters } from 'vuex'
 
+/** layout */
+import RoomLayout from '@/layouts/Room/Room'
+
 export default defineComponent({
 
   name: 'Publisher',
@@ -34,7 +37,8 @@ export default defineComponent({
   components: {
     TextButton,
     Chat,
-    BaseVideo
+    BaseVideo,
+    RoomLayout
   },
 
   computed: {
@@ -56,7 +60,7 @@ export default defineComponent({
       video: true
     }]
 
-    const pluginHandler = ref <PublisherStreamHandler> ()
+    const pluginHandler = ref <PublisherStreamHandler | null> (null)
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
     const crypto = inject<Crypto>('crypto')
@@ -121,6 +125,46 @@ export default defineComponent({
       this.getUserMedia()
     },
 
+    async initHandler (): Promise <boolean> {
+
+      const publisherId  = this.getNewPublisherId()
+      const { streamId = null } = this.getUser
+
+      if (!streamId || !publisherId) {
+        console.error('Can not generate id')
+        return false
+      }
+
+      this.publisherId = publisherId
+    
+      return PublisherStreamHandler.init(Janus, {
+        streamId: streamId,
+        displayName: `${this.publisherId} stream`,
+      }).then((handler) => {
+        if (handler) {
+          this.pluginHandler = handler
+          return true
+        } else {
+          console.error('no webrtc plugin available')
+          return false
+        }
+      }).then(() => {
+        if (!this.pluginHandler) {
+          return false
+        }
+        this.pluginHandler?.emitter.on('error', (err) => {
+          console.error(err)
+          this.isRoomCreated = false
+        })
+        return true
+      }).catch((err) => {
+        console.error(err)
+        this.pluginHandler = null
+        return false
+      })
+
+    },
+
     /**
      * destroy room request
      * @returns 
@@ -134,10 +178,14 @@ export default defineComponent({
       const destryed = await this.pluginHandler.destroyStream()
       if (destryed) {
         this.isRoomCreated = false
+        this.pluginHandler = null
       }
     },
 
     async createRoom (): Promise <void> {
+
+      await this.initHandler()
+      
       if (!this.pluginHandler) {
         console.error('no webrtc plugin availabele')
         return
@@ -163,8 +211,8 @@ export default defineComponent({
       return publisherId
     },
 
-    toggleStream (streamActive: boolean): void {
-      if (streamActive) {
+    toggleStream (): void {
+      if (this.isRoomCreated) {
         this.destroyRoom()
         return
       }
@@ -191,32 +239,6 @@ export default defineComponent({
 
   async mounted () {
 
-    const streamId  = this.getNewPublisherId()
-    const publisherId = this.getUser?.streamId
-    if (!streamId || !publisherId) {
-     console.error('Can not generate id')
-     return
-    }
-    this.publisherId = publisherId
-   
-    PublisherStreamHandler.init(Janus, {
-      streamId: streamId,
-      displayName: `${this.publisherId} stream`,
-      mountId: publisherId
-    }).then((handler) => {
-      if (handler) {
-        this.pluginHandler = handler
-      } else {
-        throw new Error('no webrtc plugin available')
-      }
-    }).then(() => {
-      this.pluginHandler?.emitter.on('error', (err) => {
-        console.error(err)
-        this.isRoomCreated = false
-      })
-    })
-
-
     this.getUserMedia().then(() => {
 
       this.publisherStream.forEach(stream => stream.getTracks().forEach(track => {
@@ -239,40 +261,37 @@ export default defineComponent({
   },
 
   render (): VNode {
-    return <div class="publisher-stream">
-      <div class="publisher-stream__publisher-video">
-        <TransitionGroup>
-          {
-            this.publisherStream.map((stream: MediaStream, index: number) => {
-              return <BaseVideo
-                srcObject={stream} 
-                autoplay
-                playsinline
-                pictureInPictureMode={!!index}
-              /> 
-            })
-          }
-        </TransitionGroup>
-      
-        
+    return <RoomLayout>
+      {{
+        media: () => <div class="publisher-stream__publisher-video">
+            <TransitionGroup>
+              {
+                this.publisherStream.map((stream: MediaStream, index: number) => {
+                  return <BaseVideo
+                    srcObject={stream} 
+                    autoplay
+                    playsinline
+                    pictureInPictureMode={!!index}
+                  /> 
+                })
+              }
+            </TransitionGroup>
+          </div>,
+        controls: () => <div class='publisher-stream__controls'>
+            <StateBar userRole={UserRole.WORKER}
+              onStreamtoggle={() => this.toggleStream()}
+              isStreamActive={this.isRoomCreated}
+              onMuteVideo={(muted) => muted ? this.muteVideo() : this.unMuteVideo()}
+              onMuteAudio={(muted) => muted ? this.muteAudio() : this.unMuteAudio()}
+              onApplydevices={() => this.applyDevices()}
+            />
+          </div>,
+        chat: () => <div class='publisher-stream publisher-state'>
+          <Chat
+            userId={this.publisherId}
+          />
       </div>
-      <div class='publisher-stream__controls'>
-        <StateBar userRole={UserRole.WORKER}
-          onStreamtoggle={(stream: boolean) => this.toggleStream(stream)}
-          isStreamActive={this.isRoomCreated}
-          isStreamAvailable={this.isHandlerAvailable}
-          onMuteVideo={(muted) => muted ? this.muteVideo() : this.unMuteVideo()}
-          onMuteAudio={(muted) => muted ? this.muteAudio() : this.unMuteAudio()}
-          onApplydevices={() => this.applyDevices()}
-        />
-      </div>
-      <div class='publisher-stream publisher-state'>
-      </div>
-      <div class='publisher-stream__chat'>
-        <Chat
-          userId={this.publisherId}
-        />
-      </div>
-    </div>
+    }}
+    </RoomLayout>
   }
 })

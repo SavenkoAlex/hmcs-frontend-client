@@ -154,6 +154,10 @@ export default defineComponent({
     handler?.join()
   },
 
+  unmounted () {
+    this.pluginHandler?.detach()
+  },
+
   render (): VNode {
     return <RoomLayout>
         {{
