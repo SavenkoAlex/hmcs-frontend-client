@@ -12,22 +12,26 @@ const store = createStore<State>({
   }
 })
 
-type StoreModule <T extends States> = T extends States.USER 
-  ? Store <UserState> 
-  : Store <AppState>
+type StoreModule <T extends States> = T extends States.USER   
+  ? Store <UserState>
+  : T extends States.APP
+    ? Store <AppState>
+    : never
 
-function useStore (key: States): StoreModule<typeof key> {
+//TODO: refactor return signature
+function useStore  (key: States): StoreModule<typeof key>{
   switch (key) {
+
     case States.USER : {
-      return getStore(userStateKey)
+      return getStore (userStateKey)
     }
 
     case States.APP : {
-      return getStore(appStateKey)
+      return getStore (appStateKey)
     }
 
     default: {
-      return getStore(appStateKey)
+      return getStore (appStateKey)
     }
   }
 }

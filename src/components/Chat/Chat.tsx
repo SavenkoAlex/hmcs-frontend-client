@@ -8,7 +8,9 @@ import {
 
 /** types */
 import { Chat } from '@/components/Chat/types'
-import { ElementScale } from '@/types/global'
+import { ElementScale, JanusPlugin, UserRole, User } from '@/types/global'
+import { JanusTextMessage } from '@/services/webrtc/webrtcDataExchange'
+import Janus from 'janus-gateway'
 
 /** styles */
 import '@/components/Chat/Chat.scss'
@@ -16,6 +18,12 @@ import '@/components/Chat/Chat.scss'
 /** components */
 import Label from '@/components/general/Label/Label'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
+
+/** services */
+import { PublisherChatHandler } from '@/services/webrtc/webrtcDataExchange'
+
+/** store */
+import { mapGetters } from 'vuex'
 
 export default defineComponent({
 
@@ -27,40 +35,53 @@ export default defineComponent({
   },
 
   props: {
-    userId: {
-      type: [String, Number] as PropType <string | number>,
-      default: '00011-01022001'
+    /** room id same as videoroom id */
+    room: {
+      type: Number as PropType <number>,
+      default: 0
+    },
+    /** username (nick) to display */
+    chatName: {
+      type: String as PropType <string>,
+      required: true
     },
 
-    chats: {
-      type: Array as PropType <Chat[]>,
-      default: () => [
-        {id: '00011-01022001', name: 'общий', messages: [{
-          id: '00011-01022001', sender: 'sasha', text: 'привет это текст-"рыба", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной "рыбой" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без', date: '01.02.2020'
-        },{
-          id: '00013-01022001', sender: 'future-sasha', text: 'и те привет это текст-"рыба", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной "рыбой" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без текст-"рыба", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной "рыбой" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без', date: '01.02.2020'
-        }]
-      }, {
-        id: '00012-01022001', name: 'приватный', messages: []
-      }]
+    userRole: {
+      type: String as PropType<UserRole>,
+      default: UserRole.ANONYMOUS
     }
-
   },
 
   computed: {
-    chatLinks (): { [key: string]: Chat } {
-      return this.chats.reduce<{[key: string]: Chat}>((acc, chat) => {
-        acc[chat.id] = chat
-        return acc
-      }, {})
-    }
+    ...mapGetters('user', ['getUser']),
+  },
+  watch: {
+    room (newValue: number, oldValue) {
+
+      if (newValue == oldValue) {
+        return
+      }
+
+      if (this.chatHandler) {
+        this.chatHandler.destroyHandler()
+      }
+    },
+
   },
 
   setup () {
-
+    const chatHandler = ref <PublisherChatHandler | null> (null)
     const currentChat = ref <string> ()
+    const chatLinks = ref <Record<string, Chat>>({})
+    const isRoomAvailable = ref <boolean> (false)
+    const isRoomExists = ref <boolean> (false)
+
     return {
-      currentChat
+      currentChat,
+      chatHandler,
+      chatLinks,
+      isRoomAvailable,
+      isRoomExists
     }
   },
 
@@ -68,22 +89,143 @@ export default defineComponent({
     addMessage (event: KeyboardEvent) {
       const target = event?.target as HTMLInputElement
 
-      if (this.currentChat){
-        this.chatLinks[this.currentChat].messages.push({
-          id: this.currentChat,
-          sender: 'sasha',
-          text: target.value,
-          date: '01.02.2020'
-        })
+      this.sendMessage(target.value)
+
+    },
+
+    async initChatHandler (): Promise <boolean> {
+
+      const streamId = this.room
+      const displayName = this.chatName
+
+      if (!streamId || ! displayName) {
+        return false
+      }
+
+      return PublisherChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN, {
+        streamId,
+        displayName
+      }).then(handler => {
+        if (!handler) {
+          this.chatHandler = null
+          return false
+        }
+
+        this.chatHandler = handler
+        return true
+      }).then(() => {
+        if (!this.chatHandler) {
+          this.chatHandler = null
+          return false
+        }
+        return true
+      }).catch(err => {
+        console.error(err)
+        this.chatHandler = null
+        return false
+      })
+    },
+
+    async initPublisherBroadcast () {
+      if (!this.chatHandler || !this.getUser?.streamId || !this.getUser?.username) {
+        return false
+      } 
+
+      await this.chatHandler.exists()
+
+      if (this.isRoomExists) {
+        this.isRoomAvailable = await this.chatHandler.register()
+      }
+
+      this.isRoomExists = await this.chatHandler.createRoom()
+      if (this.isRoomExists) {
+        this.isRoomAvailable = await this.chatHandler.register()
+      }
+    },
+
+    async join () {
+      if (!this.chatHandler) {
+        return
+      }
+
+      return await this.chatHandler.register()
+    },
+
+
+    async sendMessage (text: string) {
+      if (!this.chatHandler) {
+        return false
+      }
+
+      return await this.chatHandler.sendMessage(text)
+    },
+
+    async getRooms () {
+      if (!this.chatHandler) {
+        return
+      }
+
+      const result = await this.chatHandler.getRooms()
+      return
+    },
+
+    handleError (error: unknown): void {
+      console.warn('error handlelr ', error)
+    },
+
+    handleData (data: string): void {
+      try {
+        const dataParsed: JanusTextMessage = JSON.parse(data)
+
+        if ('exists' in dataParsed) {
+          this.isRoomExists = !!dataParsed.exists
+        }
+
+        if (dataParsed.textroom === 'message' && this.currentChat) {
+          this.chatLinks[this.currentChat].messages.push({
+            id: dataParsed.from,
+            sender: dataParsed.from,
+            text: dataParsed.text || '',
+            date: dataParsed.date || ''
+          })
+        }
+      } catch (err) {
+        console.error(err)
       }
     }
   },
-  mounted() {
-    this.currentChat = Object.keys(this.chatLinks)[0]
+
+  async mounted() {
+    this.currentChat = `${this.chatName}-share`
+
+    this.chatLinks[this.currentChat] = {
+      id: `${this.currentChat}`,
+      name: `${this.currentChat}`,
+      messages: []
+    }
+
+    await this.initChatHandler()
+
+    if (!this.chatHandler) {
+      return
+    }
+
+    this.chatHandler?.emitter.on('connected', this.initPublisherBroadcast)
+    this.chatHandler?.emitter.on('pluginerror', this.handleError)
+    this.chatHandler?.emitter.on('handlererror', this.handleError)
+    this.chatHandler?.emitter.on('handlerdata', this.handleData)
+    this.chatHandler?.emitter.on('plugindata', this.handleData)
+  },
+
+  unmounted () {
+    if (this.chatHandler) {
+      this.chatHandler?.destroyHandler()
+    }
   },
 
   render (): VNode {
     return <div class='chat'>
+
       <div class='chat__list'>
         {
           this.chatLinks && Object.keys(this.chatLinks).map((chatId) => {
@@ -125,9 +267,10 @@ export default defineComponent({
           <TextInput
             placeholder='Сообщение'
             onEnter={(event: KeyboardEvent) => this.addMessage(event)}
+            disabled={!this.isRoomAvailable}
           >
           </TextInput>
-        </div>       
+      </div>       
     </div>
   }
 })

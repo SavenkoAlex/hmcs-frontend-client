@@ -56,6 +56,10 @@ export default defineComponent({
     autocomplete: {
       type: String as PropType <string>,
       default: 'on'
+    },
+    disabled: {
+      type: Boolean as PropType <boolean>,
+      default: false
     }
   },
 
@@ -119,6 +123,7 @@ export default defineComponent({
           value={this.modelValue}
           onInput={ event => this.onInput(event)}
           onKeypress={(event: KeyboardEvent) => event.key === 'Enter' && this.$emit('enter', event)}
+          disabled={this.disabled}
         />
       </Transition>
     </div>

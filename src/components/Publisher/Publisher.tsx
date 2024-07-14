@@ -11,6 +11,7 @@ import {
 // janus
 import Janus from 'janus-gateway'
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
+import { PublisherChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 // style
 import './Publisher.scss'
@@ -22,10 +23,12 @@ import Chat from '@/components/Chat/Chat'
 import BaseVideo from '@/components/Video/Video'
 
 /** types */
-import { UserRole, MediaDevice } from '@/types/global'
+import { UserRole, MediaDevice, JanusPlugin } from '@/types/global'
+import { States, UserState } from '@/types/store'
 
 /** store */
 import { mapActions, mapGetters } from 'vuex'
+import { userStateKey, useStore } from '@/store'
 
 /** layout */
 import RoomLayout from '@/layouts/Room/Room'
@@ -44,6 +47,7 @@ export default defineComponent({
   computed: {
     ...mapGetters('app', ['devices']),
     ...mapGetters('user', ['getUser']),
+    
     isHandlerAvailable (): boolean {
       return !!this.pluginHandler
     },
@@ -72,6 +76,7 @@ export default defineComponent({
       clientNode,
       publisherStream,
       clientStream,
+      // TODO: used as room id 
       publisherId,
       constraints,
       pluginHandler,
@@ -97,6 +102,7 @@ export default defineComponent({
 
   methods: {
     ...mapActions('app', ['setDevice', 'clearDevices']),
+
     getUserMedia (): Promise <void> {
       return Promise.all(this.constraints.map((item: MediaStreamConstraints) => {
         return navigator.mediaDevices.getUserMedia(item)
@@ -127,19 +133,16 @@ export default defineComponent({
 
     async initHandler (): Promise <boolean> {
 
-      const publisherId  = this.getNewPublisherId()
-      const { streamId = null } = this.getUser
+      const { streamId: roomId= null, username = null } = this.getUser
 
-      if (!streamId || !publisherId) {
+      if (!roomId || !username) {
         console.error('Can not generate id')
         return false
       }
 
-      this.publisherId = publisherId
-    
-      return PublisherStreamHandler.init(Janus, {
-        streamId: streamId,
-        displayName: `${this.publisherId} stream`,
+      return PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
+        streamId: roomId,
+        displayName: username
       }).then((handler) => {
         if (handler) {
           this.pluginHandler = handler
@@ -287,10 +290,14 @@ export default defineComponent({
             />
           </div>,
         chat: () => <div class='publisher-stream publisher-state'>
-          <Chat
-            userId={this.publisherId}
-          />
-      </div>
+          { 
+            //TODO: if no publisherID dongle
+            this.getUser.username && <Chat
+              room={this.getUser.streamId}
+              chatName={this.getUser.username || 'no-name'}
+            />
+          }
+        </div>
     }}
     </RoomLayout>
   }

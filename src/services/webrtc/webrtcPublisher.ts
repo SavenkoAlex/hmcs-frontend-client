@@ -1,9 +1,10 @@
 import Janus, { JanusJS } from 'janus-gateway'
-import eventEmitter from 'events'
+import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
 import { 
-  StreamHandler,
-  StreamDescription
- } from  '@/services/webrtc/webrtcAbstract'
+  JanusPlugin,   
+  HandlerDescription,
+  WebRTCHandlerConstructor 
+} from '@/types/global'
 
 /**
  * Some WebRTC plugin with init (activate) function
@@ -23,18 +24,13 @@ export interface WebRTCHandler {
   modifyToPublic?: (mointId: number) => Promise <boolean>
 }
 
-type WebRTCHandlerConstructor = {
-  plugin: typeof Janus,
-  handler: JanusJS.PluginHandle, 
-  emitter: eventEmitter.EventEmitter,
-  options: StreamDescription
-}
+
 
 export class PublisherStreamHandler extends StreamHandler implements  WebRTCHandler { 
   
   roomNumber: number | null
   mediaTrack: MediaStreamTrack | null
-  options: StreamDescription
+  options: HandlerDescription
 
   private constructor ({
     plugin,
@@ -49,8 +45,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   }
 
   // Static constructor
-  static async init <T extends PublisherStreamHandler> (plugin: typeof Janus, options: Required<StreamDescription>) {
-    const result = await super.init(plugin)
+  static async init (plugin: typeof Janus, pluginName: JanusPlugin, options: Required<HandlerDescription>) {
+    const result = await super.init(plugin, pluginName)
     if (!result) {
       return null
     }
@@ -91,17 +87,16 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     })
 
     this.emitter.on('event', (event) => {
-      console.log('event: ', event)
+      this.emitter.emit('event', event)
     })
 
   }
-
 
   /**
    * Send create room request 
    * @returns { number | false } room number or false in case of fail
    */
-  private createRoom (options: Pick <StreamDescription, 'streamId' | 'displayName'>): Promise <number | false> {
+  private createRoom (options: Pick <HandlerDescription, 'streamId' | 'displayName'>): Promise <number | false> {
     return new Promise ((resolve, reject) => {
       if (!this.handler) {
         reject('No plugin available')
@@ -231,6 +226,9 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         tracks: [{
           type: 'video',
           capture: this.mediaTrack
+        },{
+          type: 'data',
+          capture: false
         }],
         success: (jsep) => resolve (jsep),
         error: () => resolve(false)

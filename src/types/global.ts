@@ -1,3 +1,6 @@
+import eventEmitter from 'events'
+import Janus, { JanusJS } from 'janus-gateway'
+
 export type Room = {       
   room : number
   description? :  string
@@ -36,6 +39,15 @@ export type JoinResult = {
   id: string,
   private_id: string,
   publishers: Publisher[],
+}
+
+/** janus message signature */
+export type JanusMessage = {
+  room: number,
+  description: string,
+  pin_required: boolean,
+  num_participants: number,
+  history: number
 }
 
 /** Stream ppublisher data */
@@ -149,3 +161,33 @@ export type MediaDevice = {
   muted: boolean,
   selected: boolean
 }
+
+/** refactor needed (what is about some other plugin?) */
+export type Handler = JanusJS.PluginHandle
+
+/** webrtc plugin init function result */
+export type InitResult <T extends Handler>= {
+  handler: T,
+  emitter: eventEmitter.EventEmitter
+} | null
+
+/** janus plugins */
+export const enum JanusPlugin {
+  VITE_WEBRTC_PLUGIN = 'janus.plugin.videoroom',
+  VITE_TEXT_PLUGIN = 'janus.plugin.textroom'
+}
+
+/** plugin handler parameters */
+export interface HandlerDescription {
+  streamId: number
+  displayName: string,
+}
+
+export type WebRTCHandlerConstructor = {
+  plugin: typeof Janus,
+  handler: JanusJS.PluginHandle, 
+  emitter: eventEmitter.EventEmitter,
+  options: HandlerDescription
+}
+
+
