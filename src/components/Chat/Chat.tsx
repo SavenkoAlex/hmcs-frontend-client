@@ -7,7 +7,7 @@ import {
 } from 'vue'
 
 /** types */
-import { Chat } from '@/components/Chat/types'
+import { Chat, Data } from '@/components/Chat/types'
 import { ElementScale, JanusPlugin, UserRole, User } from '@/types/global'
 import { JanusTextMessage } from '@/services/webrtc/webrtcDataExchange'
 import Janus from 'janus-gateway'
@@ -18,12 +18,15 @@ import '@/components/Chat/Chat.scss'
 /** components */
 import Label from '@/components/general/Label/Label'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
+import IconButton from '@/components/general/Buttons/IconButton/IconButton'
+import Send from '@/assets/images/send_32.svg'
 
 /** services */
 import { PublisherChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 /** store */
 import { mapGetters } from 'vuex'
+import { el } from 'element-plus/es/locale'
 
 export default defineComponent({
 
@@ -31,7 +34,8 @@ export default defineComponent({
 
   components: {
     Label,
-    TextInput
+    TextInput,
+    IconButton
   },
 
   props: {
@@ -45,7 +49,7 @@ export default defineComponent({
       type: String as PropType <string>,
       required: true
     },
-
+    /** user role to identificate chat permissions */
     userRole: {
       type: String as PropType<UserRole>,
       default: UserRole.ANONYMOUS
@@ -55,6 +59,7 @@ export default defineComponent({
   computed: {
     ...mapGetters('user', ['getUser']),
   },
+
   watch: {
     room (newValue: number, oldValue) {
 
@@ -75,22 +80,31 @@ export default defineComponent({
     const chatLinks = ref <Record<string, Chat>>({})
     const isRoomAvailable = ref <boolean> (false)
     const isRoomExists = ref <boolean> (false)
-
+    const inputMessage = ref <string> ('')
+    const chatMessages = ref<HTMLBaseElement>()
     return {
       currentChat,
       chatHandler,
       chatLinks,
       isRoomAvailable,
-      isRoomExists
+      isRoomExists,
+      inputMessage,
+      chatMessages
     }
   },
 
+  data (): Data {
+    return {
+      observer: null 
+    }
+  },
   methods: {
-    addMessage (event: KeyboardEvent) {
-      const target = event?.target as HTMLInputElement
-
-      this.sendMessage(target.value)
-
+    addMessage () {
+      if (!this.inputMessage) {
+        return
+      }
+      this.sendMessage(this.inputMessage)
+      this.inputMessage = ''
     },
 
     async initChatHandler (): Promise <boolean> {
@@ -151,7 +165,6 @@ export default defineComponent({
       return await this.chatHandler.register()
     },
 
-
     async sendMessage (text: string) {
       if (!this.chatHandler) {
         return false
@@ -192,6 +205,18 @@ export default defineComponent({
       } catch (err) {
         console.error(err)
       }
+    },
+
+    /** scroll down chat messages */
+    observeChat (mutationRecords: MutationRecord[]) {
+      mutationRecords.forEach(mutation => {
+        if (mutation.type === 'childList') {
+          this.chatMessages?.scroll({
+            top: 1000,
+            behavior: 'smooth'
+          })
+        }
+      })
     }
   },
 
@@ -215,6 +240,15 @@ export default defineComponent({
     this.chatHandler?.emitter.on('handlererror', this.handleError)
     this.chatHandler?.emitter.on('handlerdata', this.handleData)
     this.chatHandler?.emitter.on('plugindata', this.handleData)
+
+    // we need observer to scroll added messages to bottom 
+    this.observer = new MutationObserver(this.observeChat)
+
+    if (this.observer && this.chatMessages) {
+      this.observer.observe(this.chatMessages, {
+        childList: true
+      })
+    }
   },
 
   unmounted () {
@@ -241,7 +275,7 @@ export default defineComponent({
           })
         }
       </div>
-      <div class='chat__content'>
+      <div class='chat__content' ref='chatMessages'>
         {
           this.currentChat && this.chatLinks[this.currentChat].messages.map((message) => {
             return <div class={/*this.userId*/ '00011-01022001' === message.id ? 'chat__message_my' : 'chat__message'}>
@@ -263,13 +297,26 @@ export default defineComponent({
           })
         }
       </div>
-      <div class='chat__message-input'>
+      <div class='chat__submit'>
+        <div class='chat__input'>
           <TextInput
             placeholder='Сообщение'
-            onEnter={(event: KeyboardEvent) => this.addMessage(event)}
+            onEnter={() => this.addMessage()}
             disabled={!this.isRoomAvailable}
+            modelValue={this.inputMessage}
+            onUpdate:modelValue={(data: string) => this.inputMessage = data}
           >
           </TextInput>
+        </div>
+        <div class='chat__button'>
+          <IconButton
+            //disabled={this.isRoomAvailable}
+            mode={'primary'}
+            onClick={() => this.addMessage()}
+          >
+            <Send/>
+          </IconButton>
+        </div>
       </div>       
     </div>
   }

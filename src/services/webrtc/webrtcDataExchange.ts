@@ -160,7 +160,6 @@ export class PublisherChatHandler extends StreamHandler {
         return false
       }
 
-
       const register = {
         textroom: 'join',
         transaction: this.transaction,
@@ -175,8 +174,6 @@ export class PublisherChatHandler extends StreamHandler {
           this.emitter.emit('error', response.error)
           return
         }
-
-        console.log('successfully joined to chatroom')
       }
 
       this.handler.data({

@@ -101,6 +101,7 @@ export default defineComponent({
           modelValue={this.login}
           onUpdate:modelValue={(event) => this.login = event}
           validators={[emptyfieldValidation]}       
+          isRequired
         />
       </div>
       <div class='login-form__input'>
@@ -113,6 +114,7 @@ export default defineComponent({
           modelValue={this.password}
           onUpdate:modelValue={(event) => this.password = event}
           validators={[emptyfieldValidation]}       
+          isRequired
         />
       </div> 
     </div>

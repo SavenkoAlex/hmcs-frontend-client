@@ -11,10 +11,6 @@
   box-sizing: border-box;
 }
 
-html {
-  font: 66% / 1.15 sans-serif;
-}
-
 ul {
   list-style: none;
   padding: 0;
@@ -30,28 +26,28 @@ input {
   overflow: visible;
 }
 
+@font-face {
+  font-family: 'Inter-V';
+  src: url('../fonts/InterVariable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: fallback;
+  font-style: oblique 0deg 10deg;
+}
+
 body {
   width: 100%;
   margin: 0 auto;
   background-color: $primary-2;
-  font:
-    1.6rem/1.25 "Helvetica Neue",
-    Helvetica,
-    Arial,
-    sans-serif;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
+  height: 100%;
+  font-size: 1.2em;
+  font-family: 'Inter-V', sans-serif;
+  font-weight: 400;
 }
 
-@media screen and (min-width: 620px) {
+@supports (font-variation-settings: 'wdth' 200) {
   body {
-    font-size: 1.9rem;
-    line-height: 1.31579;
-  }
-}
-
-@media only screen and (max-width: 768px) {
-  [class*="col-"] {
-    width: 100%;
+    font-family: 'Inter-V';
+    font-variation-settings: 'wght' 300, 'slnt' -4;
+    font-feature-settings: 'cv08', 'cv05';
   }
 }

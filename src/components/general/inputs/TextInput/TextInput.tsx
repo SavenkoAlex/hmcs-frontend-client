@@ -60,6 +60,11 @@ export default defineComponent({
     disabled: {
       type: Boolean as PropType <boolean>,
       default: false
+    },
+    
+    isRequired: {
+      type: Boolean as PropType <boolean>,
+      default: false
     }
   },
 
@@ -124,6 +129,7 @@ export default defineComponent({
           onInput={ event => this.onInput(event)}
           onKeypress={(event: KeyboardEvent) => event.key === 'Enter' && this.$emit('enter', event)}
           disabled={this.disabled}
+          required={this.isRequired}
         />
       </Transition>
     </div>

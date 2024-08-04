@@ -12,5 +12,5 @@ export type Message = {
 }
 
 export type Data = {
-  messages: Message[]
+  observer: MutationObserver | null
 }

@@ -191,8 +191,7 @@ export default defineComponent({
       {
         this.barElements 
           ? this.barElements.map((item, index) => {
-            return <div 
-              style={{ 'grid-column': `${index + 1} / ${index + 1}`, 'grid-row': 1 }}> 
+            return <div class='state-bar__control'>
                 { elements[item] || null } 
               </div>
           })

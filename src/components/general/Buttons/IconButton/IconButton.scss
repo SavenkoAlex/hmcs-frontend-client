@@ -2,36 +2,26 @@
 
   .icon-button {
     &__primary {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
       box-shadow: 0 0 6px -1px $primary-6;
       @include icon-button ($primary-7, $primary-2);
     }
 
+    &__secondary {
+      box-shadow: 0 0 6px -1px $primary-6;
+      @include icon-button ($primary-6, $primary-3);
+    }
+
     &__tertiary {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
+      box-shadow: 0 0 6px -1px $primary-6;
       @include icon-button ($primary-7, $secondary-4);
     }
 
     &__fourth {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
       box-shadow: 0 0 8px 2px $secondary-6;
       @include icon-button ($primary-7, $primary-2);
     }
 
     &__active {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
       box-shadow: 0 0 8px 2px $secondary-3;
       @include icon-button ($primary-7, $primary-2);
     }

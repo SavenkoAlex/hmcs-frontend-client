@@ -10,6 +10,8 @@
       flex-direction: column;
       justify-content: flex-start;
 
+      animation: appear-in .3s ease-in, move-left .25s ease-out;
+
       &__body {
         width: 100%;
       }
@@ -28,5 +30,23 @@
         width: 100%;
       }
     }
+  }
+}
+
+@keyframes appear-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+} 
+
+@keyframes move-left {
+  0% {
+    transform: translateX(1000px);
+  }
+  100% {
+    transform: translateX(0px);
   }
 }

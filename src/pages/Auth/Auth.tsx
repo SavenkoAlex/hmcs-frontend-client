@@ -38,9 +38,7 @@ export default defineComponent({
         <span> | </span>
         <a onClick={() => this.toggle('register')}>{this.$t('pages.loginForm.register')}</a>
       </div>
-      <Transition>
         {  this.activeForm === 'login' ? <LoginForm/> : <RegisterForm/> }
-      </Transition>
-    </div>
+      </div>
   }
 })

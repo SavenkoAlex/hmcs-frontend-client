@@ -12,9 +12,9 @@ export default defineComponent({
 
   render (): VNode {
     return <div class="main">
-      <div class="main__header"> {this.$slots.header?.()}</div>
-      <div class="main__content"> {this.$slots.default?.()}</div>
-      <div class="main__footer"> {this.$slots.footer?.()}</div>
+      <header class="main__header"> {this.$slots.header?.()}</header>
+      <main class="main__content"> {this.$slots.default?.()}</main>
+      <footer class="main__footer"> {this.$slots.footer?.()}</footer>
     </div>
   }
 })
