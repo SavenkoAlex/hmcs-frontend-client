@@ -27,6 +27,7 @@ import { PublisherChatHandler } from '@/services/webrtc/webrtcDataExchange'
 /** store */
 import { mapGetters } from 'vuex'
 import { el } from 'element-plus/es/locale'
+import { format } from 'crypto-js'
 
 export default defineComponent({
 
@@ -44,11 +45,13 @@ export default defineComponent({
       type: Number as PropType <number>,
       default: 0
     },
+
     /** username (nick) to display */
     chatName: {
       type: String as PropType <string>,
       required: true
     },
+    
     /** user role to identificate chat permissions */
     userRole: {
       type: String as PropType<UserRole>,
@@ -99,6 +102,7 @@ export default defineComponent({
     }
   },
   methods: {
+    
     addMessage () {
       if (!this.inputMessage) {
         return
@@ -217,6 +221,31 @@ export default defineComponent({
           })
         }
       })
+    },
+
+    /** returns user attribute to identificate and highlight user message */
+    getUserAttr (sender: string) {
+      return this.getUser?.username === sender ? 'me' : 'guest'
+    },
+
+    getMessageTime (date: string) {
+      const dateInstance = new Date(date)
+
+      if (!dateInstance) {
+        return ''
+      }
+
+      const hours = this.formatTime(dateInstance.getHours())
+      const minutes = this.formatTime(dateInstance.getMinutes())
+      const seconds = this.formatTime(dateInstance.getSeconds())
+
+      return `${hours}.${minutes}.${seconds}`
+    },
+
+    formatTime (value: number) {
+      return value < 10
+        ? 0 + value
+        : String(value) 
     }
   },
 
@@ -278,23 +307,27 @@ export default defineComponent({
       <div class='chat__content' ref='chatMessages'>
         {
           this.currentChat && this.chatLinks[this.currentChat].messages.map((message) => {
-            return <div class={/*this.userId*/ '00011-01022001' === message.id ? 'chat__message_my' : 'chat__message'}>
-              <div class='chat__message_info'>
-                <Label
-                  text={message.sender}
-                  scale={ElementScale.LARGE}
-                />
-                <Label
-                  text={ message.date }
-                  scale={ElementScale.MEDIUM} 
-                />
+            return <div 
+                class='chat__message'
+                user-data={this.getUserAttr(message.sender)}
+              >
+                <div class='chat__message_nick' user-data={ this.getUserAttr(message.sender) }>
+                  <Label
+                    text={message.sender}
+                    scale={ElementScale.LARGE}
+                  />
+                </div>
+                <div class='chat__message_text'>
+                  <p> { message.text } </p>
+                </div>
+                <div class='chat__message_time'>
+                  <Label
+                    text={ this.getMessageTime(message.date) }
+                    scale={ElementScale.SMALL} 
+                  />
+                </div> 
               </div>
-              <div class='chat__message_text'>
-                <p> { message.text } </p>
-              </div>
-              
-            </div> 
-          })
+            })
         }
       </div>
       <div class='chat__submit'>

@@ -36,7 +36,7 @@ export default defineComponent ({
 
   computed: {
     fontSize () {
-      const size = getSizeHash('x-small', 'small', 'medium')[this.scale]
+      const size = getSizeHash()[this.scale]
       return {
         'font-size': size
       }

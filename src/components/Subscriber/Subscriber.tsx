@@ -61,17 +61,14 @@ export default defineComponent({
 
     const remoteStream = ref <MediaStream> ()
     const remoteVideoNode = ref <HTMLMediaElement> ()
-
     const constraints = {
       audio: false,
       video: true
     }
-
     const subscriberName = ref <string>('sasha the programmer')
-
     const mountPoint = ref <number> ()
-    const pluginHandler = ref <JanusJS.PluginHandle> ()
-
+    const videoPluginHandler = ref <SubscriberStreamHandler | null> (null)
+    const chatPluginHandler = ref <SubscriberStreamHandler | null> (null)
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
 
@@ -79,7 +76,8 @@ export default defineComponent({
       remoteStream,
       remoteVideoNode,
       constraints,
-      pluginHandler,
+      videoPluginHandler,
+      chatPluginHandler,
       videoTrack,
       audioTrack,
       mountPoint,
@@ -90,27 +88,24 @@ export default defineComponent({
   data (): Data {
     return {
       publisher: null,
-      publisherAccount: null
+      publisherAccount: null,
     }
   },
 
   methods: {
+
+    /** get data according to publisher */
     async getUserData () {
       if (!this.publisherId) {
         return null
       }
-
       const user = await userApi.getUser(this.publisherId)
-
       return user || null
     },
 
     onremotetrack (descripption: {on: boolean, track: MediaStreamTrack}) {
-      const { on, track } = descripption
-      console.warn('REMOTe Track', on, track)
-      
+      const { track } = descripption
       this.remoteStream = new MediaStream([track])
-
       if (this.remoteStream && this.remoteVideoNode) {
         Janus.attachMediaStream(this.remoteVideoNode, this.remoteStream)
       }
@@ -119,7 +114,25 @@ export default defineComponent({
     collapseVideo (event: Event) {
       const video = event.target as HTMLVideoElement
       video.play()
+    },
+
+    /** initiate webrtc video handler */
+    async initVideoRoomHandler () {
+      const handler = await SubscriberStreamHandler.init(Janus, { 
+        streamId: this.mountPoint, 
+        displayName: this.subscriberName  
+      })
+
+      handler?.emitter.on('track', description => {
+        this.onremotetrack(description)
+      })
+
+      this.videoPluginHandler = handler
+
+      return await handler?.join()
     }
+
+
   },
 
   async mounted () {
@@ -141,54 +154,46 @@ export default defineComponent({
     if (!this.mountPoint) {
       return
     }
-
-    const handler = await SubscriberStreamHandler.init(Janus, { 
-      streamId: this.mountPoint, 
-      displayName: this.subscriberName  
-    })
-
-    handler?.emitter.on('track', description => {
-      this.onremotetrack(description)
-    })
-    
-    handler?.join()
+    // TODO: is publiisher online ? init all Handlers
+    this.initVideoRoomHandler()
   },
 
   unmounted () {
-    this.pluginHandler?.detach()
+    this.videoPluginHandler?.handler.detach()
+    this.chatPluginHandler?.handler.detach()
   },
 
   render (): VNode {
     return <RoomLayout>
-        {{
-          media: () => <div class="subscriber__publisher-media">
-            { this.remoteStream 
-              
-              ? <TransitionGroup>
-                <BaseVideo
-                  srcObject={this.remoteStream}
-                  autoplay
-                  playsinline
-                />
-                </TransitionGroup>
-              : <Transition name='offline'>
-                  <div class={'subscriber__publisher-avatar'}>
-                    <img src={`data:image/jpg;base64,${this.publisher?.avatar}`}/>
-                  </div>
-                </Transition>
-            }
-          </div>,
-          controls: () => <div class='subscriber__stream-controls'>
-            <StateBar
-              userRole={this.getUser?.role || StreamRole.OBSERVER}
-              amount={this.publisherAccount?.amount}
-            />
-          </div>,
+      {{
+        media: () => <div class="subscriber__publisher-media">
+          { this.remoteStream 
+            
+            ? <TransitionGroup>
+              <BaseVideo
+                srcObject={this.remoteStream}
+                autoplay
+                playsinline
+              />
+              </TransitionGroup>
+            : <Transition name='offline'>
+                <div class={'subscriber__publisher-avatar'}>
+                  <img src={`data:image/jpg;base64,${this.publisher?.avatar}`}/>
+                </div>
+              </Transition>
+          }
+        </div>,
+        controls: () => <div class='subscriber__stream-controls'>
+          <StateBar
+            userRole={this.getUser?.role || StreamRole.OBSERVER}
+            amount={this.publisherAccount?.amount}
+          />
+        </div>,
 
-          chat: () => <div class='subscriber__content'>
-            <Chat/>
-          </div>
-        }}
+        chat: () => <div class='subscriber__content'>
+          <Chat/>
+        </div>
+      }}
       </RoomLayout>
   }
 

@@ -1,27 +1,18 @@
-.live-indicator {
+.live-indicator__lamp {
+  display: inline-block;
   height: 16px;
   width: 16px;
   border-radius: 50%;
+  animation: blink 1.5s infinite;
+  opacity: .5;
+}
 
-  &_online {
-    display: inline-block;
-    background-color: $secondary-3;
-    opacity: .8;
-    border-radius: 50%;
-    animation: blink 1.5s infinite;
-    height: 16px;
-    width: 16px;
-  }
+[user-data^="online"] {
+  background-color: $secondary-3;
+}
 
-  &_offline {
-    display: inline-block;
-    background-color: $secondary-6;
-    opacity: 0.8;
-    border-radius: 50%;
-    animation: blink 1.5s infinite;
-    height: 16px;
-    width: 16px;
-  }
+[user-data^="offline"] {
+  background-color: $primary-10;
 }
 
 @keyframes blink {
@@ -29,7 +20,7 @@
     transform:  scale(1, 1);
   }
   50% {
-    transform:  scale(1.5, 1.5);
+    transform:  scale(1.1, 1.1);
   }
   100% {
     transform:  scale(1, 1);

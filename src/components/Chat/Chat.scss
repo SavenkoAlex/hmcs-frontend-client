@@ -21,8 +21,12 @@
   &__content {
     width: 100%;
     background-color: $primary-2;
+    display: flex;
+    flex-direction: column;
     flex: 1 1 24px;
+    gap: .3rem;
     overflow-y: scroll;
+
   }
 
   &__submit {
@@ -65,17 +69,35 @@
   }
 
   &__message {
-    width: 100%;
-    background-color: $primary-3;
-    border-radius: 12px;
-    padding: 3px 6px;
-    margin: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    padding: .5rem 1rem;
+    max-width: 90%;
 
-    &_my {
-      margin: 12px;
-      background-color: $primary-4;
-      border-radius: 12px;
-      padding: 3px 6px;
+    &_time {
+      color: $primary-7; 
     }
   }
+
+  &__message[user-data="me"] {
+    align-items: flex-end;
+    align-self: flex-end;
+    background-color: $primary-4;
+    margin-right: 1rem;
+    border-radius: 14px 14px 0 14px;
+  }
+
+  &__message[user-data="guest"] {
+    align-items: flex-start;
+    align-self: flex-start;
+    background-color: $primary-3;
+    margin-left: 1rem;
+    border-radius: 14px 14px 14px 0;
+  }
+
+  .chat__message_nick[user-data="me"] {
+    display: none;
+  }
+
 }

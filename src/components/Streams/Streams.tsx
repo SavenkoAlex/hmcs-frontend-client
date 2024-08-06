@@ -1,7 +1,8 @@
 import {
   defineComponent,
   VNode,
-  ref
+  ref,
+  Transition
 } from 'vue'
 
 // janus
@@ -145,13 +146,13 @@ export default defineComponent({
     
   render (): VNode {
     return <div class='streamer-list'>
-        {
-          this.users.map(user => 
-            <div class='streamer-list__item'>
-              <StreamItem stream={user} />
-            </div>
-          )
-        }
+      {
+        this.users.map(user => 
+          <div class='streamer-list__item'>
+            <StreamItem stream={user} />
+          </div>
+        )
+      }
     </div>
 
   }

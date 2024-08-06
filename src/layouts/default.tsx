@@ -1,5 +1,6 @@
 import {
   defineComponent,
+  Transition,
   VNode
 } from 'vue'
 

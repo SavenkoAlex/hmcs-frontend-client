@@ -33,20 +33,5 @@
   }
 }
 
-@keyframes appear-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-} 
 
-@keyframes move-right{
-  0% {
-    transform: translateX(-1000px);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
+

@@ -19,10 +19,12 @@ export default defineComponent({
   },
 
   render (): VNode {
-    return <div class='live-indicator' style={{
-      'background-color': this.live ? 'green' : 'red'
-      }}>
-        <span class={this.live ? 'live-indicator_online' : 'live-indicator_offline'}></span>
+    return <div class='live-indicator'>
+        <span 
+          class='live-indicator__lamp' 
+          user-data={this.live ? 'online' : 'offline'}
+        >
+        </span>
     </div>
   }
 })

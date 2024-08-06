@@ -11,11 +11,15 @@ import { store } from '@/store'
 
 import { AES } from 'crypto-js'
 
-export const getSizeHash = (small: string, medium: string, large: string) => {
+export const getSizeHash = () => {
   return {
-    [ElementScale.LARGE]: large,
-    [ElementScale.MEDIUM]: medium,
-    [ElementScale.SMALL]: small
+    [ElementScale.SMALLEST]: 'xx-small',
+    [ElementScale.SMALLER]: 'x-small',
+    [ElementScale.SMALL]: 'small',
+    [ElementScale.MEDIUM]: 'medium',
+    [ElementScale.LARGE]: 'large',
+    [ElementScale.LARGER]: 'x-large',
+    [ElementScale.LARGEST]: 'xx-large'
   }
 }
 

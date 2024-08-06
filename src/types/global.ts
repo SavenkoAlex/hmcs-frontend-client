@@ -89,9 +89,13 @@ export const enum DisplayLocation {
 }
 
 export const enum ElementScale {
-  LARGE = 'large',
+  SMALLEST = 'smallest',
+  SMALLER = 'smaller',
+  SMALL = 'small',
   MEDIUM = 'medium',
-  SMALL = 'small'
+  LARGE = 'large',
+  LARGER = 'larger',
+  LARGEST = 'largest'
 }
 
 export const enum ValidationError  {
