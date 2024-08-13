@@ -7,6 +7,7 @@ import { UserState, AppState, State, States } from '@/types/store'
 import { createI18n } from 'vue-i18n'
 import ruLocale from '@/langs/ru.json'
 import enLocale from '@/langs/en.json'
+import { mutable } from 'element-plus/es/utils'
 
 const i18n = createI18n({
   locale: 'ru-RU',

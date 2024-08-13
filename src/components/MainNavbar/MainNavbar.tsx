@@ -1,95 +1,94 @@
 import {
   defineComponent,
-  VNode
+  VNode,
+  ref,
+  computed
 } from 'vue'
 
 /** Style */
 import './MainNavbar.scss'
 
-/** Components */
+/** components */
 import LogoIcon from '@/assets/images/logo48.svg'
 import { RouterLink } from 'vue-router'
 
 /** store */
-import { mapGetters } from 'vuex'
+import { useStore } from '@/store'
 
 /** types */
-import { UserRole } from '@/types/global'
+import { UserRole, Maybe } from '@/types/global'
+import { States } from '@/types/store'
+import { userLinks } from '@/router/types'
+import { mapGetters } from 'vuex'
+import { Data } from '@/components/MainNavbar/types'
 
 export default defineComponent({
 
   name: 'MainNavbar',
 
+  data (): Data {
+    return {
+      links: userLinks[UserRole.ANONYMOUS]
+    }
+  },
+
   computed: {
-    ...mapGetters({
-      userType: 'user/userType',
-      isAuthentificated: 'user/isAuthentificated'
+    ...mapGetters(States.USER, {
+      userType: 'userRole', 
+      isAuthentificated: 'isAuthentificated'
     }),
   },
-  
+
+  watch: {
+    userType: {
+      handler: function (newValue) {
+        this.links = this.getLinks(newValue)
+      },
+      immediate: true
+    }
+  },
+
+  methods: {
+
+    getLinks (role: UserRole) {
+
+      if (!role || !this.isAuthentificated) {
+        return userLinks[UserRole.ANONYMOUS]
+      }
+
+
+      if (role === UserRole.USER) {
+        return userLinks[UserRole.USER]
+      }
+
+      if (role === UserRole.WORKER) {
+        return userLinks[UserRole.WORKER]
+      }
+
+      return userLinks[UserRole.ANONYMOUS]
+    }
+  },
+
   render(): VNode {
 
-    const userNavbar = <ul>
-      <li>
-        <div class={this.isAuthentificated ? 'navbar__option_visible' : 'navbar__option_hidden' }>
-          <RouterLink to={'user'}> { this.$t('routes.user') } </RouterLink>
-        </div>
-      </li>
-      <li>
-        <div class="navbar__option">
-          <RouterLink to={'streams'}> { this.$t('routes.streams') } </RouterLink>
-        </div>
-      </li>
-      <li>
-        <div class={this.isAuthentificated ? 'navbar__option_hidden': 'navbar__option_visible'  }>
-          <RouterLink to={'auth'}> { this.$t('routes.auth') } </RouterLink>
-        </div>
-      </li>
+    const navbar = <ul>
+      {
+        this.links.map(item => {
+        return <li>
+          <div class='navbar__option_visible'>
+            <RouterLink to={item}> { this.$t(`routes.${item}`) } </RouterLink>
+          </div>
+          </li>
+        })
+      }
     </ul>
-
-    const workerNavbar = <ul>
-      <li>
-        <div class="navbar__option">
-          <RouterLink to={'stream'}> { this.$t('routes.stream') } </RouterLink>
-        </div>
-      </li>
-      <li>
-        <div class={this.isAuthentificated ? 'navbar__option_visible' : 'navbar__option_hidden' }>
-          <RouterLink to={'user'}> { this.$t('routes.user') } </RouterLink>
-        </div>
-      </li>
-      <li>
-        <div class={this.isAuthentificated ? 'navbar__option_hidden': 'navbar__option_visible'  }>
-          <RouterLink to={'auth'}> { this.$t('routes.auth') } </RouterLink>
-        </div>
-      </li>
-    </ul>
-
-    const anonymousNavbar = <ul>
-      <li>
-        <div class={this.isAuthentificated ? 'navbar__option_hidden': 'navbar__option_visible'  }>
-          <RouterLink to={'/auth'}> { this.$t('routes.auth') } </RouterLink>
-        </div>
-      </li>
-      <li>
-        <div class="navbar__option">
-          <RouterLink to={'/streams'}> { this.$t('routes.streams') } </RouterLink>
-        </div>
-      </li>
-    </ul>
-
-    const menu = this.userType === UserRole.USER 
-      ? userNavbar
-      : this.userType === UserRole.WORKER
-        ? workerNavbar
-        : anonymousNavbar
 
     return <div class={'navbar'}>
         <div class={'navbar__logo'}>
           <LogoIcon/>
         </div>
         <div class={'navbar__menu'}>
-          { menu }
+          { navbar }
         </div>
       </div>
   }

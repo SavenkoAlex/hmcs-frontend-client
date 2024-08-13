@@ -121,12 +121,12 @@ export const zIndex = 1650
 
 export type User = {
   login: Maybe <string>,
-  username?: Maybe <string>,
-  role?: Maybe<string>,
-  type?: Maybe<UserRole>,
-  id?: Maybe<string>
+  username: Maybe <string>,
+  role: Maybe<string>,
+  type: Maybe<UserRole>,
+  id: Maybe<string>
   streamId: Maybe<number>,
-  avatar?: string
+  avatar: Maybe<string>
 }
 
 export type UserAccount = {

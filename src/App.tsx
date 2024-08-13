@@ -22,10 +22,6 @@ export default defineComponent({
     MainFooter
   },
 
-  created () {
-    localStorage.setItem('isAuthenticated', 'false')
-  },
-
   render(): VNode {
     return <DefaultLayout>
     {{
