@@ -41,5 +41,10 @@ export const getters = {
 
   isAuthentificated: function (state: UserState): boolean {
     return !!state.isAuthentificated
+  },
+
+  userId: function (state: UserState): string | null {
+    const id = state.id || null
+    return id
   }
 }

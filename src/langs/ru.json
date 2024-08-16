@@ -37,6 +37,9 @@
       "startStream": "старт",
       "stopStream": "стоп",
       "stream": "стрим"
+    },
+    "profile": {
+      "userProfileEmpty": "нет данных"
     }
   },
   "routes": {
@@ -49,7 +52,13 @@
   "common": {
     "apply": "применить",
     "cancel": "отменить",
-    "join": "присоединиться"
+    "join": "присоединиться",
+    "exit": "выход",
+    "login": "логин",
+    "username": "имя пользователся",
+    "password": "пароль",
+    "repeatPassword":"повторите пароль",
+    "save": "сохранить"
   },
   "components": {
     "deviceController": {

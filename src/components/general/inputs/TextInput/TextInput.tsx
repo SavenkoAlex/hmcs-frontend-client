@@ -61,7 +61,6 @@ export default defineComponent({
       type: Boolean as PropType <boolean>,
       default: false
     },
-    
     isRequired: {
       type: Boolean as PropType <boolean>,
       default: false

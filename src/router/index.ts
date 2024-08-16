@@ -1,7 +1,9 @@
 import {
   createRouter,
   createWebHashHistory,
-  RouteRecordRaw
+  RouteRecordRaw,
+  RouteLocationNormalized,
+  NavigationGuardNext
 } from 'vue-router'
 
 import StreamsList from '@/pages/Streams/StreamsList'
@@ -10,6 +12,7 @@ import User from '@/pages/User/User'
 import Auth from '@/pages/Auth/Auth'
 import NotFound from '@/pages/NotFound/NotFound'
 import Subscriber from '@/pages/Subscriber/Subscriber'
+import  { userRoleAuth } from '@/router/middleware/auth'
 
 const routes: RouteRecordRaw[] = []
 
@@ -24,24 +27,27 @@ const serverRoutes = [
     // all streams list
     name: 'streams',
     path: '/streams',
-    component: StreamsList
+    component: StreamsList,
   }, 
   /** publisher stream */
   {
-    stream: 'stream',
+    name: 'stream',
     path: '/stream',
+    beforeEnter: [userRoleAuth],
     component: Stream
   },
   {
     // dedicated stream on client side
     name: 'publisher',
     path: '/publisher/:id',
+    beforeEnter: [userRoleAuth],
     component: Subscriber
   },
   {
     // user profile
     name: 'user',
     path: '/user',
+    beforeEnter: [userRoleAuth],
     component: User
   },
   {
@@ -65,14 +71,4 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((_to, _from) => {
-  
-})
-/*
-
-router.beforeEach((to, _from) => {
-  const at = document.cookie.split(';')
-  console.log(at)
-})
-*/
 export default router

@@ -8,17 +8,31 @@ import './User.scss'
 
 /** types */
 import { Data } from './types'
-import { UserRole } from '@/types/global'
+import { UserRole, ElementScale } from '@/types/global'
+import { States } from '@/types/store'
 
 /** components */
-import UserGeneral from '@/components/UserGeneral/UserGeneral'
+import UserProfile from '@/components/Profile/UserProfile'
+import WorkerProfile from '@/components/Profile/WorkerProfile'
+import Label from '@/components/general/Label/Label'
 
+/** vuex */
+import { mapGetters } from 'vuex'
 export default defineComponent({
 
   name: 'UserPage',
 
   components: {
-    UserGeneral
+    UserProfile,
+    WorkerProfile,
+    Label
+  },
+
+  computed: {
+    ...mapGetters(States.USER, {
+      userRole: 'userType',
+      userId: 'userId'
+    })
   },
 
   data (): Data {
@@ -32,11 +46,23 @@ export default defineComponent({
   },
 
   render (): VNode {
-    return <div>
-
-      <UserGeneral>
-
-      </UserGeneral>
+    return <div class='user-profile__container'>
+      { 
+        this.userRole === UserRole.USER
+          ? <UserProfile
+            userId={this.userId}
+          />
+          : this.userRole === UserRole.WORKER
+            ? <WorkerProfile
+              userId={this.userId}
+            />
+            : <div class={'user-profile__container_empty'}>
+              <Label
+                scale={ElementScale.LARGER}
+                text={this.$t('pages.profile.userProfileEmpty')}
+              ></Label>
+            </div>
+      }
     </div>
   }
 })
