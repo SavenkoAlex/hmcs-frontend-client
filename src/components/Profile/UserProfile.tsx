@@ -7,7 +7,7 @@ import {
 /** types */
 import { User } from '@/types/global'
 import { UserDataProfile } from '@/components/Profile/types'
-
+import { States } from '@/types/store'
 /** api */
 import userApi from '@/api/user'
 
@@ -24,6 +24,9 @@ import LogoutIcon from '@/assets/images/logout_24.svg'
 
 /** styles */
 import '@/components/Profile/Profile.scss'
+
+/** vuex */
+import {mapActions } from 'vuex'
 
 export default defineComponent({
 
@@ -63,7 +66,10 @@ export default defineComponent({
   },
   
   methods: {
-    
+    ...mapActions(States.USER, {
+      setUser: 'setUser'
+    }),
+
     async getUser (userId: string): Promise <User | null> {
       try {
         const result = await userApi.getUser(userId)
@@ -74,12 +80,28 @@ export default defineComponent({
         console.error(err)
         return null
       }
+    },
+
+    logout () {
+      this.setUser({
+        login: null,
+        username: null,
+        role: null,
+        type: null,
+        id: null,
+        streamId: null,
+        accessToken: null,
+        amount: null,
+        isAuthentificated: null
+      })
+
+      this.$router.push('/')
     }
   },
 
+  
 
   mounted () {
-
     if (!this.userId) {
       return
     }
@@ -133,6 +155,14 @@ export default defineComponent({
             </div>
           }}
         </Form>
+
+      </div>
+      <div class='user-profile__logout'>
+        <TextButton
+          mode={'fourth'}
+          text={this.$t('common.exit')}
+          onClick={() => this.logout()}
+        />
       </div>
      
     </div>
