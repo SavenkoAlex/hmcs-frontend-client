@@ -46,7 +46,9 @@ export default defineComponent({
 
   computed: {
     ...mapGetters('app', ['devices']),
-    ...mapGetters('user', ['getUser']),
+    ...mapGetters('user', {
+      getUser: 'getUserData'
+    }),
     
     isHandlerAvailable (): boolean {
       return !!this.pluginHandler

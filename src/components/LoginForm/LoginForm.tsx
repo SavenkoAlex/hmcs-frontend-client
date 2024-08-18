@@ -48,7 +48,7 @@ export default defineComponent({
 
   computed:  {
     ...mapGetters({
-      userType: 'user/userType'
+      userRole: 'user/userRole'
     })
   },
 
@@ -69,8 +69,8 @@ export default defineComponent({
         return
       }
 
-      await this.setUser(user)
       this.setUserProperty({ isAuthentificated: true})
+      this.setUser(user)
       
     },
 
@@ -78,11 +78,10 @@ export default defineComponent({
       try {
         await this.authorize()
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
 
-
-      this.userType === UserRole.WORKER
+      this.userRole == UserRole.WORKER
         ? this.$router.push('stream')
         : this.$router.push('streams')
     }

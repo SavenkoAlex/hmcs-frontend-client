@@ -4,13 +4,8 @@ import { User } from '@/types/global'
 import { Payload } from 'vuex'
 
 export const mutations = {
-  [UserMutationTypes.SET_USER]: (state: UserState, payload: Payload & User) => {
-    state.id = payload.id
-    state.login = payload.login
-    state.username = payload.username
-    state.role = payload.role
-    state.type = payload.type
-    state.streamId = payload.streamId
+  [UserMutationTypes.SET_USER]: (state: UserState, payload: string | null) => {
+    state.userData = payload
   },
 
   [UserMutationTypes.SET_USER_PROPERTY]: <T extends keyof UserState> (state: UserState, payload: Pick <UserState, T>) => {

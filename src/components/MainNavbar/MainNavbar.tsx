@@ -34,13 +34,13 @@ export default defineComponent({
 
   computed: {
     ...mapGetters(States.USER, {
-      userType: 'userRole', 
+      userRole: 'userRole', 
       isAuthentificated: 'isAuthentificated'
     }),
   },
 
   watch: {
-    userType: {
+    userRole: {
       handler: function (newValue) {
         this.links = this.getLinks(newValue)
       },

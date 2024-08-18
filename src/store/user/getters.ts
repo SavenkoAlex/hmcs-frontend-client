@@ -9,33 +9,24 @@ export const getters = {
    * @param {keyof User} [field] - optional field name
    * @returns {User[T] | User} - user field value or whole user object
    */
-  getUser: function <T extends keyof User >(state: UserState): Omit <User, 'avatar'> {
+  getUserData: function <T extends keyof User >(state: UserState): Omit <User, 'avatar'> | null {
+    const userData = state.userData
 
-    // id 
-    const id = state.id
-    // login
-    const login = state.login
-    // username 
-    const username = state.username
-    // user role like 'worker' or 'user'
-    const type = state.type
-    // ???
-    const role = state.role
-    // stream id only usable for worker role
-    const streamId = state.streamId
-
-    return {
-      id, 
-      login,
-      username,
-      type,
-      role,
-      streamId
+    if (!userData) {
+      return null
     }
+
+    const parsed: User = JSON.parse(userData)
+    return parsed || null
   },
 
   userRole: function (state: UserState): UserRole {
-    const role = state.type || UserRole.ANONYMOUS
+    const userData = state.userData
+    if (!userData) {
+      return UserRole.ANONYMOUS
+    }
+    const parsed: User = JSON.parse(userData)
+    const role = parsed?.type || UserRole.ANONYMOUS
     return role as UserRole
   },
 
@@ -44,7 +35,21 @@ export const getters = {
   },
 
   userId: function (state: UserState): string | null {
-    const id = state.id || null
+    const userData = state.userData
+    if (!userData) {
+      return UserRole.ANONYMOUS
+    }
+    const parsed: User = JSON.parse(userData)
+    const id = parsed?.id || null
     return id
+  },
+
+  userData: function (state: UserState): Omit<User, 'avatar'> | null {
+    const userData = state.userData
+    if (!userData) {
+      return null
+    }
+
+    return JSON.parse(userData) || null
   }
 }

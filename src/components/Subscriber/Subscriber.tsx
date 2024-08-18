@@ -42,7 +42,9 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters('user', ['getUser']),
+    ...mapGetters('user', {
+      getUser: 'getUserData'
+    }),
 
     publisherId () {
       const publisherId: string | undefined = Array.isArray(this.$route.params?.id) 

@@ -27,6 +27,7 @@ import '@/components/Profile/Profile.scss'
 
 /** vuex */
 import {mapActions } from 'vuex'
+import { isAuthentificated } from '@/helpers/helper'
 
 export default defineComponent({
 
@@ -67,7 +68,8 @@ export default defineComponent({
   
   methods: {
     ...mapActions(States.USER, {
-      setUser: 'setUser'
+      setUser: 'setUser',
+      setUserProperty: 'setUserProperty'
     }),
 
     async getUser (userId: string): Promise <User | null> {
@@ -83,17 +85,8 @@ export default defineComponent({
     },
 
     logout () {
-      this.setUser({
-        login: null,
-        username: null,
-        role: null,
-        type: null,
-        id: null,
-        streamId: null,
-        accessToken: null,
-        amount: null,
-        isAuthentificated: null
-      })
+      this.setUser(null)
+      this.setUserProperty({isAuthentificated: false})
 
       this.$router.push('/')
     }

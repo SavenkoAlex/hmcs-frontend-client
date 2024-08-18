@@ -60,7 +60,9 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters('user', ['getUser']),
+    ...mapGetters('user', {
+      getUser: 'getUserData'
+    }),
   },
 
   watch: {

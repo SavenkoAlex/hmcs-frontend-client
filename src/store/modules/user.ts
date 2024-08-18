@@ -1,23 +1,23 @@
 import { UserState, State } from '@/types/store'
 import { Store, Module } from 'vuex'
-import { InjectionKey } from 'vue'
+import { InjectionKey, inject } from 'vue'
 import { actions } from '@/store/user/actions'
 import { getters } from '@/store/user/getters'
 import { mutations } from '@/store/user/mutations'
-import { UserRole, Maybe } from '@/types/global'
+import { encryptStorage } from '@/services/secureStoorage'
+import {
+  isAuthentificated,
+  amount,
+  userData,
+} from '@/types/store'
 
 export const user: Module <UserState, State> = {
   namespaced: true,
   state: {
-    id: localStorage.getItem('id'),
-    username: localStorage.getItem('username'),
-    login: localStorage.getItem('login'),
-    role: localStorage.getItem('role'),
-    type: localStorage.getItem('type') as Maybe <UserRole>,
-    amount: localStorage.getItem('amount') ? Number.parseInt(localStorage.getItem('amount') || '0', 10) : 0,
+    amount: <number> encryptStorage.getItem(amount) || 0,
     accessToken: localStorage.getItem('accessToken'),
-    streamId: localStorage.getItem('streamId') ? Number.parseInt(localStorage.getItem('streamId') || '0', 10) : null,
-    isAuthentificated: Boolean(localStorage.getItem('isAuthentificated'))
+    isAuthentificated: <boolean> encryptStorage.getItem(isAuthentificated),
+    userData: <string> encryptStorage.getItem(userData)
   },
   actions,
   getters,

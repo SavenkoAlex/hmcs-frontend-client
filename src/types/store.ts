@@ -1,10 +1,14 @@
 import { User, Maybe, MediaDevice } from '@/types/global'
 
+export const isAuthentificated: string = import.meta.env.IS_AUTHENTIFICATED as string || 'isa'
+export const userData: string = import.meta.env.USER_DATA || 'usa'
+export const amount: string = import.meta.env.AMOUNT || 'ama'
 
-export interface UserState extends Omit <User, 'avatar'> {
+export interface UserState {
   accessToken: Maybe<string>,
   amount: number,
-  isAuthentificated: boolean
+  isAuthentificated: boolean,
+  userData: string | null
 }
 
 export interface AppState {
@@ -20,3 +24,4 @@ export interface State {
   [States.USER]: UserState,
   [States.APP]: AppState
 }
+

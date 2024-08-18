@@ -19,6 +19,7 @@
     "bootstrap-vue": "^2.23.1",
     "crypto-js": "^4.2.0",
     "element-plus": "^2.3.12",
+    "encrypt-storage": "^2.13.3",
     "events": "^3.3.0",
     "hls.js": "^1.4.12",
     "janus-gateway": "^1.2.0",
