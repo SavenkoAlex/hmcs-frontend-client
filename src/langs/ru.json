@@ -1,0 +1,71 @@
+{
+  "userType": {
+    "user": "пользователь"
+  },
+  "copyRights": "All rights reserved",
+  "pages": {
+    "loginForm": {
+      "title": "Вход",
+      "isPublisher": "являюсь сотрудником",
+      "submit": "войти",
+      "username": "имя пользователся",
+      "login": "логин",
+      "password": "пароль",
+      "register": "регистрация",
+      "success": "успешно",
+      "error": "ошибка входа"
+    },
+
+    "registerForm": {
+      "title": "Регистрация",
+      "isPublisher": "являюсь сотрудником",
+      "submit": "зарегистрироваться",
+      "username": "имя пользователся",
+      "login": "логин",
+      "password": "пароль",
+      "repeatPassword": "повторите пароль",
+      "register": "регистрация"
+    },
+    "publisher": {
+      "createRoom": "создать комнату",
+      "destroyRoom": "удалить комнату"
+    },
+    "notFound": {
+      "text": "Страница не найдена"
+    },
+    "stateBar": {
+      "startStream": "старт",
+      "stopStream": "стоп",
+      "stream": "стрим"
+    },
+    "profile": {
+      "userProfileEmpty": "нет данных"
+    }
+  },
+  "routes": {
+    "streams": "Стримы",
+    "stream": "Стрим",
+    "auth": "Вход",
+    "user": "Профиль",
+    "live": "Стрим"
+  },
+  "common": {
+    "apply": "применить",
+    "cancel": "отменить",
+    "join": "присоединиться",
+    "exit": "выход",
+    "login": "логин",
+    "username": "имя пользователся",
+    "password": "пароль",
+    "repeatPassword":"повторите пароль",
+    "save": "сохранить"
+  },
+  "components": {
+    "deviceController": {
+      "devicesNotFound": "устройства не найдены",
+      "selectDevices": "Выберите устройства",
+      "cameras": "Камеры",
+      "mics": "Микрофоны"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+@media screen {
+
+  .login-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+    background: linear-gradient($primary-2 55%, $primary-3);
+    width: 100%;
+  }
+
+  .form-switcher {
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    align-items: center;
+    width: 100%;
+    padding: 0 16px;
+    flex: 0 1 25%;
+    gap: .1rem;
+
+    a {
+      font-size: medium;
+      @include link ($primary-5);
+    }
+
+    a:hover {
+      @include link ($primary-6);
+      cursor: pointer;
+    }
+
+    a:active {
+      @include link ($primary-7);
+    }
+
+    span {
+      padding: 0 4px;
+      color: $primary-7
+    }
+  }
+
+  @media (max-width: 1199px) {
+    
+  }
+
+  @media (min-width: 1200px) {
+  }
+    
+}

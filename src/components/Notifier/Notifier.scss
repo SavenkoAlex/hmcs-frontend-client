@@ -1,0 +1,46 @@
+@media screen {
+
+  .notify {
+    &__text {
+      &_large {
+        font-size: medium;
+      }
+
+      &_medium {
+        font-size: small;
+      }
+
+      &_small {
+        font-size: x-small;
+      }
+    }
+
+    &__message {
+      position: absolute;
+      transition: .2s ease-out;
+      
+      &_top {
+        top: 20%;
+        right: 10%
+      }
+      
+      &_bottom {
+        bottom: 20%;
+        right: 10%
+      }
+
+      &_error {
+        background-color: $primary-10;
+        color: $secondary-3;
+      }
+      &_success {
+        background-color: $primary-10;
+        color: $secondary-2;
+      }
+      &_warn {
+        background-color: $primary-10;
+        color: $secondary-1;
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+.login-form {
+  width: 100%;
+  padding: 0 16px;
+  
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  animation: appear-in .3s ease-in, move-right .25s ease-out;
+
+  &__body {
+    width: 100%;
+  }
+  
+  &__input {
+    margin-top: 12px
+  }
+
+  &__submit-button {
+    width: 100%;
+  }
+
+  &__footer {
+    margin-top: 24px;
+    width: 100%;
+  }
+}
+
+@media screen {
+
+  @media (max-width: 768px) {
+    
+  }
+}
+
+
+

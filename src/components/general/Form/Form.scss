@@ -1,0 +1,21 @@
+@media screen {
+
+  .form-general {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    gap: 1rem;
+
+    form {
+      width: 100%;
+      height: auto;
+    }
+    @media (max-width: 767px) {
+    }
+
+    @media (min-width: 1200px) {
+    }
+  }
+}

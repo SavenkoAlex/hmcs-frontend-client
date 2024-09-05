@@ -1,0 +1,31 @@
+@media screen {
+
+  @media (max-height: 1199px) {
+    .register-form {
+      width: 100%;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      animation: appear-in .3s ease-in, move-left .25s ease-out;
+
+      &__body {
+        width: 100%;
+      }
+      
+      &__input {
+        margin-top: 12px;
+      }
+
+      &__submit-button {
+        margin: 18px 0 12px 0;
+        width: 100%;
+      }
+
+      &__footer {
+        padding-top: 24px;
+        width: 100%;
+      }
+    }
+  }
+}

@@ -1,21 +1,70 @@
-import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import Home from '../views/Home.vue'
+import {
+  createRouter,
+  createWebHashHistory,
+  RouteRecordRaw,
+  RouteLocationNormalized,
+  NavigationGuardNext
+} from 'vue-router'
 
-const routes: Array<RouteRecordRaw> = [
+import StreamsList from '@/pages/Streams/StreamsList'
+import Stream from '@/pages/Publisher/Stream'
+import User from '@/pages/User/User'
+import Auth from '@/pages/Auth/Auth'
+import NotFound from '@/pages/NotFound/NotFound'
+import Subscriber from '@/pages/Subscriber/Subscriber'
+import  { userRoleAuth } from '@/router/middleware/auth'
+
+const routes: RouteRecordRaw[] = []
+
+const serverRoutes = [
   {
+    // root
+    name: 'root',
     path: '/',
-    name: 'Home',
-    component: Home
+    redirect: 'streams'
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    // all streams list
+    name: 'streams',
+    path: '/streams',
+    component: StreamsList,
+  }, 
+  /** publisher stream */
+  {
+    name: 'stream',
+    path: '/stream',
+    beforeEnter: [userRoleAuth],
+    component: Stream
+  },
+  {
+    // dedicated stream on client side
+    name: 'publisher',
+    path: '/publisher/:id',
+    beforeEnter: [userRoleAuth],
+    component: Subscriber
+  },
+  {
+    // user profile
+    name: 'user',
+    path: '/user',
+    beforeEnter: [userRoleAuth],
+    component: User
+  },
+  {
+    // LoginPage
+    name: 'auth',
+    path: '/auth',
+    component: Auth
+  },
+  {
+    // not found
+    name: 'not-found',
+    path: '/:pathMatch(.*)*',
+    component: NotFound
   }
 ]
+
+routes.push(...serverRoutes)
 
 const router = createRouter({
   history: createWebHashHistory(),

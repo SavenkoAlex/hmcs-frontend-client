@@ -1,0 +1,52 @@
+@media (max-width: 768px) {
+  
+  h1 {
+    margin-bottom: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  h2 {
+    font-weight: 400;
+    font-style: inherit;  
+    font-display: fallback;
+    letter-spacing: -.5px;
+    font-size: 28px;
+    line-height: 35px;
+    margin: 0;
+    padding: 0;
+  }
+
+  h3 {
+    font-weight: 400;
+    font-style: inherit;  
+    font-display: fallback;
+    letter-spacing: -.35px;
+    font-size: 22px;
+    line-height: 28px;
+    margin: 0;
+    padding: 0;
+  }
+
+  h4 {
+    font-weight: 400;
+    font-style: inherit;  
+    font-display: fallback;
+    letter-spacing: -.25px;
+    font-size: 20px;
+    line-height: 22.5px;
+    margin: 0;
+    padding: 0;
+  } 
+
+  p {
+    font-weight: 400;
+    font-style: inherit;  
+    font-display: fallback;
+    letter-spacing: -.22.5px;
+    font-size: 18px;
+    line-height: 19.5px;
+    margin: 0;
+    padding: 0;
+  }
+}

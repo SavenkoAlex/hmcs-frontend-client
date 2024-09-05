@@ -1,0 +1,48 @@
+@media screen {
+
+  @media (max-width: 767px) {
+    .text-button {
+      
+      &__primary {
+        padding: 12px 20px;
+        font-size: 16px;
+        line-height: 24px;
+        letter-spacing: .9px;
+        @include text-button ($primary-2, $primary-5);
+      }
+
+      &__tertiary {
+        padding: 12px 20px;
+        font-size: 16px;
+        line-height: 24px;
+        letter-spacing: .9px;
+        @include text-button ($primary-7, $secondary-4);
+      }
+
+      &__fourth {
+        padding: 12px 20px;
+        font-size: 16px;
+        line-height: 24px;
+        letter-spacing: .9px;
+        @include text-button ($primary-7, $secondary-6);
+      }
+
+      &:active {
+        @include text-button ($primary-2, $primary-7);
+      }
+
+      &__disabled {
+        padding: 12px 20px;
+        font-size: 16px;
+        line-height: 24px;
+        letter-spacing: .9px;
+        @include text-button ($primary-8, $secondary-7);
+      }
+    }
+  }
+
+  @media (max-width: 1200px) {
+  }
+
+  
+}

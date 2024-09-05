@@ -1,0 +1,38 @@
+.base-video {
+  margin-top: 6px;
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  background-color: $primary-9;
+  
+  video {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.picture-in-picture {
+  position: absolute;
+  top: 66px;
+  right: 6px;
+  border-radius: 16px;
+  overflow: hidden;
+  width: 40%;
+  height: auto;
+  background-color: $primary-9;
+
+  video {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.video-enter-active,
+.video-leave-active {
+  transition: opacity .8s ease;
+}
+
+.video-enter-from,
+.video-leave-to {
+  opacity: 0;
+}

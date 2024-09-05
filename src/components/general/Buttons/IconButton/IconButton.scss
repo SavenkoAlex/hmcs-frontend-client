@@ -1,0 +1,51 @@
+@media screen {
+
+  .icon-button {
+    &__primary {
+      box-shadow: 0 0 6px -1px $primary-6;
+      @include icon-button ($primary-7, $primary-2);
+    }
+
+    &__secondary {
+      box-shadow: 0 0 6px -1px $primary-6;
+      @include icon-button ($primary-6, $primary-3);
+    }
+
+    &__tertiary {
+      box-shadow: 0 0 6px -1px $primary-6;
+      @include icon-button ($primary-7, $secondary-4);
+    }
+
+    &__fourth {
+      box-shadow: 0 0 8px 2px $secondary-6;
+      @include icon-button ($primary-7, $primary-2);
+    }
+
+    &__active {
+      box-shadow: 0 0 8px 2px $secondary-3;
+      @include icon-button ($primary-7, $primary-2);
+    }
+
+    &_disabled {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 6px -1px $primary-6;
+      @include icon-button ($secondary-8, $secondary-7);
+    }
+
+    &:active {
+      box-shadow: 0 0 8px 2px $secondary-9;
+
+    }
+
+    @media (max-width: 767px) {
+    }
+  }
+
+  @media (max-width: 1200px) {
+  }
+
+  
+}

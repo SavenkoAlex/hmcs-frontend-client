@@ -1,0 +1,41 @@
+
+video {
+  width: 100%;
+  max-height: auto;
+}
+
+@media (max-width: 767px) {
+  .subscriber {
+    display: flex;
+    flex-direction: column;
+    
+    &__content {
+      height: 100%;
+    }
+
+    &__publisher-media {
+      width: 100%;
+      flex-grow: 1;
+    }
+
+    &__publisher-avatar {
+      display: flex;
+      img {
+        max-width: 100%;
+        max-height: auto;
+        filter: blur(3px);
+      }
+
+    }
+  }
+}
+
+.offline-enter-active,
+.offline-leave-active {
+  transition: opacity .8s ease;
+}
+
+.offline-enter-from,
+.offline-leave-to {
+  opacity: 0;
+}

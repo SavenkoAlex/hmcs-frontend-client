@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="6.3484659mm"
+   height="6.3532219mm"
+   viewBox="0 0 6.3484659 6.3532219"
+   version="1.1"
+   id="svg1"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="true"
+     showguides="false"
+     inkscape:zoom="11.313708"
+     inkscape:cx="320.67293"
+     inkscape:cy="416.70687"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer2">
+    <inkscape:grid
+       id="grid1"
+       units="px"
+       originx="-79.442439"
+       originy="-108.42922"
+       spacingx="0.26458333"
+       spacingy="0.26458334"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter23"
+       x="-0.013755571"
+       y="-0.012589148"
+       width="1.0275111"
+       height="1.0251783">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.0078948174"
+         id="feGaussianBlur23" />
+    </filter>
+  </defs>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="icon"
+     style="mix-blend-mode:normal"
+     transform="translate(-79.442438,-108.42922)">
+    <rect
+       style="fill:#ffffff;fill-opacity:0;stroke:#102338;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:35.2;stroke-dasharray:none;paint-order:fill markers stroke;filter:url(#filter23)"
+       id="rect23"
+       width="37.726357"
+       height="41.221817"
+       x="79.886864"
+       y="109.14285"
+       rx="5.2498612"
+       ry="0.18708867"
+       transform="matrix(0.163771,0,0,0.15033745,66.444277,92.09898)"
+       inkscape:export-filename="rect23.svg"
+       inkscape:export-xdpi="96.019997"
+       inkscape:export-ydpi="96.019997" />
+  </g>
+</svg>

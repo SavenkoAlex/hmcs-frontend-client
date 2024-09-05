@@ -1,0 +1,48 @@
+.user-profile {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem;
+  height: 100%;
+
+  &__logout {
+    width: 100%;
+    display: inline-flex;
+    flex: 0 1 auto;
+  }
+
+  &__avatar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+
+    &_img {
+      object-fit: fill;
+      width: 8rem;
+      border-radius: 50%;
+    }
+  }
+
+  &__form {
+    width: 100%;
+    display: inline-flex;
+    flex: 1 0 50%;
+    
+    &_body {
+      width: 100%;
+      display: inline-flex;
+      flex-direction: column;
+      flex: 1 0 50%;
+    }
+
+    &_footer {
+      width: 100%;
+      display: inline-flex;
+      flex: 0 1 auto;
+    }
+  }
+}

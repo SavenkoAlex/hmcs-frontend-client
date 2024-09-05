@@ -1,0 +1,25 @@
+@media (max-width: 767px) {
+  .room {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 54px - 30px);
+    
+    &__media {
+      width: 100%;
+      flex-grow: 0;
+      flex-shrink: 0;
+    }
+
+    &__content {
+      width: 100%;
+      flex-grow: 0;
+      flex-shrink: 0;
+    }
+
+    &__chat {
+      width: 100%;
+      flex: 1 1 54px;
+    }
+  }
+}
+

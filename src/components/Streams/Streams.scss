@@ -1,0 +1,22 @@
+
+@media (max-width: 767px) {
+  .streamer-list {
+    transition: appear-in .3s ease-in, move-left .25s ease-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    gap: 1rem;
+    padding: 1rem .5rem;
+    overflow-y: scroll;
+    height: 100%;
+
+    &__item {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: fit-content;
+    }
+  }
+}
