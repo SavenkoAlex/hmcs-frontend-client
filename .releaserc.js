@@ -9,23 +9,21 @@ module.exports = {
     '@semantic-release/release-notes-generator', 
     '@semantic-release/changelog',
     [
-      [
-        '@semantic-release/npm',
-        {
-          'pkgRoot': `${process.env.ARTIFACT_PATH}`,
-          'npmPublish': false,
-          'tarballDir': 'source'
-        }
-      ],
-      [
-        '@semantic-release/github',
-        {
-          assets: [
-            'CHANGELOG.md',
-            'source/*.tgz'
-          ],
-        }
-      ]
+      '@semantic-release/npm',
+      {
+        'pkgRoot': `${process.env.ARTIFACT_PATH}`,
+        'npmPublish': false,
+        'tarballDir': 'source'
+      }
+    ],
+    [
+      '@semantic-release/github',
+      {
+        assets: [
+          'CHANGELOG.md',
+          'source/*.tgz'
+        ],
+      }
     ]
   ]
 }
