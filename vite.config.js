@@ -8,7 +8,6 @@ import fs from 'fs'
 
 const path = require('path')
 
-
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -29,7 +28,7 @@ export default defineConfig({
   esbuild: {
     jsxFactory: 'h',
   },
-  server: {
+  server: process.env.NODE_ENV === 'production' ? {} : {
     https: {
       key: fs.readFileSync(path.resolve(__dirname, 'certs/taro.key')),
       cert: fs.readFileSync(path.resolve(__dirname, 'certs/taro.cert'))
