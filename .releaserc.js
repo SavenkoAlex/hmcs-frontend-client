@@ -1,3 +1,5 @@
+console.log('BUILD_ARTIFACT ', process.env.BUILD_ARTIFACT)
+
 module.exports = {
   private: true,
   branches: ['main'],
