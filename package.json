@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build -w",
+    "build": "vite build",
     "serve": "vite preview --port 8888",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src"
   },
@@ -43,6 +43,7 @@
     "@rollup/plugin-alias": "^5.0.0",
     "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-node-resolve": "^15.2.1",
+    "@semantic-release/github": "^10.3.2",
     "@types/axios": "^0.14.0",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^5.2.4",
