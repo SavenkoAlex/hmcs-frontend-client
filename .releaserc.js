@@ -19,7 +19,7 @@ module.exports = {
         path: '@semantic-release/github',
         assets: [
           'CHANGELOG.md',
-          'dist/*.*'
+          process.env.BUILD_ARTIFACT
         ],
       },
 
