@@ -9,7 +9,7 @@ on:
 
 env:
   BUILD_ARTIFACT: 'build-artifact'
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,7 +29,7 @@ jobs:
     - name: Archive production artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: dist-build
+        name: ${{ env.BUILD_ARTIFACT }}
         path: dist
     
   semantic:
@@ -40,7 +40,7 @@ jobs:
       - name: Download a single artifact
         uses: actions/download-artifact@v4
         with:
-          name: dist-build
+          name: ${{ env.BUILD_ARTIFACT }}
       - name: Checkout
         uses: actions/checkout@v4
       - name: Semantic Release
