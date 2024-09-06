@@ -10,14 +10,19 @@ module.exports = {
   release: {
     prepare: [
       '@semantic-release/changelog',
+      '@semantic-release/npm',
       {
-        "path": "@semantic-release/github",
-        "assets": [
-          { path: 'dist', label: 'frontend build' },
-          "CHANGELOG.md"
+        "npmPublish": false,
+        "tarballDir": "dist"
+      },
+      {
+        path: '@semantic-release/github',
+        assets: [
+          'CHANGELOG.md',
+          'dist/*.*'
         ],
-        message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
-      }
+      },
+
     ]
   }
 }
