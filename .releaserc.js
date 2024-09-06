@@ -1,6 +1,4 @@
 
-console.log('BUILD_ARTIFACT ', process.env.BUILD_ARTIFACT, process.env.GITHUB_WORKSPACE)
-
 module.exports = {
   private: true,
   branches: ['main'],
@@ -11,8 +9,8 @@ module.exports = {
     [
       '@semantic-release/npm',
       {
-        'pkgRoot': `${process.env.ARTIFACT_PATH}`,
         'npmPublish': false,
+        'pkgRoot': `${process.env.ARTIFACT_PATH}`,
         'tarballDir': 'source'
       }
     ],
