@@ -13,7 +13,7 @@ module.exports = {
       {
         "path": "@semantic-release/github",
         "assets": [
-          { path: 'dist/assets/dist', label: 'frontend build' },
+          { path: 'dist', label: 'frontend build' },
           "CHANGELOG.md"
         ],
         message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
