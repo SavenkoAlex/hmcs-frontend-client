@@ -20,7 +20,7 @@ module.exports = {
       {
         assets: [
           'CHANGELOG.md',
-          `${process.env.GITHUB_WORKSPACE}/${process.env.BUILD_ARTIFACT}`
+          `dist`
         ],
       }
     ]

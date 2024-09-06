@@ -9,6 +9,7 @@ on:
 
 env:
   BUILD_ARTIFACT: 'build-artifact'
+  ARTIFACT_PATH: '~/'
 
 jobs:
   build:
@@ -30,7 +31,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.BUILD_ARTIFACT }}
-        path: dist
     
   semantic:
     runs-on: ubuntu-latest
@@ -41,6 +41,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.BUILD_ARTIFACT }}
+          path: ${{ env.ARTIFACT_PATH }}
       - name: Checkout
         uses: actions/checkout@v4
       - name: Semantic Release
