@@ -13,12 +13,7 @@ module.exports = {
       {
         assets: [
           'CHANGELOG.md',
-          [
-            `${process.env.ARTIFACT_PATH}/**/*`,
-            {
-              name: `source-${nextRelease.gitTag}`
-            }
-          ]
+          `${process.env.ARTIFACT_PATH}/**/*`,
         ],
       }
     ]
