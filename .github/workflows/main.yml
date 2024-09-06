@@ -9,7 +9,7 @@ on:
 
 env:
   BUILD_ARTIFACT: 'build-artifact'
-  ARTIFACT_PATH: '~/'
+  ARTIFACT_PATH: 'dist'
 
 jobs:
   build:

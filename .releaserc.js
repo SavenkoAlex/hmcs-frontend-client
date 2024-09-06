@@ -20,7 +20,7 @@ module.exports = {
       {
         assets: [
           'CHANGELOG.md',
-          `dist`
+          `${process.env.ARTIFACT_PATH}`
         ],
       }
     ]
