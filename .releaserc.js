@@ -11,7 +11,7 @@ module.exports = {
         "npmPublish": false,
         "tarballDir": "dist"
       }
-    ]
+    ],
     [
       '@semantic-release/github',
       {
