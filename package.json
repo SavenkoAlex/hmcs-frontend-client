@@ -9,6 +9,7 @@
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src"
   },
   "dependencies": {
+    "@semantic-release/npm": "^12.0.1",
     "@types/crypto-js": "^4.2.2",
     "@types/events": "^3.0.3",
     "@videojs/http-streaming": "^3.5.3",
