@@ -1,3 +1,5 @@
+import path from 'path'
+
 console.log('BUILD_ARTIFACT ', process.env.BUILD_ARTIFACT)
 console.log('artifact path ', path.resolve(process.env.GITHUB_WORKSPACE, process.env.BUILD_ARTIFACT))
 
