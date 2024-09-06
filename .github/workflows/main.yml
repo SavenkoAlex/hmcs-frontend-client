@@ -43,6 +43,7 @@ jobs:
         with:
           name: ${{ env.BUILD_ARTIFACT }}
           path: ${{ env.ARTIFACT_PATH }}
+      - run: ls -R ${{ env.ARTIFACT_PATH }}
       - name: Checkout
         uses: actions/checkout@v4
       - name: Semantic Release
