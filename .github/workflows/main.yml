@@ -45,6 +45,7 @@ jobs:
         with:
           name: ${{ env.BUILD_ARTIFACT }}
           path: "${{ env.ARTIFACT_PATH }}.tar.gz"
+      - run: ls -1lr
       - name: Checkout
         uses: actions/checkout@v4
       - run: ls -1lr
