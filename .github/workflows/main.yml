@@ -47,6 +47,7 @@ jobs:
           path: "${{ env.ARTIFACT_PATH }}.tar.gz"
       - name: Checkout
         uses: actions/checkout@v4
+      - run: ls -1lr
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
         with:
