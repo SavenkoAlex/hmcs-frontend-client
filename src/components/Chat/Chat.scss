@@ -1,21 +1,23 @@
 .chat {
+  width: 100%;
+  overflow: hidden;
+
   @media (max-width: 767px) {
+    height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    height: 100%;
+    justify-content: center;
+    align-items: center;
+    border: solid 4px $primary-3;
+    border-radius: 24px;
+    margin: 0 2px;
   }
 
   &__list {
     width: 100%;
     display: flex;
-    flex-direction: row;
     justify-content: flex-start;
-    margin-bottom: 1rem;
-    padding: 0 .5rem;
-    border-bottom: 1px solid $primary-4;
-    flex-grow: 0;
-    flex-shrink: 0;
+    padding: .5rem 1rem;
   }
 
   &__content {
@@ -23,10 +25,10 @@
     background-color: $primary-2;
     display: flex;
     flex-direction: column;
-    flex: 1 1 24px;
+    flex: 1 0 1rem;
     gap: .3rem;
     overflow-y: scroll;
-
+    overflow-x: hidden;
   }
 
   &__submit {
@@ -34,35 +36,27 @@
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    padding: .2rem;
+    padding: .4rem;
+    gap: .5rem;
+    background-color: $primary-3;
+    border-radius: 16px;
   }
 
   &__input {
     display: inline-flex;
-    flex: 1 0 96%;
-    padding: auto 3%;
+    flex: 1 0 80%;
   }
 
   &__button {
-    position: absolute;
-    width: 2.8rem;
-    height: 2.8rem;
-    right: .7rem;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
   }
 
   &__item {
     cursor: pointer;
-    padding: 6px 18px 18px 18px;
     background-color: transparent;
     text-align: start;
 
-
     &_current {
+      padding-bottom: .5rem;
       transition: .2s ease-in;
       box-shadow: 0 8px 6px -6px $primary-7;
     }
@@ -77,6 +71,11 @@
 
     &_time {
       color: $primary-7; 
+    }
+
+    &_text {
+      width: 100%;
+      height: auto;
     }
   }
 
@@ -95,9 +94,8 @@
     margin-left: 1rem;
     border-radius: 14px 14px 14px 0;
   }
-
+  
   .chat__message_nick[user-data="me"] {
     display: none;
   }
-
 }

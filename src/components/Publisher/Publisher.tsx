@@ -291,7 +291,7 @@ export default defineComponent({
               onApplydevices={() => this.applyDevices()}
             />
           </div>,
-        chat: () => <div class='publisher-stream publisher-state'>
+        chat: () => <div class='publisher-stream__chat'>
           { 
             //TODO: if no publisherID dongle
             this.getUser.username && <Chat

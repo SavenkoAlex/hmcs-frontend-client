@@ -320,7 +320,7 @@ export default defineComponent({
                   />
                 </div>
                 <div class='chat__message_text'>
-                  <p> { message.text } </p>
+                  <p> { message.text || ''} </p>
                 </div>
                 <div class='chat__message_time'>
                   <Label
