@@ -2,25 +2,25 @@ import Janus, { JanusJS } from 'janus-gateway'
 import eventEmitter from 'events'
 import { 
   StreamHandler,
-  StreamDescription
  } from  '@/services/webrtc/webrtcAbstract'
 
+ import { 
+  HandlerDescription, 
+  JanusPlugin,
+  WebRTCHandlerConstructor 
+} from '@/types/global'
+
 /**
- * WebRTCHandler main functions to control webrtc connection
+ * WebRTCHandler main functions to control webrtc connection (subscriber)
  */
 export interface WebRTCHandler {
   join: (track?: MediaStreamTrack[]) => Promise <boolean>
   leave: () => Promise <boolean>
+  getPublishers: () => Promise<Publisher[] | null>
   requestPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
   sendMessage?: (mes: string) => Promise <boolean>
 }
 
-type WebRTCHandlerConstructor = {
-  plugin: typeof Janus,
-  handler: JanusJS.PluginHandle, 
-  emitter: eventEmitter.EventEmitter,
-  options: StreamDescription
-}
 
 type Publisher = {
   id: number, 
@@ -31,29 +31,27 @@ type Publisher = {
 export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHandler { 
   
   private mediaTrack: MediaStreamTrack | null
-  private options: StreamDescription
   private publisher: Publisher | null
+  options? : HandlerDescription
 
   private constructor ({
     plugin,
     handler, 
     emitter,
-    options
-  }: WebRTCHandlerConstructor) {
+  }: Omit<WebRTCHandlerConstructor, 'options'>) {
     super({plugin, handler, emitter})
-    this.options = options
     this.mediaTrack = null
     this.publisher = null
   }
 
   // Static constructor
-  static async init <T extends SubscriberStreamHandler> (plugin: typeof Janus, options: StreamDescription) {
-    const result = await super.init(plugin)
+  static async init (plugin: typeof Janus, pluginName: JanusPlugin.VITE_WEBRTC_PLUGIN, options?: HandlerDescription) {
+    const result = await super.init(plugin, JanusPlugin.VITE_WEBRTC_PLUGIN)
     if (!result) {
       return null
     }
     const { handler, emitter } = result
-    const streamHandler = new SubscriberStreamHandler({plugin, handler, emitter, options})
+    const streamHandler = new SubscriberStreamHandler({plugin, handler, emitter})
     streamHandler.listen()
     return streamHandler
   }
@@ -82,6 +80,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
   }
 
   async join () {
+    /*
     const publisher = await this.getPublisher()
     
     if (!publisher) {
@@ -91,6 +90,9 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
 
     const subscriber = await this.joinAsSubscriber()
     return !!subscriber
+    */
+
+    return true
   }
 
   async leave () {
@@ -115,7 +117,24 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     return null
   }
 
-  private getPublishers (): Promise <Publisher[] | null> {
+  getPublishers (): Promise <Publisher[] | null> {
+
+    return new Promise((resolve, reject) => {
+      if (!this.handler) {
+        reject('No plugin handler available')
+      }
+
+      const message = {
+        request: 'list',
+      }
+
+      this.handler?.send({
+        message,
+        success: (res) => resolve(res.participants as Publisher[]),
+        error: err => reject(null)
+      })
+    })
+    /*
     return new Promise ((resolve, reject) => {
       if (!this.handler) {
         reject('No plugin handler available')
@@ -132,9 +151,14 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
         error: err => reject(null)
       })
     })
+      */
+    return Promise.resolve(null)
+    
   }
 
   private joinAsSubscriber (): Promise <unknown> {
+    return Promise.resolve(null)
+    /*
     return new Promise ((resolve, reject) => {
       if (!this.handler) {
         reject('No plugin handler available')
@@ -155,6 +179,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
         error: err => reject(err)
       })
     })
+    */
   }
 
   private unsubscribe (): Promise <boolean> {

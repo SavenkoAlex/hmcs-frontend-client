@@ -8,14 +8,11 @@ import {
   HandlerDescription, 
 } from '@/types/global'
 
-
-
 type WebRTCHandlerConstructor = {
   plugin: typeof Janus,
   handler: JanusJS.PluginHandle, 
   emitter: eventEmitter.EventEmitter,
 }
-
 
 const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugin.VITE_WEBRTC_PLUGIN): Promise <InitResult<T>> => {
   const emitter = new eventEmitter.EventEmitter()
@@ -71,7 +68,7 @@ export abstract class StreamHandler {
       this.emitter = emitter
     }
 
-  static async init (plugin: typeof Janus, pluginName: JanusPlugin, _options?: HandlerDescription): Promise <InitResult <Handler>> {
+  static async init (plugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription): Promise <InitResult <Handler>> {
     plugin.init({
       debug: true,
       dependencies: Janus.useDefaultDependencies({ adapter })

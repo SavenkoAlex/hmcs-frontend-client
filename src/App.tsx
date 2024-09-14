@@ -22,6 +22,12 @@ export default defineComponent({
     MainFooter
   },
 
+  data () {
+    return {
+      janusHandler: null
+    }
+  },
+
   render(): VNode {
     return <DefaultLayout>
     {{
