@@ -47,9 +47,6 @@
     flex: 1 0 80%;
   }
 
-  &__button {
-  }
-
   &__item {
     cursor: pointer;
     background-color: transparent;
@@ -74,8 +71,13 @@
     }
 
     &_text {
-      width: 100%;
-      height: auto;
+      inline-size: min-content;
+    }
+
+     @media (max-width: 767px) {
+      &_text {
+        inline-size: 20rem;
+      }
     }
   }
 

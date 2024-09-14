@@ -40,8 +40,7 @@
   } 
 
   p {
-    text-wrap: wrap;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
     max-width: 100%;
     font-weight: 400;
     font-style: inherit;  
