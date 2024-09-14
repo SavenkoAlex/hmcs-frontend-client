@@ -1,6 +1,9 @@
 import {
   defineComponent,
-  VNode
+  VNode,
+  ref,
+  provide,
+  Ref
 } from 'vue'
 
 /** components */
@@ -10,7 +13,15 @@ import MainFooter from '@/components/MainFooter/MainFooter'
 /** layouts */
 import DefaultLayout from '@/layouts/default'
 
+/** router */
 import { RouterView } from 'vue-router'
+
+/** webrtcHandler */
+import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+import Janus, { JanusJS } from 'janus-gateway'
+
+/** types */
+import { JanusPlugin } from '@/types/global'
 
 export default defineComponent({
 
@@ -22,10 +33,21 @@ export default defineComponent({
     MainFooter
   },
 
-  data () {
+  setup () {
+    const handler = ref <SubscriberStreamHandler | null> (null)
+    provide<typeof handler> ('handler', handler)
+
     return {
-      janusHandler: null
+      handler
     }
+  },
+
+  mounted () {
+    SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
+      if (result) {
+        this.handler = result
+      }
+    })
   },
 
   render(): VNode {

@@ -7,7 +7,8 @@ import {
  import { 
   HandlerDescription, 
   JanusPlugin,
-  WebRTCHandlerConstructor 
+  WebRTCHandlerConstructor,
+  Room
 } from '@/types/global'
 
 /**
@@ -16,7 +17,7 @@ import {
 export interface WebRTCHandler {
   join: (track?: MediaStreamTrack[]) => Promise <boolean>
   leave: () => Promise <boolean>
-  getPublishers: () => Promise<Publisher[] | null>
+  getPublishers: () => Promise<Room[] | null>
   requestPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
   sendMessage?: (mes: string) => Promise <boolean>
 }
@@ -45,8 +46,13 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
   }
 
   // Static constructor
-  static async init (plugin: typeof Janus, pluginName: JanusPlugin.VITE_WEBRTC_PLUGIN, options?: HandlerDescription) {
-    const result = await super.init(plugin, JanusPlugin.VITE_WEBRTC_PLUGIN)
+  static async init (
+    plugin: typeof Janus, 
+    pluginName: JanusPlugin.VITE_WEBRTC_PLUGIN, 
+    options?: HandlerDescription
+  ): Promise<SubscriberStreamHandler | null> {
+    
+    const result = await super.init(plugin, pluginName)
     if (!result) {
       return null
     }
@@ -104,20 +110,21 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
    * @returns 
    */
   private async getPublisher (): Promise <Publisher | null> {
+    /*
     const publishers = await this.getPublishers()
     if (!publishers || !publishers.length) {
       return null
     }
     
-    const activePublishers = publishers.filter(p => p.publisher)
+    const activePublishers = publishers.filter(p => p.room)
     if (activePublishers.length) {
       return activePublishers[0]
     }
-
+    */
     return null
   }
 
-  getPublishers (): Promise <Publisher[] | null> {
+  getPublishers (): Promise <Room[] | null> {
 
     return new Promise((resolve, reject) => {
       if (!this.handler) {
@@ -130,7 +137,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
 
       this.handler?.send({
         message,
-        success: (res) => resolve(res.participants as Publisher[]),
+        success: (res) => resolve(res.list as Room[]),
         error: err => reject(null)
       })
     })

@@ -2,6 +2,7 @@ import {
   defineComponent,
   VNode,
   ref,
+  inject,
   Transition
 } from 'vue'
 
@@ -9,7 +10,7 @@ import {
 import Janus, { JanusJS } from 'janus-gateway'
 import adapter from 'webrtc-adapter'
 
-// Style
+/** styles */
 import '@/components/Streams/Streams.scss'
 
 /** types */
@@ -25,6 +26,9 @@ import userApi from '@/api/user'
 /** components */
 import StreamItem from '@/components/Streams/StreamItem'
 
+/** webrtcHandler */
+import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+
 export default defineComponent({
 
   name: 'Streams',
@@ -33,20 +37,24 @@ export default defineComponent({
     StreamItem
   },
 
+  watch: {
+    pluginHandler: {
+      handler: function () {
+        this.getRooms().then(result => {
+          for (const room of result) {
+            this.rooms[room.room] = room
+          }
+        })
+      }
+    }
+  },
+
   setup () {
-    const rooms = ref <Room[]>()
-    const pluginHandler = ref <JanusJS.PluginHandle> ()
-    /*
-    const janus = Janus.init({
-      debug: true,
-      dependencies: Janus.useDefaultDependencies({ adapter })
-    })
-    */
-    const janusUnit = ref <Janus> ()
+    const rooms = ref <Record <number, Room>>({})
+    const pluginHandler = inject<SubscriberStreamHandler> ('handler')
 
     return {
       rooms,
-      janusUnit,
       pluginHandler,
     }
 
@@ -59,63 +67,14 @@ export default defineComponent({
   },
 
   methods: {
-    attachPlugin () {
-      if (!this.janusUnit) {
-        throw new Error ('No janus instanse available') 
+    async getRooms (): Promise <Room[]> {
+      if (!this.pluginHandler) {
+        return []
       }
 
-      this.janusUnit?.attach({
-        plugin: 'janus.plugin.videoroom',
+      const rooms = await this.pluginHandler.getPublishers()
+      return rooms || []
 
-        success: (handler) => {
-          this.pluginHandler = handler
-          this.getRooms()
-            .then(result => { this.rooms = result; console.log(result)})
-            .catch(err => { this.rooms = []; console.error(err) }) 
-        },
-
-        onmessage: (msg) => {
-          Janus.debug(msg)
-        },
-
-        error: (err) => {
-          Janus.error(err)
-        }
-      })
-    },
-
-    createOffer (): Promise <JanusJS.JSEP | false> {
-      return new Promise ((resolve, reject) => {
-        
-        if (!this.pluginHandler) {
-          reject('No plugin available')
-          return
-        }
-
-        this.pluginHandler?.createOffer({
-          success: (jsep) => resolve (jsep),
-          error: (err) => resolve(false)
-        })
-      })
-    },
-
-    getRooms (): Promise <Room[]> {
-      return new Promise ((resolve, reject) => {
-        if (!this.pluginHandler) {
-          reject('No plugin handler available')
-          return
-        }
-
-        const message = {
-          request: 'list'
-        }
-
-        this.pluginHandler.send({
-          message,
-          success: result => resolve(result.list),
-          error: error => reject(error)
-        })
-      })
     }
   },
 
@@ -126,34 +85,20 @@ export default defineComponent({
     if (users && users.length > 0) {
       this.users = users
     }
-    /*
-    this.janusUnit = new Janus({
-      server: '/janus',
-      success: this.attachPlugin,
-      error: err => console.log('jauns erroor: ', err),
-      destroyed: () => console.warn('janus destroyed'),
-    })
-      */
-
   },
 
-  unmounted () {
-    this.janusUnit?.destroy({
-      cleanupHandles: false,
-      unload: true
-    })
-  },
-    
   render (): VNode {
     return <div class='streamer-list'>
       {
         this.users.map(user => 
           <div class='streamer-list__item'>
-            <StreamItem stream={user} />
+            <StreamItem 
+              stream={user}
+              online={ !!(user?.streamId && user.streamId in this.rooms) }
+            />
           </div>
         )
       }
     </div>
-
   }
 })
