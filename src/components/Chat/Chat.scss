@@ -71,12 +71,16 @@
     }
 
     &_text {
-      inline-size: min-content;
+      display: flex;
     }
 
      @media (max-width: 767px) {
-      &_text {
-        inline-size: 20rem;
+
+      &_paragraph {
+        max-width: 80vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   }
