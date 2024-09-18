@@ -22,7 +22,7 @@ import IconButton from '@/components/general/Buttons/IconButton/IconButton'
 import Send from '@/assets/images/send_32.svg'
 
 /** services */
-import { PublisherChatHandler } from '@/services/webrtc/webrtcDataExchange'
+import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 /** store */
 import { mapGetters } from 'vuex'
@@ -73,14 +73,14 @@ export default defineComponent({
       }
 
       if (this.chatHandler) {
-        this.chatHandler.destroyHandler()
+        this.chatHandler.destroyHandler(this.room)
       }
     },
 
   },
 
   setup () {
-    const chatHandler = ref <PublisherChatHandler | null> (null)
+    const chatHandler = ref <ChatHandler | null> (null)
     const currentChat = ref <string> ()
     const chatLinks = ref <Record<string, Chat>>({})
     const isRoomAvailable = ref <boolean> (false)
@@ -122,7 +122,7 @@ export default defineComponent({
         return false
       }
 
-      return PublisherChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN, {
+      return ChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN, {
         streamId,
         displayName
       }).then(handler => {
@@ -151,15 +151,15 @@ export default defineComponent({
         return false
       } 
 
-      await this.chatHandler.exists()
+      await this.chatHandler.exists(this.room)
 
       if (this.isRoomExists) {
-        this.isRoomAvailable = await this.chatHandler.register()
+        this.isRoomAvailable = await this.chatHandler.register(this.chatName, this.room)
       }
 
-      this.isRoomExists = await this.chatHandler.createRoom()
+      this.isRoomExists = await this.chatHandler.createRoom(this.room)
       if (this.isRoomExists) {
-        this.isRoomAvailable = await this.chatHandler.register()
+        this.isRoomAvailable = await this.chatHandler.register(this.chatName, this.room)
       }
     },
 
@@ -168,7 +168,7 @@ export default defineComponent({
         return
       }
 
-      return await this.chatHandler.register()
+      return await this.chatHandler.register(this.chatName, this.room)
     },
 
     async sendMessage (text: string) {
@@ -176,7 +176,7 @@ export default defineComponent({
         return false
       }
 
-      return await this.chatHandler.sendMessage(text)
+      return await this.chatHandler.sendMessage(text, this.room)
     },
 
     async getRooms () {
@@ -284,7 +284,7 @@ export default defineComponent({
 
   unmounted () {
     if (this.chatHandler) {
-      this.chatHandler?.destroyHandler()
+      this.chatHandler?.destroyHandler(this.room)
     }
   },
 

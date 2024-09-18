@@ -191,7 +191,7 @@ export type WebRTCHandlerConstructor = {
   plugin: typeof Janus,
   handler: JanusJS.PluginHandle, 
   emitter: eventEmitter.EventEmitter,
-  options: HandlerDescription
+  options?: HandlerDescription
 }
 
 

@@ -72,9 +72,9 @@ export type JanusTextMessage = {
 }
 
 transaction: "oorzya5UTd6J"
-export class PublisherChatHandler extends StreamHandler {
+export class ChatHandler extends StreamHandler {
 
-  private options: HandlerDescription
+  private options?: HandlerDescription
   transaction: string
   transactions: Record <string, unknown>
 
@@ -85,12 +85,14 @@ export class PublisherChatHandler extends StreamHandler {
     options
   }: WebRTCHandlerConstructor) {
     super({plugin, handler, emitter})
-    this.options = options
     this.transaction = Janus.randomString(12)
     this.transactions = {}
+    if (options) {
+      this.options = options
+    }
   }
 
-  static async init (plugin: typeof Janus, pluginName: JanusPlugin, options: HandlerDescription) {
+  static async init (plugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription) {
     const result = await super.init(plugin, pluginName)
 
     if (!result) {
@@ -99,11 +101,11 @@ export class PublisherChatHandler extends StreamHandler {
     
     const { handler, emitter } = result
 
-    const chatHandler = new PublisherChatHandler({
+    const chatHandler = new ChatHandler({
       plugin,
       handler,
       emitter,
-      options
+      options: options || undefined
     })
 
     chatHandler.listen()
@@ -152,20 +154,20 @@ export class PublisherChatHandler extends StreamHandler {
   }
 
   /** register an user in chat */
-  register (): Promise <boolean> {
+  register (displayName: string, streamId: number): Promise <boolean> {
     
     return new Promise((resolve) => {
 
-      if (!this.options.displayName || !this.options.streamId) {
+      if (!displayName || !streamId) {
         return false
       }
 
       const register = {
         textroom: 'join',
         transaction: this.transaction,
-        room: this.options.streamId,
-        username: this.options.displayName,
-        display: this.options.displayName
+        room: streamId,
+        username: displayName,
+        display: displayName
       }
 
       this.transactions[this.transaction] = (response: Response) => {
@@ -185,15 +187,15 @@ export class PublisherChatHandler extends StreamHandler {
     
   } 
 
-  createRoom (): Promise <boolean> {
+  createRoom (streamId: number): Promise <boolean> {
     return new Promise (resolve => {
-      if (!this.options.streamId) {
+      if (!streamId) {
         resolve(false)
       }
 
       const message = {
         textroom: 'create',
-        room: this.options.streamId,
+        room: streamId,
         transaction: this.transaction 
       }
 
@@ -206,7 +208,7 @@ export class PublisherChatHandler extends StreamHandler {
   }
 
   /** send broadcast message */
-  sendMessage (text: string): Promise <boolean> {
+  sendMessage (text: string, streamId: number): Promise <boolean> {
 
     return new Promise (resolve => {
       if (!text) {
@@ -216,7 +218,7 @@ export class PublisherChatHandler extends StreamHandler {
       const message = {
         textroom: 'message',
         transaction: this.transaction,
-        room: this.options.streamId,
+        room: streamId,
         text
       }
 
@@ -229,7 +231,7 @@ export class PublisherChatHandler extends StreamHandler {
   }
 
   /** send private massege */
-  sendPrivateMessage (text: string, to: string): Promise <boolean> {
+  sendPrivateMessage (text: string, to: string, streamId: number): Promise <boolean> {
     return new Promise (resolve => {
       if (!text || !to) {
         resolve(false)
@@ -238,7 +240,7 @@ export class PublisherChatHandler extends StreamHandler {
       const message = {
         textroom: 'message',
         transaction: Janus.randomString(12),
-        room: this.options.streamId,
+        room: streamId,
         to,
         text
       }
@@ -251,12 +253,12 @@ export class PublisherChatHandler extends StreamHandler {
     })
   }
 
-  destroyHandler (): Promise <boolean> {
+  destroyHandler (streamId: number): Promise <boolean> {
     
     return new Promise (resolve => {
       const message = {
         textroom: 'destroy',
-        room: this.options.streamId
+        room: streamId
       }
 
       this.handler.data({
@@ -267,12 +269,12 @@ export class PublisherChatHandler extends StreamHandler {
     })
   }
 
-  leave (): Promise <boolean> {
+  leave (streamId: number): Promise <boolean> {
 
     return new Promise (resolve => {
       const message = {
         textroom: 'leave',
-        room: this.options.streamId
+        room: streamId
       }
 
       this.handler.data({
@@ -303,7 +305,7 @@ export class PublisherChatHandler extends StreamHandler {
     })
   }
 
-  exists (): Promise <boolean> {
+  exists (streamId: number): Promise <boolean> {
     return new Promise (resolve => {
       if (!this.handler) {
         resolve(false)
@@ -312,7 +314,7 @@ export class PublisherChatHandler extends StreamHandler {
 
       const message = {
         textroom: 'exists',
-        room: this.options.streamId,
+        room: streamId,
         transaction: this.transaction
       }
 
