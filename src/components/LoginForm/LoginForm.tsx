@@ -59,7 +59,7 @@ export default defineComponent({
       const response = await authentificate(this.login, this.password)
 
       if (!response) {
-      this.setUserProperty({isAuthentificated: false})
+        this.setUserProperty({isAuthentificated: false})
         return
       }
 

@@ -24,13 +24,16 @@ export const userRoleAuth: NavigationGuardWithThis <unknown> = (to, from) => {
     return false
   }
 
-  const role: Maybe<UserRole> = user?.type
-  
-  if (!role || !userRoles.includes(role) ) {
+  try {
+    const parsed = JSON.parse(user)
+    const role: Maybe<UserRole> = parsed.type
+    if (!role || !userRoles.includes(role) ) {
+      return false
+    }
+
+    const isRouteAvailable = userRoutes[role].includes(to.name as BaseRoutes) 
+    return isRouteAvailable
+  } catch (err) {
     return false
   }
-  
-  const isRouteAvailable = userRoutes[role].includes(to.name as BaseRoutes) 
-  
-  return isRouteAvailable
 }

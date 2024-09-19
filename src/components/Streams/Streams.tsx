@@ -6,15 +6,11 @@ import {
   Transition
 } from 'vue'
 
-// janus
-import Janus, { JanusJS } from 'janus-gateway'
-import adapter from 'webrtc-adapter'
-
 /** styles */
 import '@/components/Streams/Streams.scss'
 
 /** types */
-import { Room } from '@/types/global'
+import { Room, supKey } from '@/types/global'
 import { StreamsData } from '@/components/Streams/types'
 
 //SVG
@@ -51,7 +47,7 @@ export default defineComponent({
 
   setup () {
     const rooms = ref <Record <number, Room>>({})
-    const pluginHandler = inject<SubscriberStreamHandler> ('handler')
+    const pluginHandler = inject<SubscriberStreamHandler | null> (supKey, null)
 
     return {
       rooms,

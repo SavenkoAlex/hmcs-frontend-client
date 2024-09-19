@@ -61,7 +61,7 @@ export default defineComponent({
 
   computed: {
     ...mapGetters('user', {
-      getUser: 'getUserData'
+      userData: 'getUserData'
     }),
   },
 

@@ -25,7 +25,7 @@ export const actions = {
 
       switch (key) {
         case 'isAuthentificated': 
-          encryptStorage.setItem(isAuthentificated, value)
+          encryptStorage.setItem(isAuthentificated, `${value}`)
           break
         case 'userData':
           encryptStorage.setItem(userData, value)

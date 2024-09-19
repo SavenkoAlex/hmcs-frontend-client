@@ -5,13 +5,9 @@ import {
   ref,
   inject,
   Transition,
-  TransitionGroup
+  TransitionGroup,
+  provide
 } from 'vue'
-
-// janus
-import Janus from 'janus-gateway'
-import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
-import { PublisherChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 // style
 import './Publisher.scss'
@@ -23,12 +19,13 @@ import Chat from '@/components/Chat/Chat'
 import BaseVideo from '@/components/Video/Video'
 
 /** types */
-import { UserRole, MediaDevice, JanusPlugin } from '@/types/global'
-import { States, UserState } from '@/types/store'
+import { UserRole, MediaDevice, pubKey, chatKey} from '@/types/global'
+import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
+import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
+import { States } from '@/types/store'
 
 /** store */
 import { mapActions, mapGetters } from 'vuex'
-import { userStateKey, useStore } from '@/store'
 
 /** layout */
 import RoomLayout from '@/layouts/Room/Room'
@@ -45,13 +42,12 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters('app', ['devices']),
-    ...mapGetters('user', {
-      getUser: 'getUserData'
-    }),
+    ...mapGetters(States.APP, ['devices']),
+    ...mapGetters(States.USER, ['userData']
+    ),
     
     isHandlerAvailable (): boolean {
-      return !!this.pluginHandler
+      return !!this.publisherHandler
     },
   },
 
@@ -66,11 +62,11 @@ export default defineComponent({
       video: true
     }]
 
-    const pluginHandler = ref <PublisherStreamHandler | null> (null)
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
     const crypto = inject<Crypto>('crypto')
-
+    const publisherHandler = inject <PublisherStreamHandler | null> (pubKey, null)
+    const chatHandler = inject <ChatHandler | null> (chatKey, null)
     const isRoomCreated = ref<boolean> (false)
 
     return {
@@ -81,11 +77,12 @@ export default defineComponent({
       // TODO: used as room id 
       publisherId,
       constraints,
-      pluginHandler,
       videoTrack,
       audioTrack,
       crypto,
       isRoomCreated,
+      publisherHandler,
+      chatHandler
     }
   },
 
@@ -103,7 +100,7 @@ export default defineComponent({
   },
 
   methods: {
-    ...mapActions('app', ['setDevice', 'clearDevices']),
+    ...mapActions(States.APP, ['setDevice', 'clearDevices']),
 
     getUserMedia (): Promise <void> {
       return Promise.all(this.constraints.map((item: MediaStreamConstraints) => {
@@ -133,65 +130,25 @@ export default defineComponent({
       this.getUserMedia()
     },
 
-    async initHandler (): Promise <boolean> {
-
-      const { streamId: roomId= null, username = null } = this.getUser
-
-      if (!roomId || !username) {
-        console.error('Can not generate id')
-        return false
-      }
-
-      return PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
-        streamId: roomId,
-        displayName: username
-      }).then((handler) => {
-        if (handler) {
-          this.pluginHandler = handler
-          return true
-        } else {
-          console.error('no webrtc plugin available')
-          return false
-        }
-      }).then(() => {
-        if (!this.pluginHandler) {
-          return false
-        }
-        this.pluginHandler?.emitter.on('error', (err) => {
-          console.error(err)
-          this.isRoomCreated = false
-        })
-        return true
-      }).catch((err) => {
-        console.error(err)
-        this.pluginHandler = null
-        return false
-      })
-
-    },
-
     /**
      * destroy room request
      * @returns 
      */
     async destroyRoom (): Promise <void> {
-      if (!this.pluginHandler) {
+      if (!this.publisherHandler) {
         console.error('no webrtc plugin availabell')
         return
       }
 
-      const destryed = await this.pluginHandler.destroyStream()
+      const destryed = await this.publisherHandler.destroyStream()
       if (destryed) {
         this.isRoomCreated = false
-        this.pluginHandler = null
       }
     },
 
     async createRoom (): Promise <void> {
-
-      await this.initHandler()
       
-      if (!this.pluginHandler) {
+      if (!this.publisherHandler) {
         console.error('no webrtc plugin availabele')
         return
       }
@@ -201,7 +158,7 @@ export default defineComponent({
         return
       }
 
-      this.isRoomCreated = await this.pluginHandler.createStream(this.videoTrack)
+      this.isRoomCreated = await this.publisherHandler.createStream(this.videoTrack)
     },
 
     getNewPublisherId (): number | null {
@@ -294,9 +251,9 @@ export default defineComponent({
         chat: () => <div class='publisher-stream__chat'>
           { 
             //TODO: if no publisherID dongle
-            this.getUser.username && <Chat
-              room={this.getUser.streamId}
-              chatName={this.getUser.username || 'no-name'}
+            this.userData.username && <Chat
+              room={this.userData.streamId}
+              chatName={this.userData.username || 'no-name'}
             />
           }
         </div>

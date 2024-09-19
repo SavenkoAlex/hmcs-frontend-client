@@ -37,7 +37,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     handler, 
     emitter,
     options
-  }: WebRTCHandlerConstructor) {
+  }: Required<WebRTCHandlerConstructor>) {
     super({plugin, handler, emitter})
     this.roomNumber = null
     this.options = options
@@ -45,8 +45,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   }
 
   // Static constructor
-  static async init (plugin: typeof Janus, pluginName: JanusPlugin, options: Required<HandlerDescription>) {
-    const result = await super.init(plugin, pluginName)
+  static async init (plugin: typeof Janus, pluginName: JanusPlugin, options: HandlerDescription) {
+    const result = await super.init(plugin, pluginName, options)
     if (!result) {
       return null
     }
@@ -88,6 +88,11 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
 
     this.emitter.on('event', (event) => {
       this.emitter.emit('event', event)
+    })
+
+    this.emitter.on('destroyed', (event) => {
+      console.log('DESTROYED')
+      this.emitter.emit('destroyed', event) 
     })
 
   }

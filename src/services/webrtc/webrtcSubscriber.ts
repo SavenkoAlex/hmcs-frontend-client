@@ -158,8 +158,8 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
         error: err => reject(null)
       })
     })
-      */
     return Promise.resolve(null)
+      */
     
   }
 

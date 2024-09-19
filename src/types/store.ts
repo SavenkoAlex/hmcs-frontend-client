@@ -1,4 +1,4 @@
-import { Maybe } from '@/types/global'
+import { Maybe, MediaDevice } from '@/types/global'
 
 export const isAuthentificated: string = import.meta.env.IS_AUTHENTIFICATED as string || 'isa'
 export const userData: string = import.meta.env.USER_DATA || 'usa'
@@ -15,7 +15,8 @@ export interface UserState {
 
 export interface AppState {
   webrtcSessionId: Maybe<string | number>
-  chatSessionId: Maybe<string | number>
+  chatSessionId: Maybe<string | number>,
+  devices: Record<string, MediaDevice>
 }
 
 export const enum States {

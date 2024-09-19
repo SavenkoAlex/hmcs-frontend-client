@@ -43,10 +43,13 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
           },
           ondataopen: (label: unknown, protocol: unknown) => {
             console.log('data channel is ready ', label, protocol)
-          }
+          },
         })
       },
-      error: (err) => console.error(err)
+      error: (err) => console.error(err),
+      destroyed: () => {
+        emitter.emit('destroyed')
+      }
     })
 
   })

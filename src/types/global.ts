@@ -1,5 +1,6 @@
 import eventEmitter from 'events'
 import Janus, { JanusJS } from 'janus-gateway'
+import { InjectionKey } from 'vue'
 
 export type Room = {       
   room : number
@@ -194,4 +195,7 @@ export type WebRTCHandlerConstructor = {
   options?: HandlerDescription
 }
 
-
+/** plugin handlers */
+export const supKey = Symbol('subscriberHandler') as InjectionKey<string>
+export const pubKey = Symbol('publisherHandler') as InjectionKey<string>
+export const chatKey = Symbol('chatHandler') as InjectionKey<string>

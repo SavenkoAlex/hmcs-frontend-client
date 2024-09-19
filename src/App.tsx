@@ -3,7 +3,6 @@ import {
   VNode,
   ref,
   provide,
-  Ref
 } from 'vue'
 
 /** components */
@@ -27,11 +26,11 @@ import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import Janus from 'janus-gateway'
 
 /** types */
-import { JanusPlugin, UserRole } from '@/types/global'
-import { mapGetters } from 'vuex'
+import { JanusPlugin, UserRole, supKey, pubKey, chatKey } from '@/types/global'
+import { mapGetters, mapActions } from 'vuex'
 
 /** store */
-import { isAuthentificated, States } from '@/types/store'
+import { States } from '@/types/store'
 
 export default defineComponent({
 
@@ -47,10 +46,10 @@ export default defineComponent({
     const subscriberHandler = ref <SubscriberStreamHandler | null> (null)
     const publisherHandler = ref <PublisherStreamHandler | null> (null)
     const chatHandler = ref <ChatHandler | null> (null)
-
-    provide<typeof subscriberHandler> ('subscriberHandler', subscriberHandler)
-    provide<typeof publisherHandler> ('publisherHandler', publisherHandler)
-    provide<typeof chatHandler> ('chatHandler', chatHandler)
+    
+    provide<typeof subscriberHandler> (supKey, subscriberHandler)
+    provide<typeof publisherHandler> (pubKey, publisherHandler)
+    provide<typeof chatHandler> (chatKey, chatHandler)
 
     return {
       chatHandler,
@@ -60,7 +59,8 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters(States.USER, [ 'userRole', 'isAuthentificated', 'userData'])
+    ...mapGetters(States.USER, [ 'userRole', 'isAuthentificated', 'userData']),
+    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId'])
   },
 
   watch: {
@@ -86,11 +86,13 @@ export default defineComponent({
   },
   
   methods: {
+    ...mapActions(States.APP, ['setWebrtcSessionId', 'setChatSessionId']),
 
     initSubscriber () {
       SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
         if (result) {
           this.subscriberHandler = result
+          this.setWebrtcSessionId(result.handler.getId())
         }
       })
 
@@ -99,7 +101,10 @@ export default defineComponent({
       }
 
       ChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN).then(result => {
-        this.chatHandler = result
+        if (result) {
+          this.chatHandler = result
+          this.setChatSessionId(result.handler.getId())
+        }
       })
     },
 
@@ -109,8 +114,8 @@ export default defineComponent({
       }
 
       PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
-        streamId: this.userData,
-        displayName: this.userData
+        streamId: this.userData.streamId,
+        displayName: this.userData.username
       })
     },
 

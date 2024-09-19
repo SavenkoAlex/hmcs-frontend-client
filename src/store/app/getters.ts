@@ -6,5 +6,8 @@ export const getters = {
   },
   chatSessionID: function (state: AppState) {
     return state.chatSessionId
+  },
+  devices: function (state: AppState) {
+    return state.devices
   }
 }

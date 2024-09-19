@@ -10,7 +10,8 @@ export const app: Module <AppState, State> = {
   namespaced: true,
   state: {
     webrtcSessionId: <string | number> encryptStorage.getItem(webrtcSessionId) || null,
-    chatSessionId: <string | number> encryptStorage.getItem(chatSessionId) || null
+    chatSessionId: <string | number> encryptStorage.getItem(chatSessionId) || null,
+    devices: {}
   },
   getters,
   actions,
