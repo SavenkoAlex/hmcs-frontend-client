@@ -9,5 +9,9 @@ export const actions = {
 
   setWebrtcSessionId(context: AppActionContext, payload: Maybe <string | number>) {
     context.commit(AppMutationTypes.SET_WEBRTCSESSION_ID, payload)
+  },
+
+  setChatSessionId(context: AppActionContext, payload: Maybe <string | number>) {
+    context.commit(AppMutationTypes.SET_CHATSESSION_ID, payload)
   }
 }

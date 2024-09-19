@@ -4,6 +4,7 @@ export const isAuthentificated: string = import.meta.env.IS_AUTHENTIFICATED as s
 export const userData: string = import.meta.env.USER_DATA || 'usa'
 export const amount: string = import.meta.env.AMOUNT || 'ama'
 export const webrtcSessionId = import.meta.env.WEBRTC_SESSION_ID || 'vs'
+export const chatSessionId = import.meta.env.CHAT_SESSION_ID || 'sch'
 
 export interface UserState {
   accessToken: Maybe<string>,
@@ -14,6 +15,7 @@ export interface UserState {
 
 export interface AppState {
   webrtcSessionId: Maybe<string | number>
+  chatSessionId: Maybe<string | number>
 }
 
 export const enum States {

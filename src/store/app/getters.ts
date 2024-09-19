@@ -1,7 +1,10 @@
 import { AppState } from '@/types/store'
 
 export const getters = {
-  devices: function (state: AppState) {
+  webrtcSessionId: function (state: AppState) {
     return state.webrtcSessionId
+  },
+  chatSessionID: function (state: AppState) {
+    return state.chatSessionId
   }
 }
