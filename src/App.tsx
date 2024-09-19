@@ -24,7 +24,7 @@ import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 /** chat handler */
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
-import Janus, { JanusJS } from 'janus-gateway'
+import Janus from 'janus-gateway'
 
 /** types */
 import { JanusPlugin, UserRole } from '@/types/global'

@@ -24,10 +24,6 @@ export const userRoleAuth: NavigationGuardWithThis <unknown> = (to, from) => {
     return false
   }
 
-  if (!user) {
-    return false
-  }
-
   const role: Maybe<UserRole> = user?.type
   
   if (!role || !userRoles.includes(role) ) {
