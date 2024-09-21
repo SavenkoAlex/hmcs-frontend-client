@@ -116,6 +116,16 @@ export default defineComponent({
       PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
         streamId: this.userData.streamId,
         displayName: this.userData.username
+      }).then(result => {
+        this.publisherHandler = result
+        this.setWebrtcSessionId(result?.handler.getId())
+      })
+
+      ChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN).then(result => {
+        if (result) {
+          this.chatHandler = result
+          this.setChatSessionId(result.handler.getId())
+        }
       })
     },
 

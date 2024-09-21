@@ -4,7 +4,7 @@ export const getters = {
   webrtcSessionId: function (state: AppState) {
     return state.webrtcSessionId
   },
-  chatSessionID: function (state: AppState) {
+  chatSessionId: function (state: AppState) {
     return state.chatSessionId
   },
   devices: function (state: AppState) {

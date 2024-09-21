@@ -147,7 +147,7 @@ export default defineComponent({
     },
 
     async initPublisherBroadcast () {
-      if (!this.chatHandler || !this.getUser?.streamId || !this.getUser?.username) {
+      if (!this.chatHandler || !this.userData?.streamId || !this.userData?.username) {
         return false
       } 
 
@@ -192,9 +192,9 @@ export default defineComponent({
       console.warn('error handlelr ', error)
     },
 
-    handleData (data: string): void {
+    handleData (data: JanusTextMessage): void {
       try {
-        const dataParsed: JanusTextMessage = JSON.parse(data)
+        const dataParsed: JanusTextMessage = data
 
         if ('exists' in dataParsed) {
           this.isRoomExists = !!dataParsed.exists
@@ -210,6 +210,7 @@ export default defineComponent({
         }
       } catch (err) {
         console.error(err)
+        return
       }
     },
 
@@ -227,7 +228,7 @@ export default defineComponent({
 
     /** returns user attribute to identificate and highlight user message */
     getUserAttr (sender: string) {
-      return this.getUser?.username === sender ? 'me' : 'guest'
+      return this.userData?.username === sender ? 'me' : 'guest'
     },
 
     getMessageTime (date: string) {
