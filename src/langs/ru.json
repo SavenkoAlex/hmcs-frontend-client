@@ -66,6 +66,9 @@
       "selectDevices": "Выберите устройства",
       "cameras": "Камеры",
       "mics": "Микрофоны"
+    },
+    "chat": {
+      "defaultChatName": "общий чат с"
     }
   }
 }

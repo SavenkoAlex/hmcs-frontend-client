@@ -106,7 +106,7 @@ export const setLocalStorageUser = (user: User) => {
   
   for (const property in user) {
     const userKey: keyof User = property as keyof User
-    const value = user[userKey]
+    const value = user[userKey] ? String(user[userKey]) : null
     const storageKey =  storeUserKeyMap[userKey]
 
     if (!storageKey || !value) {
@@ -131,4 +131,15 @@ export const isAuthentificated = () => {
   const user = globalThis.localStorage.getItem(storeUserKeyMap.id)
 
   return secret && accessToken && user
+}
+
+/**
+ * adds zeros as a filler (mask)
+ * @param value 
+ * @returns 
+ */
+export function formatTime (value: number) {
+  return value < 10
+    ? 0 + value
+    : String(value) 
 }

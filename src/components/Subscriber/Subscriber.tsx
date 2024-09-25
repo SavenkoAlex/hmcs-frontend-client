@@ -44,9 +44,7 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters('user', {
-      userData: 'getUserData'
-    }),
+    ...mapGetters('user', ['userData']),
 
     publisherId () {
       const publisherId: string | undefined = Array.isArray(this.$route.params?.id) 
@@ -176,6 +174,7 @@ export default defineComponent({
         chat: () => <div class='subscriber__content'>
           <Chat
             chatName={this.userData.username}
+            room={this.publisher?.streamId || 0}
           />
         </div>
       }}

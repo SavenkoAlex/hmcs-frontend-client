@@ -9,8 +9,6 @@ import {
   HandlerDescription,
   WebRTCHandlerConstructor 
 } from '@/types/global'
-import { fa } from 'element-plus/es/locale'
-import { resolveBaseUrl } from 'vite'
 
 /** message type */
 export const enum MessageType {
@@ -148,9 +146,14 @@ export class ChatHandler extends StreamHandler {
         this.emitter.emit('handlererror', data)
         return
       }
-
+      /** data recieved */
       this.emitter.emit('handlerdata', data)
-    }) 
+    }),
+    
+    /** data channel openned */
+    this.emitter.on('dataopen', (label) => {
+      this.emitter.emit('dataisopen', label)
+    })
   }
 
   /** register an user in chat */
@@ -194,13 +197,13 @@ export class ChatHandler extends StreamHandler {
       }
 
       const message = {
-        textroom: 'create',
+        request: 'create',
         room: streamId,
         transaction: this.transaction 
       }
 
-      this.handler.data({ 
-        text: JSON.stringify(message),
+      this.handler.send({ 
+        message,
         error: (err) => { console.error(err); resolve(false) },
         success: (data) => { console.log('success ', data); resolve(true)}
       })
@@ -222,8 +225,17 @@ export class ChatHandler extends StreamHandler {
         text
       }
 
+      let stringified 
+      try {
+        stringified = JSON.stringify(message) 
+      } catch (err) {
+        console.error(err)
+        Promise.resolve(false)
+        return
+      }
+
       this.handler.data({
-        text: JSON.stringify(message),
+        text: stringified,
         success: () => resolve(true),
         error: (err) => { console.error(err); resolve(false) }
       })
@@ -313,15 +325,15 @@ export class ChatHandler extends StreamHandler {
       }
 
       const message = {
-        textroom: 'exists',
+        request: 'exists',
         room: streamId,
         transaction: this.transaction
       }
 
-      this.handler.data({
-        text: JSON.stringify(message),
-        success: (_data) => resolve(true),
-        error: (err) => { console.error(err); resolve(false) }
+      this.handler.send({
+        message,
+        success: (data) => resolve(!!(data as {exists: boolean})?.exists),
+        error: (err) => resolve(false)
       })
     })
   }
