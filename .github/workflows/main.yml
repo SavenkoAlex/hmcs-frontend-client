@@ -63,5 +63,5 @@ jobs:
           key: ${{ secrets.PROXY_KEY }}
           port: ${{ secrets.PROXY_PORT }}
           passphrase: ${{ secrets.PROXY_PASSPHRASE }}
-          source: dist/*
+          source: "${{ env.ARTIFACT_PATH }}.tar.gz"
           target: /var/www/html/trft
