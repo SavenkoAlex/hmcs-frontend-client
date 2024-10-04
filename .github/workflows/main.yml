@@ -7,6 +7,10 @@ on:
     branches:
       - main
 
+env:
+  BUILD_ARTIFACT: 'build-artifact'
+  ARTIFACT_PATH: 'dist'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,6 +27,13 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run build --if-present
+    - run: tar -cvf "${{ env.ARTIFACT_PATH }}.tar.gz" ${{env.ARTIFACT_PATH }}
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.BUILD_ARTIFACT }}
+        path: "${{ env.ARTIFACT_PATH }}.tar.gz"
     
   semantic:
     runs-on: ubuntu-latest
@@ -31,10 +42,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Download a single artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.BUILD_ARTIFACT }}
+          path: "${{ env.ARTIFACT_PATH }}.tar.gz"
+      - run: ls -1lr
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
         with: 
           semantic_version: 
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: copy file to server

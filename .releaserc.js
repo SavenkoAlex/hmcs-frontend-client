@@ -1,3 +1,4 @@
+
 module.exports = {
   private: true,
   branches: ['main'],
@@ -5,19 +6,14 @@ module.exports = {
     '@semantic-release/commit-analyzer', 
     '@semantic-release/release-notes-generator', 
     '@semantic-release/changelog',
-    '@semantic-release/github',
-  ],
-  release: {
-    prepare: [
-      '@semantic-release/changelog',
+    [
+      '@semantic-release/github',
       {
-        "path": "@semantic-release/github",
-        "assets": [
-          { path: 'dist/assets/dist', label: 'frontend build' },
-          "CHANGELOG.md"
+        assets: [
+          'CHANGELOG.md',
+          `${process.env.ARTIFACT_PATH}.tar.gz`
         ],
-        message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
       }
     ]
-  }
+  ]
 }
