@@ -35,6 +35,15 @@ jobs:
         uses: cycjimmy/semantic-release-action@v4
         with: 
           semantic_version: 
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: copy file to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROXY_HOST }}
+          username: ${{ secrets.PROXY_USERNAME }}
+          key: ${{ secrets.PROXY_KEY }}
+          port: ${{ secrets.PROXY_PORT }}
+          passphrase: ${{ secrets.PROXY_PASSPHRASE }}
+          source: dist/*
+          target: /var/www/html/trft
