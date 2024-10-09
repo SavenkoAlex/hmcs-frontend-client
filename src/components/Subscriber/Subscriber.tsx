@@ -4,13 +4,15 @@ import {
   TransitionGroup,
   Transition,
   VNode,
+  inject
 } from 'vue'
 
 /** store */
 import { mapGetters } from 'vuex'
 
-import Janus, { JanusJS } from 'janus-gateway'
+import Janus from 'janus-gateway'
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 /** style */
 import '@/components/Subscriber/Subscriber.scss'
@@ -25,7 +27,7 @@ import userApi from '@/api/user'
 
 /** types */
 import { Data } from '@/components/Subscriber/types'
-import { StreamRole } from '@/types/global'
+import { StreamRole, supKey, chatKey } from '@/types/global'
 
 /** layouts */
 import RoomLayout from '@/layouts/Room/Room'
@@ -42,9 +44,7 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters('user', {
-      getUser: 'getUserData'
-    }),
+    ...mapGetters('user', ['userData']),
 
     publisherId () {
       const publisherId: string | undefined = Array.isArray(this.$route.params?.id) 
@@ -69,8 +69,8 @@ export default defineComponent({
     }
     const subscriberName = ref <string>('sasha the programmer')
     const mountPoint = ref <number> ()
-    const videoPluginHandler = ref <SubscriberStreamHandler | null> (null)
-    const chatPluginHandler = ref <SubscriberStreamHandler | null> (null)
+    const subscriberHandler = inject <SubscriberStreamHandler | null> (supKey, null)
+    const chatPluginHandler = inject <ChatHandler | null> (chatKey, null)
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
 
@@ -78,12 +78,12 @@ export default defineComponent({
       remoteStream,
       remoteVideoNode,
       constraints,
-      videoPluginHandler,
       chatPluginHandler,
       videoTrack,
       audioTrack,
       mountPoint,
-      subscriberName
+      subscriberName,
+      subscriberHandler
     }
   },
 
@@ -95,7 +95,6 @@ export default defineComponent({
   },
 
   methods: {
-
     /** get data according to publisher */
     async getUserData () {
       if (!this.publisherId) {
@@ -117,24 +116,6 @@ export default defineComponent({
       const video = event.target as HTMLVideoElement
       video.play()
     },
-
-    /** initiate webrtc video handler */
-    async initVideoRoomHandler () {
-      const handler = await SubscriberStreamHandler.init(Janus, { 
-        streamId: this.mountPoint, 
-        displayName: this.subscriberName  
-      })
-
-      handler?.emitter.on('track', description => {
-        this.onremotetrack(description)
-      })
-
-      this.videoPluginHandler = handler
-
-      return await handler?.join()
-    }
-
-
   },
 
   async mounted () {
@@ -156,12 +137,10 @@ export default defineComponent({
     if (!this.mountPoint) {
       return
     }
-    // TODO: is publiisher online ? init all Handlers
-    this.initVideoRoomHandler()
   },
 
   unmounted () {
-    this.videoPluginHandler?.handler.detach()
+    this.subscriberHandler?.handler.detach()
     this.chatPluginHandler?.handler.detach()
   },
 
@@ -187,13 +166,16 @@ export default defineComponent({
         </div>,
         controls: () => <div class='subscriber__stream-controls'>
           <StateBar
-            userRole={this.getUser?.role || StreamRole.OBSERVER}
+            userRole={this.userData.role || StreamRole.OBSERVER}
             amount={this.publisherAccount?.amount}
           />
         </div>,
 
         chat: () => <div class='subscriber__content'>
-          <Chat/>
+          <Chat
+            chatName={this.userData.username}
+            room={this.publisher?.streamId || 0}
+          />
         </div>
       }}
       </RoomLayout>

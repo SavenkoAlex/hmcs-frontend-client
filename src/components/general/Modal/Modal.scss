@@ -5,8 +5,9 @@
       min-height: 20%;
       max-height: 70%;
       position: absolute;
-      top: calc(100vh - 65%);
-      left: 4px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       width: calc(100% - 8px);
       padding: 12px;
       background-color: $primary-3;
@@ -75,7 +76,7 @@
 
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.5s ease;
+  transition: opacity 0.3s ease;
 }
 
 .modal-enter-from,

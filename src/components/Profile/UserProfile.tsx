@@ -8,6 +8,7 @@ import {
 import { User } from '@/types/global'
 import { UserDataProfile } from '@/components/Profile/types'
 import { States } from '@/types/store'
+
 /** api */
 import userApi from '@/api/user'
 
@@ -27,11 +28,15 @@ import '@/components/Profile/Profile.scss'
 
 /** vuex */
 import {mapActions } from 'vuex'
-import { isAuthentificated } from '@/helpers/helper'
+
+/* mixins */
+import { userMixin } from '@/components/mixins/User'
 
 export default defineComponent({
 
   name: 'UserProfile',
+
+  extends: userMixin,
 
   components: {
     TextButton,
@@ -82,13 +87,6 @@ export default defineComponent({
         console.error(err)
         return null
       }
-    },
-
-    logout () {
-      this.setUser(null)
-      this.setUserProperty({isAuthentificated: false})
-
-      this.$router.push('/')
     }
   },
 
@@ -143,7 +141,6 @@ export default defineComponent({
             footer: () => <div class='user-profile__form_footer'>
               <TextButton
                 text={this.$t('common.save')}
-                onClick={() => console.log('save')}
               />
             </div>
           }}

@@ -3,14 +3,14 @@ import {
   VNode,
   PropType,
   ref,
-  Transition
+  Transition,
+  inject
 } from 'vue'
 
 /** types */
 import { Chat, Data } from '@/components/Chat/types'
-import { ElementScale, JanusPlugin, UserRole, User } from '@/types/global'
+import { ElementScale, UserRole, chatKey } from '@/types/global'
 import { JanusTextMessage } from '@/services/webrtc/webrtcDataExchange'
-import Janus from 'janus-gateway'
 
 /** styles */
 import '@/components/Chat/Chat.scss'
@@ -22,12 +22,13 @@ import IconButton from '@/components/general/Buttons/IconButton/IconButton'
 import Send from '@/assets/images/send_32.svg'
 
 /** services */
-import { PublisherChatHandler } from '@/services/webrtc/webrtcDataExchange'
+import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 /** store */
 import { mapGetters } from 'vuex'
-import { el } from 'element-plus/es/locale'
-import { format } from 'crypto-js'
+
+/** helpers */
+import { formatTime } from '@/helpers/helper'
 
 export default defineComponent({
 
@@ -51,18 +52,10 @@ export default defineComponent({
       type: String as PropType <string>,
       required: true
     },
-    
-    /** user role to identificate chat permissions */
-    userRole: {
-      type: String as PropType<UserRole>,
-      default: UserRole.ANONYMOUS
-    }
   },
 
   computed: {
-    ...mapGetters('user', {
-      getUser: 'getUserData'
-    }),
+    ...mapGetters('user', ['userData', 'userRole']),
   },
 
   watch: {
@@ -73,23 +66,29 @@ export default defineComponent({
       }
 
       if (this.chatHandler) {
-        this.chatHandler.destroyHandler()
+        this.chatHandler.destroyHandler(this.room)
       }
     },
 
+    chatHandler (newValue) {
+      if (newValue) {
+        this.initChat ()
+      }
+    }
   },
 
   setup () {
-    const chatHandler = ref <PublisherChatHandler | null> (null)
+    const chatHandler = inject <ChatHandler | null> (chatKey, null)
     const currentChat = ref <string> ()
     const chatLinks = ref <Record<string, Chat>>({})
     const isRoomAvailable = ref <boolean> (false)
     const isRoomExists = ref <boolean> (false)
     const inputMessage = ref <string> ('')
     const chatMessages = ref<HTMLBaseElement>()
+
     return {
-      currentChat,
       chatHandler,
+      currentChat,
       chatLinks,
       isRoomAvailable,
       isRoomExists,
@@ -103,6 +102,7 @@ export default defineComponent({
       observer: null 
     }
   },
+
   methods: {
     
     addMessage () {
@@ -113,92 +113,22 @@ export default defineComponent({
       this.inputMessage = ''
     },
 
-    async initChatHandler (): Promise <boolean> {
-
-      const streamId = this.room
-      const displayName = this.chatName
-
-      if (!streamId || ! displayName) {
-        return false
-      }
-
-      return PublisherChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN, {
-        streamId,
-        displayName
-      }).then(handler => {
-        if (!handler) {
-          this.chatHandler = null
-          return false
-        }
-
-        this.chatHandler = handler
-        return true
-      }).then(() => {
-        if (!this.chatHandler) {
-          this.chatHandler = null
-          return false
-        }
-        return true
-      }).catch(err => {
-        console.error(err)
-        this.chatHandler = null
-        return false
-      })
-    },
-
-    async initPublisherBroadcast () {
-      if (!this.chatHandler || !this.getUser?.streamId || !this.getUser?.username) {
-        return false
-      } 
-
-      await this.chatHandler.exists()
-
-      if (this.isRoomExists) {
-        this.isRoomAvailable = await this.chatHandler.register()
-      }
-
-      this.isRoomExists = await this.chatHandler.createRoom()
-      if (this.isRoomExists) {
-        this.isRoomAvailable = await this.chatHandler.register()
-      }
-    },
-
-    async join () {
-      if (!this.chatHandler) {
-        return
-      }
-
-      return await this.chatHandler.register()
-    },
-
     async sendMessage (text: string) {
       if (!this.chatHandler) {
         return false
       }
 
-      return await this.chatHandler.sendMessage(text)
-    },
-
-    async getRooms () {
-      if (!this.chatHandler) {
-        return
-      }
-
-      const result = await this.chatHandler.getRooms()
-      return
+      const result = await this.chatHandler.sendMessage(text, this.room)
+      return result
     },
 
     handleError (error: unknown): void {
-      console.warn('error handlelr ', error)
+      console.error('error handlelr ', error)
     },
 
     handleData (data: string): void {
       try {
         const dataParsed: JanusTextMessage = JSON.parse(data)
-
-        if ('exists' in dataParsed) {
-          this.isRoomExists = !!dataParsed.exists
-        }
 
         if (dataParsed.textroom === 'message' && this.currentChat) {
           this.chatLinks[this.currentChat].messages.push({
@@ -210,7 +140,13 @@ export default defineComponent({
         }
       } catch (err) {
         console.error(err)
+        return
       }
+    },
+
+    ondataopen(label: string) {
+      this.isRoomExists = true
+      this.isRoomAvailable = this.userRole !== UserRole.ANONYMOUS
     },
 
     /** scroll down chat messages */
@@ -227,7 +163,7 @@ export default defineComponent({
 
     /** returns user attribute to identificate and highlight user message */
     getUserAttr (sender: string) {
-      return this.getUser?.username === sender ? 'me' : 'guest'
+      return this.userData?.username === sender ? 'me' : 'guest'
     },
 
     getMessageTime (date: string) {
@@ -237,40 +173,85 @@ export default defineComponent({
         return ''
       }
 
-      const hours = this.formatTime(dateInstance.getHours())
-      const minutes = this.formatTime(dateInstance.getMinutes())
-      const seconds = this.formatTime(dateInstance.getSeconds())
-
+      const hours = formatTime(dateInstance.getHours())
+      const minutes = formatTime(dateInstance.getMinutes())
+      const seconds = formatTime(dateInstance.getSeconds())
       return `${hours}.${minutes}.${seconds}`
     },
 
-    formatTime (value: number) {
-      return value < 10
-        ? 0 + value
-        : String(value) 
+    async joinAsPublisher () {
+      if (!this.chatHandler || !this.userData?.streamId || !this.userData?.username) {
+        return false
+      } 
+
+      this.isRoomExists = await this.chatHandler.createRoom(this.room)
+      if (this.isRoomExists) {
+        this.isRoomAvailable = await this.chatHandler.register(this.chatName, this.room)
+      }
+    },
+
+    async join () {
+      if (!this.chatHandler) {
+        return
+      }
+      /**
+       * depends on user role we have to create or join existing room
+       */
+      const exists = await this.chatHandler?.exists(this.room)
+
+      if (exists && this.userRole === UserRole.USER) {
+        this.joinAsSubscriber()
+        return 
+      } else if (!exists && UserRole.WORKER) {
+        this.joinAsPublisher()
+        return
+      }
+
+      this.isRoomExists = exists
+      if (this.userRole !== UserRole.ANONYMOUS) {
+        this.isRoomAvailable = await this.chatHandler.register(this.chatName, this.room)
+        return
+      }
+      this.isRoomAvailable = false
+    },
+
+    async joinAsSubscriber() {
+      if (!this.chatHandler) {
+        this.isRoomAvailable = false
+        return
+      }
+
+      const result = await this.chatHandler.register(this.chatName, this.room)
+
+      if (!result) {
+        this.isRoomAvailable = false
+      }
+    },
+    
+    async initChat () {
+      if (!this.chatHandler) {
+        return
+      }
+
+      this.chatHandler?.emitter.on('pluginerror', this.handleError)
+      this.chatHandler?.emitter.on('handlererror', this.handleError)
+      this.chatHandler?.emitter.on('handlerdata', this.handleData)
+      this.chatHandler?.emitter.on('plugindata', this.handleData)
+      this.chatHandler?.emitter.on('dataisopen', this.ondataopen)
+      this.join()
     }
   },
 
-  async mounted() {
-    this.currentChat = `${this.chatName}-share`
+  
+  mounted() {
+
+    this.currentChat = `${this.$t('components.chat.defaultChatName')} ${this.chatName}`
 
     this.chatLinks[this.currentChat] = {
       id: `${this.currentChat}`,
       name: `${this.currentChat}`,
       messages: []
     }
-
-    await this.initChatHandler()
-
-    if (!this.chatHandler) {
-      return
-    }
-
-    this.chatHandler?.emitter.on('connected', this.initPublisherBroadcast)
-    this.chatHandler?.emitter.on('pluginerror', this.handleError)
-    this.chatHandler?.emitter.on('handlererror', this.handleError)
-    this.chatHandler?.emitter.on('handlerdata', this.handleData)
-    this.chatHandler?.emitter.on('plugindata', this.handleData)
 
     // we need observer to scroll added messages to bottom 
     this.observer = new MutationObserver(this.observeChat)
@@ -280,12 +261,8 @@ export default defineComponent({
         childList: true
       })
     }
-  },
 
-  unmounted () {
-    if (this.chatHandler) {
-      this.chatHandler?.destroyHandler()
-    }
+    this.initChat()
   },
 
   render (): VNode {
@@ -320,7 +297,7 @@ export default defineComponent({
                   />
                 </div>
                 <div class='chat__message_text'>
-                  <p> { message.text } </p>
+                  <p class='chat__message_paragraph'> { message.text || ''} </p>
                 </div>
                 <div class='chat__message_time'>
                   <Label
