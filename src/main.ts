@@ -6,8 +6,8 @@ import { store } from '@/store'
 import { createI18n } from 'vue-i18n'
 import ruLocale from '@/langs/ru.json'
 import enLocale from '@/langs/en.json'
-
-
+import Toast, { PluginOptions, POSITION } from 'vue-toastification'
+import 'vue-toastification/dist/index.css'
 
 const i18n = createI18n({
   locale: 'ru-RU',
@@ -17,9 +17,15 @@ const i18n = createI18n({
   },
   fallbackLocale: 'en-US'
 })
+const toastOptions:PluginOptions = {
+  position: POSITION.BOTTOM_CENTER,
+  closeOnClick: true,
+  hideProgressBar: true
+}
 
-const app = createApp(App)
+createApp(App)
   // .use(store, keyMain, keyDevices)
+  .use(Toast, toastOptions)
   .use(router)
   .use(vueCookies)
   .use(i18n)
