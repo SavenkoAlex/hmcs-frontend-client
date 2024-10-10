@@ -1,6 +1,6 @@
 import {
   defineComponent,
-  VNode
+  VNode,
 } from 'vue'
 
 /** style */
@@ -11,8 +11,8 @@ export default defineComponent({
   name: 'Loader',
 
   render(): VNode {
-    return <div class='background'>
-      <div class='loader'></div>
+    return <div class='loader'>
+      <div class='loader__spinner'></div>
     </div>
   }
 })
