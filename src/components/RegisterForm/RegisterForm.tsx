@@ -19,6 +19,7 @@ import { emptyfieldValidation } from '@/helpers/helper'
 /** types */
 import { SidePosition, UserRole } from '@/types/global'
 import { register } from '@/api/login'
+import { useToast } from 'vue-toastification'
 
 /** toast */
 
@@ -37,6 +38,14 @@ export default defineComponent({
   computed: {
     isPasswordMatch () {
       return (this.password === this.passwordCheck) && this.password.length !== 0 && this.passwordCheck.length !== 0
+    }
+  },
+
+  setup () {
+    const toast = useToast()
+
+    return {
+      toast
     }
   },
 
@@ -68,8 +77,7 @@ export default defineComponent({
       this.isLoading = false
       
       if (!result) {
-        this.$toast.error(this.$t('pages.registerForm.errors.register'))
-        console.log('!!1')
+        this.toast.error(this.$t('pages.registerForm.errors.register'))
         return
       }
 
