@@ -78,8 +78,7 @@ export default defineComponent({
 
     const users  = await userApi.getUsers()
     if (users && users.length > 0) {
-      // this.users = users
-      return []
+      this.users = users
     }
   },
 

@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
 /dist
+/certs
 
 
 # local env files
@@ -21,8 +22,4 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
-certs/cert.pem
 .gitignore
-certs/key.pem
-certs/taro.cert
-certs/taro.key
