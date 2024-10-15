@@ -47,7 +47,7 @@ export default defineComponent({
   props: {
     /** logged user role */
     userRole: {
-      type: String as PropType <UserRole>,
+      type: String as unknown as PropType <UserRole>,
       required: true,
     },
     /** do we have a stream */

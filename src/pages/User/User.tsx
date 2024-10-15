@@ -45,6 +45,10 @@ export default defineComponent({
     async getUser() {}
   },
 
+  created() {
+    console.log('created')
+  },
+
   render (): VNode {
     return <div class='user-profile__container'>
       { 

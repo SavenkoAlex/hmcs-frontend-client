@@ -1,0 +1,27 @@
+.link {
+
+  &_small {
+    a {
+      @include link($primary-5, 16px);
+    }
+  }
+
+  &_medium{
+    a {
+      @include link($primary-5, 20px);
+      &:active {
+        animation: bg 1s ease;
+        animation-fill-mode: forwards;
+      }
+    }
+  }
+}
+
+@keyframes bg {
+  from {
+    color: $primary-5;
+  } 
+  to {
+    color: $primary-7;
+  }
+}

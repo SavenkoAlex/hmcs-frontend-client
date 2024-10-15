@@ -3,11 +3,13 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    row-gap: .5rem;
+    gap: .1rem;
 
     &__media {
       width: 100%;
       height: fit-content;
+      display: inline-flex;
+      flex: 0 1 auto
     }
 
     &__controls {

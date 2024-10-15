@@ -30,8 +30,8 @@ export default defineConfig({
   },
   server: process.env.NODE_ENV === 'production' ? {} : {
     https: {
-      key: fs.readFileSync(path.resolve(__dirname, 'certs/taro.key')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'certs/taro.cert'))
+      key: fs.readFileSync(path.resolve(__dirname, 'certs/taro.com.key')),
+      cert: fs.readFileSync(path.resolve(__dirname, 'certs/taro.com.crt'))
     },
     cors: {
       origin: false

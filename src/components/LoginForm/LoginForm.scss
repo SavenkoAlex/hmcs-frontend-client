@@ -12,6 +12,12 @@
     padding: .5rem 1rem;
   }
 
+  &__header {
+    display: flex;
+    gap: 1rem;flex-direction: column;
+    justify-content: center;
+  }
+
   &__body {
     width: 100%;
     display: inline-flex;

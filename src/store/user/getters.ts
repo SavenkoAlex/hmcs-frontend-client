@@ -11,7 +11,7 @@ export const getters = {
     }
     try {
       const parsed: User = JSON.parse(userData)
-      const role = parsed?.type || UserRole.ANONYMOUS
+      const role = parsed?.role || UserRole.ANONYMOUS
       return role as UserRole
     } catch (err) {
       console.error(err)
@@ -26,7 +26,7 @@ export const getters = {
   userId: function (state: UserState): string | null {
     const userData = state.userData
     if (!userData) {
-      return UserRole.ANONYMOUS
+      return null
     }
 
     try {
