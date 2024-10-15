@@ -12,6 +12,11 @@
       margin: 0 2px;
       background-color: $primary-3;
 
+      @media screen and (max-height: 667px) {
+        padding: .5rem .5rem;
+        column-gap: .5rem;
+      }
+
       &__live {
         position: absolute;
         top: calc(8vh + 1rem);

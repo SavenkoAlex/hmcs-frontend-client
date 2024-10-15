@@ -74,26 +74,30 @@ export default defineComponent({
     }
   },
 
-
   async mounted () {
 
     const users  = await userApi.getUsers()
     if (users && users.length > 0) {
-      this.users = users
+      // this.users = users
+      return []
     }
   },
 
   render (): VNode {
     return <div class='streamer-list'>
       {
-        this.users.map(user => 
-          <div class='streamer-list__item'>
-            <StreamItem 
-              stream={user}
-              online={ !!(user?.streamId && user.streamId in this.rooms) }
-            />
-          </div>
-        )
+        this.users.length ?
+          this.users.map(user => 
+            <div class='streamer-list__item'>
+              <StreamItem 
+                stream={user}
+                online={ !!(user?.streamId && user.streamId in this.rooms) }
+              />
+            </div>
+          )
+        : <div class='streamer-list__empty'>
+          <p> { this.$t('components.streams.streamsListEmpty') } </p>
+        </div>
       }
     </div>
   }

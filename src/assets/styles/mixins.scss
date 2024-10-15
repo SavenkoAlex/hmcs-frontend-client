@@ -56,3 +56,15 @@
   width: 100%;
   height: auto;
 }
+
+@mixin link ($color, $size) {
+  text-decoration: none;
+  font-weight: 400;
+  font-style: inherit;  
+  font-display: fallback;
+  letter-spacing: -.25px;
+  line-height: 22.5px;
+  margin: 0;
+  color: $color;
+  font-size: $size;
+}

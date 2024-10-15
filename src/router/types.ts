@@ -2,7 +2,7 @@
 import { UserRole } from '@/types/global'
 
 /** base common resources */
-export type BaseRoutes = 'root' | 'auth' | 'not-found'
+export type BaseRoutes = 'root' | 'login' | 'registration' | 'not-found'
 /** authorized subscriber resources */
 export type UserRoutes = BaseRoutes | 'user' | 'publisher' | 'streams'
 /** allowed free subscriber resources */
@@ -18,9 +18,9 @@ export type AppRoutes = {
 
 /** routes per user role */
 export const userRoutes: AppRoutes = {
-  [UserRole.USER]: ['auth', 'not-found', 'root', 'publisher', 'streams', 'user'],
-  [UserRole.WORKER]: ['auth', 'not-found', 'root', 'stream', 'user'],
-  [UserRole.ANONYMOUS]: ['auth', 'not-found', 'root', 'streams', 'publisher']
+  [UserRole.USER]: ['login','registration', 'not-found', 'root', 'publisher', 'streams', 'user'],
+  [UserRole.WORKER]: ['login', 'registration', 'not-found', 'root', 'stream', 'user'],
+  [UserRole.ANONYMOUS]: ['login', 'registration', 'not-found', 'root', 'streams', 'publisher']
 }
 
 export type UserLinks = {
@@ -32,6 +32,6 @@ export type UserLinks = {
 /** user links displayed in the navigation  */
 export const userLinks: UserLinks = {
   [UserRole.USER]: ['streams', 'user'],
-  [UserRole.ANONYMOUS]: ['auth', 'streams'],
+  [UserRole.ANONYMOUS]: ['login', 'streams'],
   [UserRole.WORKER]: ['stream', 'user']
 }

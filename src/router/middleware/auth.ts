@@ -26,7 +26,7 @@ export const userRoleAuth: NavigationGuardWithThis <unknown> = (to, from) => {
 
   try {
     const parsed = JSON.parse(user)
-    const role: Maybe<UserRole> = parsed.type
+    const role: Maybe<UserRole> = parsed.role
     if (!role || !userRoles.includes(role) ) {
       return false
     }

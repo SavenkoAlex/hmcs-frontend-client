@@ -21,6 +21,8 @@ import '@/components/Subscriber/Subscriber.scss'
 import Chat from '@/components/Chat/Chat'
 import BaseVideo from '@/components/Video/Video'
 import StateBar from '@/components/StateBar/StateBar'
+import ImageMask from '@/components/general/ImageMask/ImageMask'
+import OfflineImg from '@/assets/images/offline.svg' 
 
 /** api */
 import userApi from '@/api/user'
@@ -40,7 +42,8 @@ export default defineComponent({
     Chat,
     BaseVideo,
     StateBar,
-    RoomLayout
+    RoomLayout,
+    ImageMask
   },
 
   computed: {
@@ -159,7 +162,10 @@ export default defineComponent({
               </TransitionGroup>
             : <Transition name='offline'>
                 <div class={'subscriber__publisher-avatar'}>
-                  <img src={`data:image/jpg;base64,${this.publisher?.avatar}`}/>
+                  <ImageMask
+                    image={`src/assets/images/smoke-bg.jpg`}
+                    text={'offline'}
+                  />
                 </div>
               </Transition>
           }

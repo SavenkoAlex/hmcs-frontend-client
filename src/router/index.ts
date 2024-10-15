@@ -2,16 +2,15 @@ import {
   createRouter,
   createWebHashHistory,
   RouteRecordRaw,
-  RouteLocationNormalized,
-  NavigationGuardNext
 } from 'vue-router'
 
 import StreamsList from '@/pages/Streams/StreamsList'
 import Stream from '@/pages/Publisher/Stream'
 import User from '@/pages/User/User'
-import Auth from '@/pages/Auth/Auth'
+import Login from '@/pages/Login/Login'
 import NotFound from '@/pages/NotFound/NotFound'
 import Subscriber from '@/pages/Subscriber/Subscriber'
+import Registeration from '@/pages/Registration/Registeration'
 import  { userRoleAuth } from '@/router/middleware/auth'
 
 const routes: RouteRecordRaw[] = []
@@ -29,6 +28,7 @@ const serverRoutes = [
     path: '/streams',
     component: StreamsList,
   }, 
+
   /** publisher stream */
   {
     name: 'stream',
@@ -52,10 +52,17 @@ const serverRoutes = [
   },
   {
     // LoginPage
-    name: 'auth',
-    path: '/auth',
-    component: Auth
+    name: 'login',
+    path: '/login',
+    component: Login
   },
+
+  {
+    name: 'registration',
+    path: '/registration',
+    component: Registeration
+  },
+  
   {
     // not found
     name: 'not-found',

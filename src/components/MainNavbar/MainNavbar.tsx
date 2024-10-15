@@ -81,7 +81,7 @@ export default defineComponent({
         this.links.map(item => {
         return <li>
           <div class='navbar__option_visible'>
-            <RouterLink to={item}> { this.$t(`routes.${item}`) } </RouterLink>
+            <RouterLink to={`/${item}`}> { this.$t(`routes.${item}`) } </RouterLink>
           </div>
           </li>
         })

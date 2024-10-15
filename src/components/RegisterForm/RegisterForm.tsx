@@ -81,7 +81,7 @@ export default defineComponent({
         return
       }
 
-      this.$router.push('auth')
+      this.$router.push('login')
     }
   },
 
