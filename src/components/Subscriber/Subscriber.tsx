@@ -22,7 +22,6 @@ import Chat from '@/components/Chat/Chat'
 import BaseVideo from '@/components/Video/Video'
 import StateBar from '@/components/StateBar/StateBar'
 import ImageMask from '@/components/general/ImageMask/ImageMask'
-import OfflineImg from '@/assets/images/offline.svg' 
 
 /** api */
 import userApi from '@/api/user'
@@ -33,6 +32,9 @@ import { StreamRole, supKey, chatKey } from '@/types/global'
 
 /** layouts */
 import RoomLayout from '@/layouts/Room/Room'
+
+/**images */
+import SmokeBg from '@/assets/images/taro-bg.jpg'
 
 export default defineComponent({
 
@@ -163,7 +165,7 @@ export default defineComponent({
             : <Transition name='offline'>
                 <div class={'subscriber__publisher-avatar'}>
                   <ImageMask
-                    image={`src/assets/images/smoke-bg.jpg`}
+                    image={SmokeBg}
                     text={'offline'}
                   />
                 </div>
