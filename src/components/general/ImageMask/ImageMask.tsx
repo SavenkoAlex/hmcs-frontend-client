@@ -26,13 +26,7 @@ export default defineComponent({
     style () {
       return {
         'background-image': `url(${this.image})`,
-        'background-position': 'center',
-        'background-size': 'cover',
-        'font-size': '4rem',
-        'line-height': '6rem',
-        'font-weight': 900,
-        'background-clip': 'text',
-        'text-fill-color': 'transparent',
+        
       }
     }
   },
