@@ -7,10 +7,15 @@
   border: 1px solid transparent;
   border-radius: 24px;
   flex: 1 0 100vh;
+
   h2 {
     animation: moveMask 6s infinite alternate;
     letter-spacing: 1rem;
-    font-style: inherit;
+    background-size: cover;
+    font-size: 4rem;
+    line-height: 6rem;
+    font-weight: 900;
+    background-clip: text;
   }
 }
 
@@ -19,6 +24,6 @@
     background-position: 0px 0px;
   }
   100% {
-    background-position: 100px 100px;
+    background-position: 100px 0px;
   }
 }
