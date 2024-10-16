@@ -40,6 +40,8 @@ export default defineComponent({
           for (const room of result) {
             this.rooms[room.room] = room
           }
+        }).catch(() => {
+          return []
         })
       }
     }
@@ -68,8 +70,12 @@ export default defineComponent({
         return []
       }
 
-      const rooms = await this.pluginHandler.getPublishers()
-      return rooms || []
+      try {
+        const rooms = await this.pluginHandler.getPublishers()
+        return rooms || []
+      } catch (err) {
+        return []
+      }
 
     }
   },
