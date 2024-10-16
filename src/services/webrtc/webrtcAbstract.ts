@@ -46,7 +46,7 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
           },
         })
       },
-      error: (err) => console.error(err),
+      error: (err) => reject(err),
       destroyed: () => {
         emitter.emit('destroyed')
       }
