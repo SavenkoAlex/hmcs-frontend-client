@@ -31,6 +31,10 @@ import { mapGetters, mapActions } from 'vuex'
 
 /** store */
 import { States } from '@/types/store'
+import { useToast } from 'vue-toastification'
+
+/** helper */
+import { printf} from '@/helpers/helper'
 
 export default defineComponent({
 
@@ -51,10 +55,13 @@ export default defineComponent({
     provide<typeof publisherHandler> (pubKey, publisherHandler)
     provide<typeof chatHandler> (chatKey, chatHandler)
 
+    const toast = useToast()
+
     return {
       chatHandler,
       subscriberHandler,
-      publisherHandler
+      publisherHandler,
+      toast
     }
   },
 
@@ -93,6 +100,8 @@ export default defineComponent({
         if (result) {
           this.subscriberHandler = result
           this.setWebrtcSessionId(result.handler.getId())
+        } else {
+          this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
         }
       })
 

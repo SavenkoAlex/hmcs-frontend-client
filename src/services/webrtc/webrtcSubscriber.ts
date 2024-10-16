@@ -52,14 +52,20 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     options?: HandlerDescription
   ): Promise<SubscriberStreamHandler | null> {
     
-    const result = await super.init(plugin, pluginName)
-    if (!result) {
+    try {
+      const result = await super.init(plugin, pluginName)
+
+      if (!result) {
+        return null
+      }
+      const { handler, emitter } = result
+      const streamHandler = new SubscriberStreamHandler({plugin, handler, emitter})
+      streamHandler.listen()
+      return streamHandler
+    } catch (err) {
+      console.error(err)
       return null
     }
-    const { handler, emitter } = result
-    const streamHandler = new SubscriberStreamHandler({plugin, handler, emitter})
-    streamHandler.listen()
-    return streamHandler
   }
 
   // attach a event listener on janus events

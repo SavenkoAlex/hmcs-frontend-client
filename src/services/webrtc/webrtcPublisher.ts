@@ -46,14 +46,19 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
 
   // Static constructor
   static async init (plugin: typeof Janus, pluginName: JanusPlugin, options: HandlerDescription) {
-    const result = await super.init(plugin, pluginName, options)
-    if (!result) {
+    try {
+      const result = await super.init(plugin, pluginName, options)
+      if (!result) {
+        return null
+      }
+      const { handler, emitter } = result
+      const streamHandler = new PublisherStreamHandler({plugin, handler, emitter, options})
+      streamHandler.listen()
+      return streamHandler
+    } catch (err) {
+      console.error(err)
       return null
     }
-    const { handler, emitter } = result
-    const streamHandler = new PublisherStreamHandler({plugin, handler, emitter, options})
-    streamHandler.listen()
-    return streamHandler
   }
 
   // attach a event listener on janus events
