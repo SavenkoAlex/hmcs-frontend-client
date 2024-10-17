@@ -15,13 +15,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env: 
-      VITE_ACCESS_TOKEN: ${{ vars.VITE_ACCESS_TOKEN }}
-      VITE_AMOUNT: ${{ vars.VITE_AMOUNT }}
-      VITE_IS_AUTHENTIFICATED: ${{ vars.VITE_IS_AUTHENTIFICATED }}
-      VITE_STORAGE_KEY: ${{ vars.VITE_STORAGE_KEY }}
-      VITE_USER_DATA: ${{ vars.VITE_USER_DATA }}
-      VITE_WEBRTC_SERVER: ${{ vars.VITE_WEBRTC_SERVER }}
-      
+      VITE_ACCESS_TOKEN: ${{ vars.vite_build.VITE_ACCESS_TOKEN }}
+      VITE_AMOUNT: ${{ vars.vite_build.VITE_AMOUNT }}
+      VITE_IS_AUTHENTIFICATED: ${{ vars.vite_build.VITE_IS_AUTHENTIFICATED }}
+      VITE_STORAGE_KEY: ${{ vars.vite_build.VITE_STORAGE_KEY }}
+      VITE_USER_DATA: ${{ vars.vite_build.VITE_USER_DATA }}
+      VITE_WEBRTC_SERVER: ${{ vars.vite_build.VITE_WEBRTC_SERVER }}
+
     strategy:
       matrix:
         node-version: [20.x]
