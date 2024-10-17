@@ -20,7 +20,7 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
   return new Promise ((resolve, reject) => {
     
     const janusInstance = new Janus ({
-      server: import.meta.env.VITE_WEBRTC_SERVER,
+      server: window.location.hostname + import.meta.env.VITE_WEBRTC_SERVER,
       success: () => {
         if (!janusInstance) {
           reject('webrtc plugin is not available')
@@ -74,15 +74,20 @@ export abstract class StreamHandler {
   static async init (plugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription): Promise <InitResult <Handler>> {
     plugin.init({
       debug: true,
-      dependencies: Janus.useDefaultDependencies({ adapter })
+      dependencies: Janus.useDefaultDependencies({ adapter }),
     })
 
-    const instance = await webRTCInstance<Handler>(pluginName)
-
-    if (!instance?.handler || !instance?.emitter) {
+    try {
+      const instance = await webRTCInstance<Handler>(pluginName)
+      if (!instance?.handler || !instance?.emitter) {
+        return null
+      }
+      return { handler: instance.handler, emitter: instance.emitter } 
+    } catch (err) {
+      console.error(err)
       return null
     }
-    return { handler: instance.handler, emitter: instance.emitter } 
+
   }
 
   protected abstract listen (): void 

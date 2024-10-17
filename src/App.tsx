@@ -33,9 +33,6 @@ import { mapGetters, mapActions } from 'vuex'
 import { States } from '@/types/store'
 import { useToast } from 'vue-toastification'
 
-/** helper */
-import { printf} from '@/helpers/helper'
-
 export default defineComponent({
 
   name: 'App',

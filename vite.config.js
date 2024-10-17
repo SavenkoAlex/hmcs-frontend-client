@@ -27,6 +27,7 @@ export default defineConfig({
   },
   esbuild: {
     jsxFactory: 'h',
+    drop: ['console', 'debugger'],
   },
   server: process.env.NODE_ENV === 'production' ? {} : {
     https: {
