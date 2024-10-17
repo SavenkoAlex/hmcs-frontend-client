@@ -62,6 +62,14 @@ export default defineComponent({
 
       return publisherId
     },
+
+    publisherName (): string {
+      return this.publisher?.username ?? '-'
+    },
+
+    streamId (): number {
+      return this.publisher?.streamId ?? 0
+    }
   },
 
   setup () {
@@ -174,15 +182,15 @@ export default defineComponent({
         </div>,
         controls: () => <div class='subscriber__stream-controls'>
           <StateBar
-            userRole={this.userData.role || StreamRole.OBSERVER}
-            amount={this.publisherAccount?.amount}
+            userRole={this.userData?.role || StreamRole.OBSERVER}
+            amount={this.publisherAccount?.amount || 0}
           />
         </div>,
 
         chat: () => <div class='subscriber__content'>
           <Chat
-            chatName={this.userData.username}
-            room={this.publisher?.streamId || 0}
+            chatName={this.publisherName}
+            room={this.streamId}
           />
         </div>
       }}

@@ -314,7 +314,7 @@ export default defineComponent({
           <TextInput
             placeholder='Сообщение'
             onEnter={() => this.addMessage()}
-            disabled={!this.isRoomAvailable}
+            disabled={!this.isRoomAvailable || !this.room}
             modelValue={this.inputMessage}
             onUpdate:modelValue={(data: string) => this.inputMessage = data}
           >

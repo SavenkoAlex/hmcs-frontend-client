@@ -21,7 +21,7 @@ export const userRoleAuth: NavigationGuardWithThis <unknown> = (to, from) => {
   const user = encryptStorage.getItem(userData)
 
   if (!user) {
-    return false
+    return userRoutes[UserRole.ANONYMOUS].includes(to.name as BaseRoutes)
   }
 
   try {
