@@ -2,23 +2,25 @@
   .room {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 54px - 30px);
-    
+    height: 100%;
+    gap: .1rem;
+
     &__media {
       width: 100%;
-      flex-grow: 0;
-      flex-shrink: 0;
+      height: fit-content;
+      display: inline-flex;
+      flex: 0 1 auto
     }
 
-    &__content {
+    &__controls {
       width: 100%;
-      flex-grow: 0;
-      flex-shrink: 0;
+      height: fit-content;
     }
 
     &__chat {
       width: 100%;
-      flex: 1 1 54px;
+      display: inline-flex;
+      flex: 1 0 auto;
     }
   }
 }

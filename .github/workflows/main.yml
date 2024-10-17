@@ -14,6 +14,13 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env: 
+      VITE_ACCESS_TOKEN: ${{ vars.vite_build.VITE_ACCESS_TOKEN }}
+      VITE_AMOUNT: ${{ vars.vite_build.VITE_AMOUNT }}
+      VITE_IS_AUTHENTIFICATED: ${{ vars.vite_build.VITE_IS_AUTHENTIFICATED }}
+      VITE_STORAGE_KEY: ${{ vars.vite_build.VITE_STORAGE_KEY }}
+      VITE_USER_DATA: ${{ vars.vite_build.VITE_USER_DATA }}
+      VITE_WEBRTC_SERVER: ${{ vars.vite_build.VITE_WEBRTC_SERVER }}
 
     strategy:
       matrix:
@@ -55,3 +62,13 @@ jobs:
             @semantic-release/changelog
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: copy file to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROXY_HOST }}
+          username: ${{ secrets.PROXY_USERNAME }}
+          key: ${{ secrets.PROXY_KEY }}
+          port: ${{ secrets.PROXY_PORT }}
+          passphrase: ${{ secrets.PROXY_PASSPHRASE }}
+          source: "${{ env.ARTIFACT_PATH }}.tar.gz"
+          target: /var/www/html/trft

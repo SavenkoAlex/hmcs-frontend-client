@@ -1,6 +1,6 @@
 import {
   User
-} from '@/typings/common'
+} from '@/types/global'
 
 
 

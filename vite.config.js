@@ -27,24 +27,27 @@ export default defineConfig({
   },
   esbuild: {
     jsxFactory: 'h',
+    drop: process.env.PROD ? ['console', 'debugger'] : [],
   },
   server: process.env.NODE_ENV === 'production' ? {} : {
-    https: {
-      key: fs.readFileSync(path.resolve(__dirname, 'certs/taro.key')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'certs/taro.cert'))
+  origin: 'https://trft.ru',
+  https: {
+      key: fs.readFileSync(path.resolve(__dirname, 'certs/taro.com.key')),
+      cert: fs.readFileSync(path.resolve(__dirname, 'certs/taro.com.crt'))
     },
     cors: {
       origin: false
     },
     proxy: {
       '/api' : {
-        target: 'https://localhost:3000',
-        changeOrigin: false,
-        secure: false
+        target: 'https://trft.ru',
+        changeOrigin: true,
+        secure: true
       },
       '/janus': {
-        target: 'https://192.168.0.115',
-        secure: false
+        target: 'https://trft.ru',
+        changeOrigin: true,
+        secure: true,
       },
       '/rtmp': {
         target: 'https://192.168.0.115:1935/live',

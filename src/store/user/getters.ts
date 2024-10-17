@@ -3,31 +3,20 @@ import { User, UserRole, Maybe } from '@/types/global'
 
 export const getters = {
   
-  /**
-   * Get user from state
-   * @param {UserState} state - user state
-   * @param {keyof User} [field] - optional field name
-   * @returns {User[T] | User} - user field value or whole user object
-   */
-  getUserData: function <T extends keyof User >(state: UserState): Omit <User, 'avatar'> | null {
-    const userData = state.userData
-
-    if (!userData) {
-      return null
-    }
-
-    const parsed: User = JSON.parse(userData)
-    return parsed || null
-  },
-
   userRole: function (state: UserState): UserRole {
     const userData = state.userData
+
     if (!userData) {
       return UserRole.ANONYMOUS
     }
-    const parsed: User = JSON.parse(userData)
-    const role = parsed?.type || UserRole.ANONYMOUS
-    return role as UserRole
+    try {
+      const parsed: User = JSON.parse(userData)
+      const role = parsed?.role || UserRole.ANONYMOUS
+      return role as UserRole
+    } catch (err) {
+      console.error(err)
+      return UserRole.ANONYMOUS
+    }
   },
 
   isAuthentificated: function (state: UserState): boolean {
@@ -37,11 +26,17 @@ export const getters = {
   userId: function (state: UserState): string | null {
     const userData = state.userData
     if (!userData) {
-      return UserRole.ANONYMOUS
+      return null
     }
-    const parsed: User = JSON.parse(userData)
-    const id = parsed?.id || null
-    return id
+
+    try {
+      const parsed: User = JSON.parse(userData)
+      const id = parsed?.id || null
+      return id
+    } catch (err) {
+      console.error(err)
+      return null
+    }
   },
 
   userData: function (state: UserState): Omit<User, 'avatar'> | null {
@@ -49,7 +44,12 @@ export const getters = {
     if (!userData) {
       return null
     }
-
-    return JSON.parse(userData) || null
+    try {
+      const parsed = JSON.parse(userData)
+      return parsed || null
+    } catch (err) {
+      console.error(err)
+      return null
+    }
   }
 }

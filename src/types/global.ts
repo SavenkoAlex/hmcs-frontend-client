@@ -1,5 +1,6 @@
 import eventEmitter from 'events'
 import Janus, { JanusJS } from 'janus-gateway'
+import { InjectionKey } from 'vue'
 
 export type Room = {       
   room : number
@@ -59,9 +60,9 @@ export type Publisher = {
 }
 
 export const enum UserRole {
-  USER = 'user',
-  WORKER = 'worker',
-  ANONYMOUS = 'anonymous'
+  WORKER = 2,
+  USER,
+  ANONYMOUS
 }
 
 export const enum StreamRole {
@@ -122,12 +123,13 @@ export const zIndex = 1650
 export type User = {
   login: Maybe <string>,
   username: Maybe <string>,
-  role: Maybe<string>,
-  type: Maybe<UserRole>,
+  role: Maybe<number>,
   id: Maybe<string>
   streamId: Maybe<number>,
   avatar: Maybe<string>
 }
+
+export type RegisterUserData = Omit <User, 'id' | 'streamId' | 'avatar' > & { password: string }
 
 export type UserAccount = {
   amount: number
@@ -138,7 +140,6 @@ export const storeUserKeyMap: Record <keyof User, string> = {
   login: 'nl',
   username: 'eu',
   role: 'er',
-  type: 'et',
   id: 'di',
   avatar: 'av',
   streamId: 'si'
@@ -191,7 +192,13 @@ export type WebRTCHandlerConstructor = {
   plugin: typeof Janus,
   handler: JanusJS.PluginHandle, 
   emitter: eventEmitter.EventEmitter,
-  options: HandlerDescription
+  options?: HandlerDescription
 }
 
+/** plugin handlers */
+export const supKey = Symbol('subscriberHandler') as InjectionKey<string>
+export const pubKey = Symbol('publisherHandler') as InjectionKey<string>
+export const chatKey = Symbol('chatHandler') as InjectionKey<string>
 
+/** outputs type */
+export type Output = 'log' | 'error' | 'warn'

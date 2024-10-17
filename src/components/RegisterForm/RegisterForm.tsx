@@ -8,6 +8,7 @@ import TextInput from '@/components/general/inputs/TextInput/TextInput'
 import Checkbox from '@/components/general/inputs/Checkbox/Checkbox'
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import Form from '@/components/general/Form/Form'
+import Loader from '@/components/general/Loader/Loader'
 
 /** styles */
 import '@/components/RegisterForm/RegisterForm.scss'
@@ -16,17 +17,36 @@ import '@/components/RegisterForm/RegisterForm.scss'
 import { emptyfieldValidation } from '@/helpers/helper'
 
 /** types */
-import { SidePosition } from '@/types/global'
+import { SidePosition, UserRole } from '@/types/global'
+import { register } from '@/api/login'
+import { useToast } from 'vue-toastification'
+
+/** toast */
 
 export default defineComponent({
 
-  name: 'LoginForm',
+  name: 'RegisterForm',
 
   components: {
     TextButton,
     TextInput,
     Form,
-    Checkbox
+    Checkbox,
+    Loader
+  },
+
+  computed: {
+    isPasswordMatch () {
+      return (this.password === this.passwordCheck) && this.password.length !== 0 && this.passwordCheck.length !== 0
+    }
+  },
+
+  setup () {
+    const toast = useToast()
+
+    return {
+      toast
+    }
   },
 
   data () {
@@ -35,10 +55,35 @@ export default defineComponent({
       password: '',
       username: '',
       passwordCheck: '',
-      isPublisher: false
+      isPublisher: false,
+      isLoading: false
     }
   },
 
+  methods: {
+    async register () {
+      if (!this.login || !this.username) {
+        // show notification
+        return 
+      }
+      this.isLoading = true
+      const result = await register({
+        username: this.username,
+        login: this.login,
+        password: this.password,
+        role: this.isPublisher ? UserRole.WORKER : UserRole.USER
+      })
+
+      this.isLoading = false
+      
+      if (!result) {
+        this.toast.error(this.$t('pages.registerForm.errors.register'))
+        return
+      }
+
+      this.$router.push('login')
+    }
+  },
 
   render (): VNode {
     const formHeader = <div class='login-form__header'>
@@ -87,7 +132,7 @@ export default defineComponent({
           }}
           placeholder={this.$t('pages.registerForm.password')}
           type={'password'}
-          modelValue={this.password}
+          modelValue={this.passwordCheck}
           onUpdate:modelValue={(event) => this.passwordCheck = event}
           validators={[emptyfieldValidation]}       
         />
@@ -107,12 +152,20 @@ export default defineComponent({
 
     const formFooter = <div class='register-form__footer'>
       <div class='register-page__submit-button'>
-        <TextButton text={this.$t('pages.registerForm.submit')}/>
+        <TextButton 
+          text={this.$t('pages.registerForm.submit')}
+          onClick={this.register}
+        />
       </div>
     </div>
 
     return <div class='register-form'>
-      <Form>
+      {
+        this.isLoading ? <Loader/> :  null 
+      }
+      <Form
+        
+      >
         {{
           header: () => formHeader,
           default: () => formBody,

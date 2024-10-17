@@ -3,10 +3,11 @@
   .login-page {
     display: flex;
     flex-direction: column;
-    justify-content: start;
+    justify-content: flex-start;
     align-items: center;
     background: linear-gradient($primary-2 55%, $primary-3);
     width: 100%;
+    height: 100%;
   }
 
   .form-switcher {
@@ -18,6 +19,10 @@
     padding: 0 16px;
     flex: 0 1 25%;
     gap: .1rem;
+
+    @media (max-height: 667px) {
+      flex: 0 1 3rem;
+    }
 
     a {
       font-size: medium;

@@ -8,6 +8,7 @@ import TextInput from '@/components/general/inputs/TextInput/TextInput'
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import Form from '@/components/general/Form/Form'
 import Notifier from '@/components/Notifier/Notifier'
+import Link from '@/components/general/Link/Link' 
 
 /** styles */
 import '@/components/LoginForm/LoginForm.scss'
@@ -26,6 +27,8 @@ import { authentificate } from '@/api/login'
 import { mapActions, mapGetters } from 'vuex'
 import { userStateKey } from '@/store'
 import { UserRole } from '@/types/global'
+import Label from '../general/Label/Label'
+import { RouterLink } from 'vue-router'
 
 export default defineComponent({
 
@@ -35,7 +38,8 @@ export default defineComponent({
     TextButton,
     TextInput,
     Form,
-    Notifier
+    Notifier,
+    Link
   },
 
   data (): Data {
@@ -59,13 +63,13 @@ export default defineComponent({
       const response = await authentificate(this.login, this.password)
 
       if (!response) {
-      this.setUserProperty({isAuthentificated: false})
+        this.setUserProperty({isAuthentificated: false})
         return
       }
 
       const { user } = response
 
-      if (!user || !user.id || !user.login || !user.role || !user.type || !user.username) {
+      if (!user || !user.id || !user.login || !user.role || !user.role || !user.username) {
         return
       }
 
@@ -90,6 +94,9 @@ export default defineComponent({
   render (): VNode {
     const formHeader = <div class='login-form__header'>
       <h2> { this.$t('pages.loginForm.title') } </h2>
+        <Link>
+          <RouterLink to='registration'> { this.$t('pages.loginForm.register') } </RouterLink>
+        </Link>
     </div>
 
     const formBody = <div class='login-form__body'>

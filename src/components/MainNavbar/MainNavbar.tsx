@@ -2,7 +2,8 @@ import {
   defineComponent,
   VNode,
   ref,
-  computed
+  computed,
+  provide
 } from 'vue'
 
 /** Style */
@@ -16,16 +17,21 @@ import { RouterLink } from 'vue-router'
 import { useStore } from '@/store'
 
 /** types */
-import { UserRole, Maybe } from '@/types/global'
+import { UserRole, Maybe, JanusPlugin } from '@/types/global'
 import { States } from '@/types/store'
 import { userLinks } from '@/router/types'
 import { mapGetters } from 'vuex'
 import { Data } from '@/components/MainNavbar/types'
 
+/** webrtc handler */
+import Janus, { JanusJS } from 'janus-gateway'
+import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+
 export default defineComponent({
 
   name: 'MainNavbar',
 
+  setup () {},
   data (): Data {
     return {
       links: userLinks[UserRole.ANONYMOUS]
@@ -41,7 +47,7 @@ export default defineComponent({
 
   watch: {
     userRole: {
-      handler: function (newValue) {
+      handler: function (newValue: UserRole) {
         this.links = this.getLinks(newValue)
       },
       immediate: true
@@ -55,7 +61,6 @@ export default defineComponent({
       if (!role || !this.isAuthentificated) {
         return userLinks[UserRole.ANONYMOUS]
       }
-
 
       if (role === UserRole.USER) {
         return userLinks[UserRole.USER]
@@ -76,7 +81,7 @@ export default defineComponent({
         this.links.map(item => {
         return <li>
           <div class='navbar__option_visible'>
-            <RouterLink to={item}> { this.$t(`routes.${item}`) } </RouterLink>
+            <RouterLink to={`/${item}`}> { this.$t(`routes.${item}`) } </RouterLink>
           </div>
           </li>
         })

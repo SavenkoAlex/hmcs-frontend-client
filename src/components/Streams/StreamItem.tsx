@@ -15,6 +15,9 @@ import Label from '@/components/general/Label/Label'
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import LiveIndicator from '@/components/LiveIndicator/LiveIndicator'
 
+/** icons */
+import CardsPic from '@/assets/images/cards.svg'
+
 export default defineComponent({
 
   name: 'StreamItem',
@@ -81,7 +84,9 @@ export default defineComponent({
 
       <div class='streamer-item__avatar'>
         {
-          this.avatar && <img src={this.avatar} class='streamer-item__avatar_img'/>
+          this.avatar 
+            ? <img src={this.avatar} class='streamer-item__avatar_img'/>
+            : <CardsPic/>
         }
       </div>
     </div>

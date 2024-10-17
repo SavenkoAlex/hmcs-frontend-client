@@ -1,9 +1,10 @@
 .base-video {
-  margin-top: 6px;
   width: 100%;
-  border-radius: 18px;
+  border-radius: 26px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   overflow: hidden;
-  background-color: $primary-9;
   
   video {
     width: 100%;
@@ -13,13 +14,15 @@
 
 .picture-in-picture {
   position: absolute;
-  top: 66px;
-  right: 6px;
-  border-radius: 16px;
+  top: calc(74px + .5rem);
+  right: .5rem;
+  border-radius: 12px;
   overflow: hidden;
   width: 40%;
   height: auto;
-  background-color: $primary-9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   video {
     width: 100%;
