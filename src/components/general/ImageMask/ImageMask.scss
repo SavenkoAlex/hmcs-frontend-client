@@ -12,10 +12,12 @@
     animation: moveMask 6s infinite alternate;
     letter-spacing: 1rem;
     background-size: cover;
+    background-position: center;
     font-size: 4rem;
     line-height: 6rem;
     font-weight: 900;
     background-clip: text;
+    -webkit-text-fill-color: 'transparent';
   }
 }
 

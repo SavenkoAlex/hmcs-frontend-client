@@ -34,7 +34,7 @@ import { StreamRole, supKey, chatKey } from '@/types/global'
 import RoomLayout from '@/layouts/Room/Room'
 
 /**images */
-import SmokeBg from '@/assets/images/taro-bg.jpg'
+import bg from '@/assets/images/taro-bg.jpg'
 
 export default defineComponent({
 
@@ -165,7 +165,7 @@ export default defineComponent({
             : <Transition name='offline'>
                 <div class={'subscriber__publisher-avatar'}>
                   <ImageMask
-                    image={SmokeBg}
+                    image={bg}
                     text={'offline'}
                   />
                 </div>
@@ -174,14 +174,14 @@ export default defineComponent({
         </div>,
         controls: () => <div class='subscriber__stream-controls'>
           <StateBar
-            userRole={this.userData.role || StreamRole.OBSERVER}
-            amount={this.publisherAccount?.amount}
+            userRole={this.userData?.role || StreamRole.OBSERVER}
+            amount={this.publisherAccount?.amount || 0}
           />
         </div>,
 
         chat: () => <div class='subscriber__content'>
           <Chat
-            chatName={this.userData.username}
+            chatName={this.publisher?.username || '-'}
             room={this.publisher?.streamId || 0}
           />
         </div>

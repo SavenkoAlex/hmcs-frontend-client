@@ -26,13 +26,6 @@ export default defineComponent({
     style () {
       return {
         'background-image': `url(${this.image})`,
-        'background-position': 'center',
-        'background-size': 'cover',
-        'font-size': '4rem',
-        'line-height': '6rem',
-        'font-weight': 900,
-        'background-clip': 'text',
-        'text-fill-color': 'transparent',
       }
     }
   },
@@ -41,9 +34,7 @@ export default defineComponent({
     return <div
       class='mask-image'
     >
-      <h2
-        style={this.style}
-      >
+      <h2 style={this.style}>
         { this.text }
       </h2>
     </div>
