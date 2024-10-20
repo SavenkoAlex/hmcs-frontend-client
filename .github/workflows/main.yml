@@ -34,7 +34,15 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: env
+    - run: |
+        touch .env.local
+        echo VITE_WEBRTC_SERVER=${{ env.VITE_WEBRTC_SERVER }} >> .env.local
+        echo VITE_STORAGE_KEY=${{ env.VITE_STORAGE_KEY }} >> .env.local
+        echo VITE_USER_DATA=${{ env.VITE_USER_DATA }} >> .env.local
+        echo VITE_IS_AUTHENTIFICATED=${{ env.VITE_IS_AUTHENTIFICATED }} >> .env.local
+        echo VITE_ACCESS_TOKEN=${{ env.VITE_ACCESS_TOKEN }} >> .env.local
+        echo VITE_AMOUNT=${{ env.VITE_AMOUNT }} >> .env.local
+    - run: cat .env.local
     - run: npm ci
     - run: npm run build --if-present
     - run: tar -cvf "${{ env.ARTIFACT_PATH }}.tar.gz" ${{env.ARTIFACT_PATH }}
@@ -58,7 +66,6 @@ jobs:
         with:
           name: ${{ env.BUILD_ARTIFACT }}
           path: "${{ env.ARTIFACT_PATH }}.tar.gz"
-      - run: ls -1lr
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
         with:
