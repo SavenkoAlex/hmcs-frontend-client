@@ -156,3 +156,15 @@ export function printf (data: unknown, type: Output = 'log'): void {
     print[type](data)
   }
 }
+
+/**
+ * obtains env variable depends on mode
+ * @param envName 
+ * @param defaultValue 
+ * @returns 
+ */
+export function getEnvVar <T extends string | undefined>(envName: string, defaultValue?: T): T extends string ? string : string | undefined {
+  const isProdMode = import.meta.env.PROD
+  const value = isProdMode ? process.env[envName] : import.meta.env[envName]
+  return value || defaultValue
+}
