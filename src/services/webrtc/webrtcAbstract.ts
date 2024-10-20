@@ -20,7 +20,7 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
   return new Promise ((resolve, reject) => {
 
     const janusInstance = new Janus ({
-      server: import .meta.env.PROD ? process.env.VITE_WEBRTC_SERVER : import.meta.env.VITE_WEBRTC_SERVER,
+      server: import.meta.env.VITE_WEBRTC_SERVER,
       success: () => {
         if (!janusInstance) {
           reject('webrtc plugin is not available')
