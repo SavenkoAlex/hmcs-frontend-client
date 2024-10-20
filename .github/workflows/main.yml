@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env: 
-      VITE_ACCESS_TOKEN: ${{ vars.VITE_ACCESS_TOKEN }}
+      VITE_ACCESS_TOKEN: ${{ vars.vite_build.VITE_ACCESS_TOKEN }}
       VITE_AMOUNT: ${{ vars.VITE_AMOUNT }}
       VITE_IS_AUTHENTIFICATED: ${{ vars.VITE_IS_AUTHENTIFICATED }}
       VITE_STORAGE_KEY: ${{ vars.VITE_STORAGE_KEY }}
@@ -34,14 +34,14 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: touch .env.local
-    - run: echo "VITE_ACCESS_TOKEN=$VITE_ACCESS_TOKEN" >> .env.local
+    - run: echo "VITE_ACCESS_TOKEN=${{ env.VITE_ACCESS_TOKEN }}" >> .env.local
     - run: echo "VITE_AMOUNT=$VITE_AMOUNT" >> .env.local
     - run: echo "VITE_IS_AUTHENTIFICATED=$VITE_IS_AUTHENTIFICATED" >> .env.local
     - run: echo "VITE_STORAGE_KEY=$VITE_STORAGE_KEY" >> .env.local
     - run: echo "VITE_USER_DATA=$VITE_USER_DATA" >> .env.local
     - run: echo "VITE_WEBRTC_SERVER=$VITE_WEBRTC_SERVER" >> .env.local
     - run: cat .env.local
-    - run: echo "var is $VITE_WEBRTC_SERVER"
+    - run: echo "var is ${VITE_WEBRTC_SERVER} ${{ vars.vite_build.VITE_WEBRTC_SERVER}}"
     - run: npm ci
     - run: npm run build --if-present
     - run: tar -cvf "${{ env.ARTIFACT_PATH }}.tar.gz" ${{env.ARTIFACT_PATH }}
