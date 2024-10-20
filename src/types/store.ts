@@ -1,10 +1,10 @@
 import { Maybe, MediaDevice } from '@/types/global'
-import { getEnvVar } from '@/helpers/helper'
-export const isAuthentificated = getEnvVar('VITE_IS_AUTHENTIFICATED', 'isa')
-export const userData = getEnvVar('VITE_USER_DATA','usa')
-export const amount = getEnvVar('VITE_AMOUNT', 'ama')
-export const webrtcSessionId = getEnvVar('VITE_WEBRTC_SESSION_ID', 'vs')
-export const chatSessionId = getEnvVar('VITE_CHAT_SESSION_ID','sch')
+
+export const isAuthentificated = (import.meta.env.PROD ? import.meta.env.VITE_IS_AUTHENTIFICATED : process.env.VITE_IS_AUTHENTIFICATED) || 'isa'
+export const userData = (import.meta.env.PROD ? import.meta.env.VITE_USER_DATA : process.env.VITE_USER_DATA) || 'usa'
+export const amount = (import.meta.env.PROD ? import.meta.env.VITE_AMOUNT : process.env.VITE_AMOUNT) || 'ama'
+export const webrtcSessionId = (import.meta.env.PROD ? import.meta.env.VITE_WEBRTC_SESSION_ID : process.env.VITE_WEBRTC_SESSION_ID) || 'vs'
+export const chatSessionId = (import.meta.env.PROD ? import.meta.env.VITE_CHAT_SESSION_ID : process.env.VITE_CHAT_SESSION_ID) || 'sch'
 
 export interface UserState {
   accessToken: Maybe<string>,
