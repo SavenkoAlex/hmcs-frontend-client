@@ -8,6 +8,8 @@ on:
     branches:
       - main
 
+concurrency: production
+
 env:
   BUILD_ARTIFACT: 'build-artifact'
   ARTIFACT_PATH: 'dist'
@@ -21,6 +23,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: production
 
     strategy:
       matrix:
