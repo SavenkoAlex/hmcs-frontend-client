@@ -143,28 +143,3 @@ export function formatTime (value: number) {
     ? 0 + value
     : String(value) 
 }
-
-/** log console messages depends on mode */
-export function printf (data: unknown, type: Output = 'log'): void {
-  const print: Record <Output, (data: unknown) => void> = {
-    log: (data) => console.log(data),
-    warn: (data) => console.warn(data),
-    error: (data) => console.error(data)
-  }
-
-  if (!import.meta.env.PROD) {
-    print[type](data)
-  }
-}
-
-/**
- * obtains env variable depends on mode
- * @param envName 
- * @param defaultValue 
- * @returns 
- */
-export function getEnvVar <T extends string | undefined>(envName: string, defaultValue?: T): T extends string ? string : string | undefined {
-  const isProdMode = import.meta.env.PROD
-  const value = isProdMode ? process.env[envName] : import.meta.env[envName]
-  return value || defaultValue
-}

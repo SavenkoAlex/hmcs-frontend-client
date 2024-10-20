@@ -33,6 +33,14 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+    - run: touch .env.local
+    - run: echo "VITE_ACCESS_TOKEN=${{ env.VITE_ACCESS_TOKEN }}" >> .env.local
+    - run: echo "VITE_AMOUNT=${{ env.VITE_AMOUNT }}" >> .env.local
+    - run: echo "VITE_IS_AUTHENTIFICATED=${{ env.VITE_IS_AUTHENTIFICATED }}" >> .env.local
+    - run: echo "VITE_STORAGE_KEY=${{ env.VITE_STORAGE_KEY }}" >> .env.local
+    - run: echo "VITE_USER_DATA=${{ env.VITE_USER_DATA }}" >> .env.local
+    - run: echo "VITE_WEBRTC_SERVER=${{ env.VITE_WEBRTC_SERVER }}" >> .env.local
+    - run: echo "test env vars ${{ env.VITE_WEBRTC_SERVER }} ${{ vars.VITE_WEBRTC_SERVER }}"
     - run: npm ci
     - run: npm run build --if-present
     - run: tar -cvf "${{ env.ARTIFACT_PATH }}.tar.gz" ${{env.ARTIFACT_PATH }}
