@@ -72,6 +72,11 @@ export abstract class StreamHandler {
     }
 
   static async init (plugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription): Promise <InitResult <Handler>> {
+
+    if (!plugin) {
+      plugin = Janus
+    }
+
     plugin.init({
       debug: true,
       dependencies: Janus.useDefaultDependencies({ adapter }),
