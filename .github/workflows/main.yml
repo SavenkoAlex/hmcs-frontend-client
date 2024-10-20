@@ -11,17 +11,16 @@ on:
 env:
   BUILD_ARTIFACT: 'build-artifact'
   ARTIFACT_PATH: 'dist'
+  VITE_ACCESS_TOKEN: ${{ vars.vite_build.VITE_ACCESS_TOKEN }}
+  VITE_AMOUNT: ${{ vars.VITE_AMOUNT }}
+  VITE_IS_AUTHENTIFICATED: ${{ vars.VITE_IS_AUTHENTIFICATED }}
+  VITE_STORAGE_KEY: ${{ vars.VITE_STORAGE_KEY }}
+  VITE_USER_DATA: ${{ vars.VITE_USER_DATA }}
+  VITE_WEBRTC_SERVER: ${{ vars.VITE_WEBRTC_SERVER }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env: 
-      VITE_ACCESS_TOKEN: ${{ vars.vite_build.VITE_ACCESS_TOKEN }}
-      VITE_AMOUNT: ${{ vars.VITE_AMOUNT }}
-      VITE_IS_AUTHENTIFICATED: ${{ vars.VITE_IS_AUTHENTIFICATED }}
-      VITE_STORAGE_KEY: ${{ vars.VITE_STORAGE_KEY }}
-      VITE_USER_DATA: ${{ vars.VITE_USER_DATA }}
-      VITE_WEBRTC_SERVER: ${{ vars.VITE_WEBRTC_SERVER }}
 
     strategy:
       matrix:
