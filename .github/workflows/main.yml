@@ -34,7 +34,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: touch .env.local
-    - run: echo "VITE_ACCESS_TOKEN=${{ env.VITE_ACCESS_TOKEN }}" >> .env.local
+    - run: echo "VITE_ACCESS_TOKEN=${{ vars.VITE_ACCESS_TOKEN }}" >> .env.local
     - run: echo "VITE_AMOUNT=${{ env.VITE_AMOUNT }}" >> .env.local
     - run: echo "VITE_IS_AUTHENTIFICATED=${{ env.VITE_IS_AUTHENTIFICATED }}" >> .env.local
     - run: echo "VITE_STORAGE_KEY=${{ env.VITE_STORAGE_KEY }}" >> .env.local
