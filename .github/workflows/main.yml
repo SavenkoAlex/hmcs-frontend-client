@@ -11,12 +11,6 @@ on:
 env:
   BUILD_ARTIFACT: 'build-artifact'
   ARTIFACT_PATH: 'dist'
-  VITE_ACCESS_TOKEN: ${{ vars.vite_build.VITE_ACCESS_TOKEN }}
-  VITE_AMOUNT: ${{ vars.VITE_AMOUNT }}
-  VITE_IS_AUTHENTIFICATED: ${{ vars.VITE_IS_AUTHENTIFICATED }}
-  VITE_STORAGE_KEY: ${{ vars.VITE_STORAGE_KEY }}
-  VITE_USER_DATA: ${{ vars.VITE_USER_DATA }}
-  VITE_WEBRTC_SERVER: ${{ secrets.VITE_WEBRTC_SERVER }}
   
 jobs:
   build:
@@ -30,6 +24,13 @@ jobs:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
+      env:
+        VITE_ACCESS_TOKEN: ${{ vars.vite_build.VITE_ACCESS_TOKEN }}
+        VITE_AMOUNT: ${{ vars.VITE_AMOUNT }}
+        VITE_IS_AUTHENTIFICATED: ${{ vars.VITE_IS_AUTHENTIFICATED }}
+        VITE_STORAGE_KEY: ${{ vars.VITE_STORAGE_KEY }}
+        VITE_USER_DATA: ${{ vars.VITE_USER_DATA }}
+        VITE_WEBRTC_SERVER: ${{ secrets.VITE_WEBRTC_SERVER }}
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
