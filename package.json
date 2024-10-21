@@ -20,7 +20,7 @@
     "@vitejs/plugin-vue-jsx": "^3.0.2",
     "crypto-js": "^4.2.0",
     "encrypt-storage": "^2.13.3",
-    "janus-gateway": "^1.2.0",
+    "janus-gateway": "file: node_modules/janus-gateway",
     "vite": "^4.4.9",
     "vite-svg-loader": "^4.0.0",
     "vue": "^3.5",
