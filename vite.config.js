@@ -70,6 +70,9 @@ export default defineConfig({
       include: [/node_modules/],
       esmExternals: true
     },
+    rollupOptions: {
+      treeshake: false
+    }
   },
 })
 
