@@ -36,30 +36,30 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
   options? : HandlerDescription
 
   private constructor ({
-    plugin,
+    webrtcPlugin,
     handler, 
     emitter,
   }: Omit<WebRTCHandlerConstructor, 'options'>) {
-    super({plugin, handler, emitter})
+    super({webrtcPlugin, handler, emitter})
     this.mediaTrack = null
     this.publisher = null
   }
 
   // Static constructor
   static async init (
-    plugin: typeof Janus, 
+    webrtcPlugin: typeof Janus, 
     pluginName: JanusPlugin.VITE_WEBRTC_PLUGIN, 
     options?: HandlerDescription
   ): Promise<SubscriberStreamHandler | null> {
     
     try {
-      const result = await super.init(plugin, pluginName)
+      const result = await super.init(webrtcPlugin, pluginName)
 
       if (!result) {
         return null
       }
       const { handler, emitter } = result
-      const streamHandler = new SubscriberStreamHandler({plugin, handler, emitter})
+      const streamHandler = new SubscriberStreamHandler({webrtcPlugin, handler, emitter})
       streamHandler.listen()
       return streamHandler
     } catch (err) {

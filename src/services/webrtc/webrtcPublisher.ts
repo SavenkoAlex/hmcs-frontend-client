@@ -33,26 +33,26 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   options: HandlerDescription
 
   private constructor ({
-    plugin,
+    webrtcPlugin,
     handler, 
     emitter,
     options
   }: Required<WebRTCHandlerConstructor>) {
-    super({plugin, handler, emitter})
+    super({webrtcPlugin, handler, emitter})
     this.roomNumber = null
     this.options = options
     this.mediaTrack = null
   }
 
   // Static constructor
-  static async init (plugin: typeof Janus, pluginName: JanusPlugin, options: HandlerDescription) {
+  static async init (webrtcPlugin: typeof Janus, pluginName: JanusPlugin, options: HandlerDescription) {
     try {
-      const result = await super.init(plugin, pluginName, options)
+      const result = await super.init(webrtcPlugin, pluginName)
       if (!result) {
         return null
       }
       const { handler, emitter } = result
-      const streamHandler = new PublisherStreamHandler({plugin, handler, emitter, options})
+      const streamHandler = new PublisherStreamHandler({webrtcPlugin, handler, emitter, options})
       streamHandler.listen()
       return streamHandler
     } catch (err) {

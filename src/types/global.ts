@@ -189,7 +189,7 @@ export interface HandlerDescription {
 }
 
 export type WebRTCHandlerConstructor = {
-  plugin: typeof Janus,
+  webrtcPlugin: typeof Janus,
   handler: JanusJS.PluginHandle, 
   emitter: eventEmitter.EventEmitter,
   options?: HandlerDescription

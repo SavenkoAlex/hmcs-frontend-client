@@ -77,12 +77,12 @@ export class ChatHandler extends StreamHandler {
   transactions: Record <string, unknown>
 
   private constructor({
-    plugin,
+    webrtcPlugin,
     handler,
     emitter,
     options
   }: WebRTCHandlerConstructor) {
-    super({plugin, handler, emitter})
+    super({webrtcPlugin, handler, emitter})
     this.transaction = Janus.randomString(12)
     this.transactions = {}
     if (options) {
@@ -90,8 +90,8 @@ export class ChatHandler extends StreamHandler {
     }
   }
 
-  static async init (plugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription) {
-    const result = await super.init(plugin, pluginName)
+  static async init (webrtcPlugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription) {
+    const result = await super.init(webrtcPlugin, pluginName)
 
     if (!result) {
       return null
@@ -100,7 +100,7 @@ export class ChatHandler extends StreamHandler {
     const { handler, emitter } = result
 
     const chatHandler = new ChatHandler({
-      plugin,
+      webrtcPlugin,
       handler,
       emitter,
       options: options || undefined
