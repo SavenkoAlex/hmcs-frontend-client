@@ -10,7 +10,7 @@ import {
 } from '@/types/global'
 
 type WebRTCHandlerConstructor = {
-  webrtcPlugin: typeof Janus,
+  webrtcPlugin: typeof JanusJS.Janus,
   handler: JanusJS.PluginHandle, 
   emitter: eventEmitter.EventEmitter,
 }
@@ -47,11 +47,7 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
           },
         })
       },
-      error: (err) => {
-        console.error(err)
-        reject(err)
-      },
-
+      error: (err) => reject(err),
       destroyed: () => {
         emitter.emit('destroyed')
       }
@@ -76,26 +72,29 @@ export abstract class StreamHandler {
       this.emitter = emitter
     }
 
-  static async init (webrtcPlugin: typeof Janus, pluginName: JanusPlugin, ...args: any[]): Promise <InitResult <Handler>> {
-    
+  static async init (plugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription): Promise <InitResult <Handler>> {
+    if (!plugin) {
+      plugin = Janus
+    }
+
+    plugin.init({
+      debug: true,
+      dependencies: Janus.useDefaultDependencies({ adapter }),
+    })
+
     try {
-      webrtcPlugin.init({
-        debug: true,
-        dependencies: Janus.useDefaultDependencies({ adapter }),
-      })
-
       const instance = await webRTCInstance<Handler>(pluginName)
-
       if (!instance?.handler || !instance?.emitter) {
         return null
       }
-
       return { handler: instance.handler, emitter: instance.emitter } 
     } catch (err) {
       console.error(err)
       return null
     }
+
   }
 
   protected abstract listen (): void 
+
 }

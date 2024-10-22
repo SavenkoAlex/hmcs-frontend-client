@@ -184,7 +184,8 @@ export const enum JanusPlugin {
 
 /** plugin handler parameters */
 export interface HandlerDescription {
-  streamId: number
+  // stream id of publisher used as room id
+  roomId: number
   displayName: string,
 }
 

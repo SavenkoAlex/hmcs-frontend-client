@@ -17,6 +17,7 @@ import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import StateBar from '@/components/StateBar/StateBar'
 import Chat from '@/components/Chat/Chat'
 import BaseVideo from '@/components/Video/Video'
+import Loader from '@/components/general/Loader/Loader' 
 
 /** types */
 import { UserRole, MediaDevice, pubKey, chatKey} from '@/types/global'
@@ -30,6 +31,9 @@ import { mapActions, mapGetters } from 'vuex'
 /** layout */
 import RoomLayout from '@/layouts/Room/Room'
 
+/** notifier */
+import { useToast } from 'vue-toastification'
+
 export default defineComponent({
 
   name: 'Publisher',
@@ -38,7 +42,8 @@ export default defineComponent({
     TextButton,
     Chat,
     BaseVideo,
-    RoomLayout
+    RoomLayout,
+    Loader
   },
 
   computed: {
@@ -68,6 +73,8 @@ export default defineComponent({
     const publisherHandler = inject <PublisherStreamHandler | null> (pubKey, null)
     const chatHandler = inject <ChatHandler | null> (chatKey, null)
     const isRoomCreated = ref<boolean> (false)
+    const isLoading = ref<boolean>(false)
+    const toast = useToast()
 
     return {
       publisherNode,
@@ -82,7 +89,9 @@ export default defineComponent({
       crypto,
       isRoomCreated,
       publisherHandler,
-      chatHandler
+      chatHandler,
+      isLoading,
+      toast
     }
   },
 
@@ -140,7 +149,10 @@ export default defineComponent({
         return
       }
 
+      this.isLoading = true
       const destryed = await this.publisherHandler.destroyStream()
+      this.isLoading = false
+
       if (destryed) {
         this.isRoomCreated = false
       }
@@ -158,7 +170,9 @@ export default defineComponent({
         return
       }
 
+      this.isLoading = true
       this.isRoomCreated = await this.publisherHandler.createStream(this.videoTrack)
+      this.isLoading = false
     },
 
     getNewPublisherId (): number | null {
@@ -201,6 +215,11 @@ export default defineComponent({
 
   async mounted () {
 
+    this.publisherHandler?.emitter.on('error', err => {
+        console.error(err)
+        this.toast.error(this.$t('services.webrtc.errors.commonStreamError'))
+    })
+
     this.getUserMedia().then(() => {
 
       this.publisherStream.forEach(stream => stream.getTracks().forEach(track => {
@@ -225,6 +244,7 @@ export default defineComponent({
   render (): VNode {
     return <RoomLayout>
       {{
+        default: () => <Loader isVisible={this.isLoading }/>,
         media: () => <div class="publisher-stream__publisher-video">
             <TransitionGroup>
               {

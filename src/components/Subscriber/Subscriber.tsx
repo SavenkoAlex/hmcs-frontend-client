@@ -96,6 +96,7 @@ export default defineComponent({
     return {
       publisher: null,
       publisherAccount: null,
+      isPublisherAvailable: false
     }
   },
 
@@ -142,6 +143,17 @@ export default defineComponent({
     if (!this.mountPoint) {
       return
     }
+
+    if (!this.subscriberHandler) {
+      return
+    }
+
+    if (!this.publisherId || !this.publisher.streamId) {
+      return
+    }
+    this.subscriberHandler.emitter.on('track', this.onremotetrack)
+    this.subscriberHandler.join(this.publisherId, this.publisher.streamId)
+      .then(result => this.isPublisherAvailable = result)
   },
 
   unmounted () {

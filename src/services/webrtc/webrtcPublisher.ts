@@ -6,6 +6,7 @@ import {
   WebRTCHandlerConstructor 
 } from '@/types/global'
 
+import { PLUGIN_EVENT } from '@/types/janus'
 /**
  * Some WebRTC plugin with init (activate) function
  */
@@ -64,30 +65,25 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   // attach a event listener on janus events
   protected listen () {
     // Catching Janus on message event
-    this.emitter.on('message', ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
-      console.log('message: ', msg)
+    this.emitter.on('message', async ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
       if (msg.error) {
         console.error(msg.error)
         this.emitter.emit('error', msg.error)
         return
       }
 
-      const msgType = msg.videoroom
-
-      if (msgType === 'joined') {
-
-        this.createOffer().then(async jsep => {
-          if (jsep) {
-            await this.publish(jsep)
-          } else {
-            console.error('offer is not created')
-            return
-          }
-        })
-      }
-      
       if (jsep) {
         this.handler.handleRemoteJsep({ jsep })
+        return
+      }
+      
+      const eventType: PLUGIN_EVENT = msg.videoroom
+
+      try {
+        await this.handlePluginEvent(eventType)
+      } catch (err) {
+        console.error(err)
+        this.emitter.emit('error', err)
       }
     })
 
@@ -96,36 +92,54 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     })
 
     this.emitter.on('destroyed', (event) => {
-      console.log('DESTROYED')
       this.emitter.emit('destroyed', event) 
     })
+  }
 
+  protected async handlePluginEvent (eventType: PLUGIN_EVENT) {
+    switch (eventType) {
+      case PLUGIN_EVENT.PUB_JOINED:
+        const jsep = await this.createOffer()
+        if (!jsep) {
+          console.error('offer is not created')
+          return 
+        }
+        await this.publish(jsep)
+        break
+
+      default:
+        console.warn('unhandled message ', eventType)
+    }
   }
 
   /**
    * Send create room request 
    * @returns { number | false } room number or false in case of fail
    */
-  private createRoom (options: Pick <HandlerDescription, 'streamId' | 'displayName'>): Promise <number | false> {
-    return new Promise ((resolve, reject) => {
+  private createRoom (): Promise <number | false> {
+    return new Promise (resolve => {
       if (!this.handler) {
-        reject('No plugin available')
+        resolve(false)
       }
 
       const message = {
         request: 'create',
-        room: options.streamId,
-        description: options.displayName,
-        permanent: false
+        room: this.options.roomId,
+        description: this.options.displayName,
+        permanent: true
       }
 
       this.handler?.send({
         message,
-        success: (roomNumber) => {
-          resolve(roomNumber)
+        success: (response) => {
+          if (response?.room) {
+            resolve(response.room)
+            return
+          }
+          resolve(false)
         },
         error: (err) => {
-          console.error('Error requested room creating', err)
+          console.error(err)
           resolve(false)
         }
       })
@@ -138,80 +152,51 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * @returns true or false depending on response
    */
   private joinAsPublisher (): Promise <boolean> {
-    return new Promise ((resolve, reject) => {
+    return new Promise (resolve => {
       if (!this.handler) {
-        reject('No plugin available')
+        resolve(false)
       }
 
       const message = {
         request: 'join',
         ptype: 'publisher',
-        room: this.options.streamId,
-        id: this.options.streamId,
+        room: this.options.roomId,
+        id: this.options.roomId,
         display: this.options.displayName
       }
 
       this.handler?.send({
         message,
-        success: (data) => resolve(true),
-        error: () => resolve(false)
+        success: () => resolve(true),
+        error: (err) => {
+          console.error(err)
+          resolve(false)
+        } 
       })
     })
   }
   
   /**
-   * Forward stream to RTMP
-   * @returns { boolean } 
-   */
-  async forwardRTP (): Promise <boolean> {
-    return new Promise ((resolve, reject) => {
-      if (!this.handler) {
-        reject('No plugin available')
-      }
-       
-      if (!this.options.streamId) {
-        reject('No publisher id provided')
-      }
-
-      const message = {
-        request: 'rtp_forward',
-        room: this.options.streamId,
-        publisher_id: this.options.streamId,
-        host: '192.168.0.115',
-        streams: [{
-          mid: '0',
-          port: 12121
-        }]
-      }
-
-      this.handler.send({
-        message,
-        success: () => resolve(true),
-        error: (err) => { console.error('err: ', err); resolve(false) }
-      })
-    })
-  }
-
-  /**
    * 
    * @param jsep 
    * @returns 
    */
-  private async publish (jsep: JanusJS.JSEP): Promise <true | false> {
+  private async publish (jsep: JanusJS.JSEP, mediaId?: string): Promise <boolean> {
 
-    return new Promise ((resolve, reject) => {
-      if (!this.handler || !this.options.streamId) {
-        reject('No plugin available')
+    return new Promise (resolve => {
+      if (!this.handler || !this.options.roomId) {
+        resolve(false)
       }
 
       const message = {
         request: 'publish',
         display: this.options.displayName,
-        audio: false,
+        audio: true,
         video: true,
         descriptions: [{
-          mid: '0',
-          description: `${this.options.streamId} stream`
+          // media id?
+          mid: mediaId || '0',
+          description: `${this.options.displayName} stream`
         }]
       }
 
@@ -219,16 +204,19 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         message,
         jsep,
         success: () =>  resolve(true),
-        error: (err) => { console.error('err: ', err); resolve(false) }
+        error: (err) => { 
+          console.error(err)
+          resolve(false) 
+        }
       })
     })
   }
 
   private async createOffer (): Promise <JanusJS.JSEP | false> {
-    return new Promise ((resolve, reject) => {
+    return new Promise (resolve => {
       
       if (!this.handler || !this.mediaTrack) {
-        reject('No plugin available')
+        resolve(false)
         return
       }
 
@@ -241,7 +229,10 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
           capture: false
         }],
         success: (jsep) => resolve (jsep),
-        error: () => resolve(false)
+        error: (err) => {
+          console.error(err)
+          resolve(false)
+        }
       })
     })
   }
@@ -259,13 +250,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     }
 
     try {
-
       this.mediaTrack = track
-
-      const roomNumber = await this.createRoom({ 
-        streamId: this.options.streamId, 
-        displayName: this.options.displayName 
-      })
+      const roomNumber = await this.createRoom()
 
       if (!roomNumber) {
         console.error('room is not available')
@@ -281,22 +267,22 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   }
 
   async destroyStream (): Promise<boolean> {
-    return new Promise ((resolve, reject) => {
-        if (!this.handler) {
-          reject('No plugin available')
-        }
+    return new Promise (resolve => {
+      if (!this.handler) {
+        resolve(false)
+      }
 
-        const message = {
-          request: 'destroy',
-          room: this.options.streamId,
-        }
+      const message = {
+        request: 'destroy',
+        room: this.options.roomId,
+        permanent: true
+      }
 
-        this.handler?.send({
-          message,
-          success: () => resolve(true),
-          error: () => resolve(false)
-        })
+      this.handler?.send({
+        message,
+        success: () => resolve(true),
+        error: () => resolve(false)
       })
+    })
   }
-
 }

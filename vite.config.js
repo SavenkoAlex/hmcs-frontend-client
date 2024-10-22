@@ -38,7 +38,7 @@ export default defineConfig({
       cert: fs.readFileSync(path.resolve(__dirname, 'certs/taro.com.crt'))
     },
     cors: {
-      origin: false
+      origin: true
     },
     proxy: {
       '/api' : {

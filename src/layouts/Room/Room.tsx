@@ -12,6 +12,7 @@ export default defineComponent({
 
   render (): VNode {
     return <div class='room'>
+      { this.$slots.default?.() }
       <div class='room__media'>
         { this.$slots.media?.() }
       </div>
