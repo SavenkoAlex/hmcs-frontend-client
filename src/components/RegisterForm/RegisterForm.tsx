@@ -161,7 +161,9 @@ export default defineComponent({
 
     return <div class='register-form'>
       {
-        this.isLoading ? <Loader/> :  null 
+        <Loader
+          isVisible={this.isLoading}
+        />
       }
       <Form
         

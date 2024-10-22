@@ -128,7 +128,7 @@ export default defineComponent({
 
     handleData (data: string): void {
       try {
-        const dataParsed: JanusTextMessage = JSON.parse(data)
+        const dataParsed: JanusTextMessage = typeof data === 'string' ? JSON.parse(data) : data
 
         if (dataParsed.textroom === 'message' && this.currentChat) {
           this.chatLinks[this.currentChat].messages.push({

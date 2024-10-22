@@ -46,12 +46,12 @@
     }
   },
   "routes": {
-    "streams": "Стримы",
-    "stream": "Стрим",
+    "streams": "Эфиры",
+    "stream": "Эфир",
     "login": "Вход",
     "register": "Регистрация",
     "user": "Профиль",
-    "live": "Стрим"
+    "live": "Эфир"
   },
   "common": {
     "apply": "применить",
@@ -81,7 +81,8 @@
   "services": {
     "webrtc": {
       "errors": {
-        "webRTCIsNotAvailable": "Соединение не установлено, передача видео не возможна"
+        "webRTCIsNotAvailable": "Соединение не установлено, передача видео не возможна",
+        "commonStreamError": "Произошла ошибка при передаче видео"
       }
     }
   }

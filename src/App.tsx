@@ -120,7 +120,7 @@ export default defineComponent({
       }
 
       PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
-        streamId: this.userData.streamId,
+        roomId: this.userData.streamId,
         displayName: this.userData.username
       }).then(result => {
         this.publisherHandler = result
