@@ -81,8 +81,25 @@
   "services": {
     "webrtc": {
       "errors": {
-        "webRTCIsNotAvailable": "Соединение не установлено, передача видео не возможна",
-        "commonStreamError": "Произошла ошибка при передаче видео"
+        "webRTCIsNotAvailable": "Соединение не установлено",
+        "canNotStartStream": "Не возможно начать эфир",
+        "canNotStopStream": "Не возможно остановить эфир",
+        "userVideoIsNotAvailable": "Видео пользователя недоступно",
+        "commonStreamError": "Произошла ошибка при передаче видео",
+        "canNotConnectStream": "Не удалось подключиться к стриму"
+      },
+      "success": {
+        "streamStarted": "Эфир начался, Вы онлайн",
+        "streamStopped": "Эфир закончен"
+      }
+    },
+    "chat": {
+      "errors": {
+        "chatHandlerIsNotAvailable": "Чат недоступен",
+        "canNotConnectChat": "Не удалось подключиться к чату"
+      },
+      "success": {
+        "chatConnected": "Соединение с чатом установлено"
       }
     }
   }

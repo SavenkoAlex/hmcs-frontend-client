@@ -199,7 +199,8 @@ export class ChatHandler extends StreamHandler {
       const message = {
         request: 'create',
         room: streamId,
-        transaction: this.transaction 
+        transaction: this.transaction,
+        permanent: true
       }
 
       this.handler.send({ 

@@ -29,4 +29,6 @@ export const enum PLUGIN_EVENT  {
   RTP_FWD_LIST = 'rtp_fwd_list',
   SUCCESS = 'success',
   ERROR = 'error',
+  REMOTE_TRACK = 'remotetrack',
+  MESSAGE = 'message'
 }

@@ -36,11 +36,7 @@ export default defineComponent({
   watch: {
     pluginHandler: {
       handler: function () {
-        this.getRooms().then(result => {
-          for (const room of result) {
-            this.rooms[room.room] = room
-          }
-        })
+        this.markOnline()
       }
     }
   },
@@ -71,8 +67,17 @@ export default defineComponent({
       const rooms = await this.pluginHandler.getPublishers()
       return rooms || []
 
-    }
+    },
+
+    markOnline () {
+      this.getRooms().then(result => {
+        for (const room of result) {
+          this.rooms[room.room] = room
+        }
+      })
+    },
   },
+
 
   async mounted () {
 
@@ -80,6 +85,7 @@ export default defineComponent({
     if (users && users.length > 0) {
       this.users = users
     }
+    this.markOnline()
   },
 
   render (): VNode {
