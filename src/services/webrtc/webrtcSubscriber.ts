@@ -10,6 +10,7 @@ import {
   WebRTCHandlerConstructor,
   Room
 } from '@/types/global'
+import { PLUGIN_EVENT } from '@/types/janus'
 
 /**
  * WebRTCHandler main functions to control webrtc connection (subscriber)
@@ -71,24 +72,49 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
   // attach a event listener on janus events
   protected listen () {
     // Catching Janus on message event
-    this.emitter.on('message', ({jsep}: {jsep: JanusJS.JSEP}) => {
+    this.emitter.on(PLUGIN_EVENT.MESSAGE, async ({jsep, msg}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+      if (msg.error) {
+        console.error(msg.error)
+        this.emitter.emit('error', msg.error)
+        return
+      }
+
       if (jsep) {
         this.handler.createAnswer({
           jsep,
           success: (sdp) => this.connect(sdp)
         })
       }
+
+      const eventType: PLUGIN_EVENT = msg.videoroom
+
+      try {
+        await this.handlePluginEvent(eventType)
+      } catch (err) {
+        console.error(err)
+        this.emitter.emit('error', err)
+      }
     })
 
-    this.emitter.on('remotetrack', (track, mid, on, metadata) => {
-      this.emitter.emit('remotetrack', {
+    this.emitter.on(PLUGIN_EVENT.REMOTE_TRACK, (track, mid, on, metadata) => {
+      this.emitter.emit('track', {
         track,
         mid,
         on,
         metadata
       })
     }) 
+  }
 
+  protected async handlePluginEvent (eventType: PLUGIN_EVENT) {
+    switch (eventType) {
+      case PLUGIN_EVENT.SUB_JOINED:
+        this.emitter.emit('startstream')
+        break
+
+      default:
+        console.warn('unhandled message ', eventType)
+    }
   }
 
   async leave () {

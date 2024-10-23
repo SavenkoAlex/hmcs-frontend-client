@@ -6,7 +6,8 @@ import {
   inject,
   Transition,
   TransitionGroup,
-  provide
+  provide,
+  Ref
 } from 'vue'
 
 // style
@@ -106,6 +107,16 @@ export default defineComponent({
       this.videoTrack = newValue[0].getVideoTracks()[0]
       this.audioTrack = newValue[0].getAudioTracks()[0]
     },
+
+    publisherHandler : {
+      handler: function (newValue: PublisherStreamHandler | null) {
+        if (!newValue) {
+          return
+        }
+        this.listenToEvents()
+      },
+      immediate: true
+    } 
   },
 
   methods: {
@@ -146,6 +157,7 @@ export default defineComponent({
     async destroyRoom (): Promise <void> {
       if (!this.publisherHandler) {
         console.error('no webrtc plugin availabell')
+        this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
         return
       }
 
@@ -153,26 +165,41 @@ export default defineComponent({
       const destryed = await this.publisherHandler.destroyStream()
       this.isLoading = false
 
-      if (destryed) {
+      if (!destryed) {
+        this.toast.error(this.$t('services.webrtc.errors.canNotStopStream'))
+      } else {
+        /**
+         * just catching case room is destroyed
+         * because we dont want to make room availabele
+         * when room is not created but destoy method some how was executed
+         * */
         this.isRoomCreated = false
       }
+
     },
 
-    async createRoom (): Promise <void> {
+    async startStream (): Promise <void> {
       
       if (!this.publisherHandler) {
+        this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
         console.error('no webrtc plugin availabele')
         return
       }
 
       if (!this.videoTrack) {
+        this.toast.error(this.$t('services.webrtc.errors.userVideoIsNotAvailable'))
         console.error('local video not detected')
         return
       }
 
       this.isLoading = true
-      this.isRoomCreated = await this.publisherHandler.createStream(this.videoTrack)
-      this.isLoading = false
+      const startResult = await this.publisherHandler.createStream(this.videoTrack)
+
+      if (!startResult) {
+        this.isLoading = false
+        this.toast.error(this.$t('services.webrtc.errors.canNotStartStream'))
+      }
+
     },
 
     getNewPublisherId (): number | null {
@@ -193,7 +220,7 @@ export default defineComponent({
         return
       }
 
-      this.createRoom()
+      this.startStream()
     },
 
     muteVideo (): void {
@@ -210,14 +237,27 @@ export default defineComponent({
 
     unMuteAudio (): void {
       this.publisherStream?.forEach(stream => stream.getAudioTracks().forEach(track => track.enabled = true))
+    },
+
+    listenToEvents (): void {
+      this.publisherHandler?.emitter.on('error', err => {
+        console.error(err)
+        this.isRoomCreated = false
+        this.isLoading = false
+        this.destroyRoom()
+        this.toast.error(this.$t('services.webrtc.errors.commonStreamError'))
+    })
+
+    this.publisherHandler?.emitter.on('startstream', () => {
+      this.isRoomCreated = true
+      this.isLoading = false
+    })
     }
   },
 
   async mounted () {
 
-    this.publisherHandler?.emitter.on('error', err => {
-        console.error(err)
-        this.toast.error(this.$t('services.webrtc.errors.commonStreamError'))
+    this.$nextTick(() => {
     })
 
     this.getUserMedia().then(() => {
@@ -238,6 +278,7 @@ export default defineComponent({
   },
 
   unmounted () {
+    this.publisherHandler?.emitter.removeAllListeners()
     this.destroyRoom()
   },
 
@@ -274,6 +315,7 @@ export default defineComponent({
             this.userData.username && <Chat
               room={this.userData.streamId}
               chatName={this.userData.username || 'no-name'}
+              isRoomAvailable={this.isRoomCreated}
             />
           }
         </div>

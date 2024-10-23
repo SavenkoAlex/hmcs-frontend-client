@@ -36,6 +36,10 @@ import RoomLayout from '@/layouts/Room/Room'
 /**images */
 import bg from '@/assets/images/taro-bg.jpg'
 
+/** notifier */
+import { useToast } from 'vue-toastification'
+import Subscriber from '@/pages/Subscriber/Subscriber'
+
 export default defineComponent({
 
   name: 'Subscriber',
@@ -64,6 +68,18 @@ export default defineComponent({
     },
   },
 
+  watch: {
+    subscriberHandler: {
+      handler (newValue) {
+        if (!newValue) {
+          return
+        }
+        this.addListeners()
+      },
+      immediate: true
+    }
+  },
+
   setup () {
 
     const remoteStream = ref <MediaStream> ()
@@ -78,6 +94,8 @@ export default defineComponent({
     const chatPluginHandler = inject <ChatHandler | null> (chatKey, null)
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
+    const toast = useToast()
+    const isJoined = ref <boolean> (false)
 
     return {
       remoteStream,
@@ -88,7 +106,9 @@ export default defineComponent({
       audioTrack,
       mountPoint,
       subscriberName,
-      subscriberHandler
+      subscriberHandler,
+      toast,
+      isJoined
     }
   },
 
@@ -115,13 +135,31 @@ export default defineComponent({
       this.remoteStream = new MediaStream([track])
       if (this.remoteStream && this.remoteVideoNode) {
         Janus.attachMediaStream(this.remoteVideoNode, this.remoteStream)
+        this.isJoined
+        return
       }
+      this.toast(this.$t('services.webrtc.errors.canNotConnectStream'))
     },
 
     collapseVideo (event: Event) {
       const video = event.target as HTMLVideoElement
       video.play()
     },
+
+    onError (error: Error) {
+      console.error(error)
+      this.toast(this.$t('services.webrtc.errors.canNotConnectStream'))
+      this.isJoined = false
+    },
+
+    onJoined () {
+      this.isJoined = true
+    },
+
+    addListeners () {
+      this.subscriberHandler?.emitter.on('track', this.onremotetrack)
+      this.subscriberHandler?.emitter.on('error', error => this.onError(error))
+    }
   },
 
   async mounted () {
@@ -151,9 +189,11 @@ export default defineComponent({
     if (!this.publisherId || !this.publisher.streamId) {
       return
     }
-    this.subscriberHandler.emitter.on('track', this.onremotetrack)
-    this.subscriberHandler.join(this.publisherId, this.publisher.streamId)
-      .then(result => this.isPublisherAvailable = result)
+
+    const isJoined = await this.subscriberHandler.join(this.publisherId, this.publisher.streamId)
+    if (!isJoined) {
+       this.toast(this.$t('services.webrtc.errors.canNotConnectStream'))
+    }
   },
 
   unmounted () {
@@ -195,6 +235,7 @@ export default defineComponent({
           <Chat
             chatName={this.publisher?.username || '-'}
             room={this.publisher?.streamId || 0}
+            isRoomAvailable={this.isJoined}
           />
         </div>
       }}

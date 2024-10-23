@@ -101,10 +101,20 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       case PLUGIN_EVENT.PUB_JOINED:
         const jsep = await this.createOffer()
         if (!jsep) {
+          this.emitter.emit('error', 'answer is not created')
           console.error('offer is not created')
           return 
         }
-        await this.publish(jsep)
+        const publishResult = await this.publish(jsep)
+        if (publishResult) {
+          this.emitter.emit('startstream')
+        } else {
+          this.emitter.emit('error', 'publishing failed')
+        }
+        break
+
+      case PLUGIN_EVENT.CREATED:
+        this.emitter.emit('roomcreated')
         break
 
       default:
@@ -120,6 +130,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     return new Promise (resolve => {
       if (!this.handler) {
         resolve(false)
+        return
       }
 
       const message = {
@@ -136,6 +147,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
             resolve(response.room)
             return
           }
+          // resolve sensible description like room exists
           resolve(false)
         },
         error: (err) => {
@@ -149,12 +161,13 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   /**
    * send join request as publisher (ptype = 'publisher') 
    * @param options stream sys data
-   * @returns true or false depending on response
+   * @returns true or false depending on request is sended (but does not mean join successfully)
    */
   private joinAsPublisher (): Promise <boolean> {
     return new Promise (resolve => {
       if (!this.handler) {
         resolve(false)
+        return
       }
 
       const message = {
@@ -167,7 +180,9 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
 
       this.handler?.send({
         message,
-        success: () => resolve(true),
+        success: () => {
+          resolve(true)
+        },
         error: (err) => {
           console.error(err)
           resolve(false)
@@ -186,6 +201,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     return new Promise (resolve => {
       if (!this.handler || !this.options.roomId) {
         resolve(false)
+        return
       }
 
       const message = {

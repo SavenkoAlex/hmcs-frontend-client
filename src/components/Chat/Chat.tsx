@@ -30,6 +30,9 @@ import { mapGetters } from 'vuex'
 /** helpers */
 import { formatTime } from '@/helpers/helper'
 
+/** notifier */
+import { useToast } from 'vue-toastification'
+
 export default defineComponent({
 
   name: 'Chat',
@@ -52,6 +55,12 @@ export default defineComponent({
       type: String as PropType <string>,
       required: true
     },
+
+    /**room createing flag */
+    isRoomAvailable: {
+      type: Boolean as PropType <boolean>,
+      default: false
+    }
   },
 
   computed: {
@@ -70,11 +79,16 @@ export default defineComponent({
       }
     },
 
-    chatHandler (newValue) {
-      if (newValue) {
-        this.initChat ()
-      }
-    }
+    isRoomAvailable: {
+      handler: function (newValue: boolean) {
+        if (!newValue ) {
+          return
+        }
+
+        this.initChat()
+      }, 
+      immediate: true
+    },
   },
 
   setup () {
@@ -85,6 +99,7 @@ export default defineComponent({
     const isRoomExists = ref <boolean> (false)
     const inputMessage = ref <string> ('')
     const chatMessages = ref<HTMLBaseElement>()
+    const toast = useToast()
 
     return {
       chatHandler,
@@ -93,7 +108,8 @@ export default defineComponent({
       isRoomAvailable,
       isRoomExists,
       inputMessage,
-      chatMessages
+      chatMessages,
+      toast
     }
   },
 
@@ -123,7 +139,8 @@ export default defineComponent({
     },
 
     handleError (error: unknown): void {
-      console.error('error handlelr ', error)
+      this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
+      this.isRoomAvailable = false
     },
 
     handleData (data: string): void {
@@ -181,17 +198,26 @@ export default defineComponent({
 
     async joinAsPublisher () {
       if (!this.chatHandler || !this.userData?.streamId || !this.userData?.username) {
+        this.toast.error(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
         return false
       } 
+      
+      if (!this.isRoomExists) {
+        this.isRoomExists = await this.chatHandler.createRoom(this.room)
+      }
 
-      this.isRoomExists = await this.chatHandler.createRoom(this.room)
       if (this.isRoomExists) {
         this.isRoomAvailable = await this.chatHandler.register(this.chatName, this.room)
+      }
+
+      if (!this.isRoomAvailable || !this.isRoomExists) {
+        this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
       }
     },
 
     async join () {
       if (!this.chatHandler) {
+        this.toast.error(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
         return
       }
       /**
@@ -210,20 +236,24 @@ export default defineComponent({
       this.isRoomExists = exists
       if (this.userRole !== UserRole.ANONYMOUS) {
         this.isRoomAvailable = await this.chatHandler.register(this.chatName, this.room)
+        if (!this.isRoomAvailable) {
+          this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
+        }
         return
       }
       this.isRoomAvailable = false
     },
-
     async joinAsSubscriber() {
       if (!this.chatHandler) {
         this.isRoomAvailable = false
+        this.toast(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
         return
       }
 
-      const result = await this.chatHandler.register(this.chatName, this.room)
+      const result = await this.chatHandler.register(this.chatName, this.room * 1000)
 
       if (!result) {
+        this.toast(this.$t('services.chat.errors.canNotConnectChat'))
         this.isRoomAvailable = false
       }
     },
@@ -232,18 +262,23 @@ export default defineComponent({
       if (!this.chatHandler) {
         return
       }
+      this.join()
+    },
 
+    addListeners () {
       this.chatHandler?.emitter.on('pluginerror', this.handleError)
       this.chatHandler?.emitter.on('handlererror', this.handleError)
       this.chatHandler?.emitter.on('handlerdata', this.handleData)
       this.chatHandler?.emitter.on('plugindata', this.handleData)
       this.chatHandler?.emitter.on('dataisopen', this.ondataopen)
-      this.join()
     }
   },
 
   
   mounted() {
+    this.$nextTick(() => {
+      this.addListeners()
+    })
 
     this.currentChat = `${this.$t('components.chat.defaultChatName')} ${this.chatName}`
 
@@ -262,7 +297,10 @@ export default defineComponent({
       })
     }
 
-    this.initChat()
+  },
+
+  unmounted () {
+    this.chatHandler?.emitter.removeAllListeners()
   },
 
   render (): VNode {
@@ -322,7 +360,6 @@ export default defineComponent({
         </div>
         <div class='chat__button'>
           <IconButton
-            //disabled={this.isRoomAvailable}
             mode={'primary'}
             onClick={() => this.addMessage()}
           >
