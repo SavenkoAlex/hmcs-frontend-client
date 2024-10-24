@@ -4,10 +4,7 @@ import {
   VNode,
   ref,
   inject,
-  Transition,
   TransitionGroup,
-  provide,
-  Ref
 } from 'vue'
 
 // style
@@ -25,6 +22,7 @@ import { UserRole, MediaDevice, pubKey, chatKey} from '@/types/global'
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import { States } from '@/types/store'
+import { webRTCEventJanusMap, AttachEvent, VIDEO_ROOM_PLUGIN_EVENT } from '@/types/janus'
 
 /** store */
 import { mapActions, mapGetters } from 'vuex'
@@ -73,7 +71,7 @@ export default defineComponent({
     const crypto = inject<Crypto>('crypto')
     const publisherHandler = inject <PublisherStreamHandler | null> (pubKey, null)
     const chatHandler = inject <ChatHandler | null> (chatKey, null)
-    const isRoomCreated = ref<boolean> (false)
+    const isStreamActive = ref<boolean> (false)
     const isLoading = ref<boolean>(false)
     const toast = useToast()
 
@@ -82,16 +80,15 @@ export default defineComponent({
       clientNode,
       publisherStream,
       clientStream,
-      // TODO: used as room id 
       publisherId,
       constraints,
       videoTrack,
       audioTrack,
       crypto,
-      isRoomCreated,
       publisherHandler,
       chatHandler,
       isLoading,
+      isStreamActive,
       toast
     }
   },
@@ -167,15 +164,7 @@ export default defineComponent({
 
       if (!destryed) {
         this.toast.error(this.$t('services.webrtc.errors.canNotStopStream'))
-      } else {
-        /**
-         * just catching case room is destroyed
-         * because we dont want to make room availabele
-         * when room is not created but destoy method some how was executed
-         * */
-        this.isRoomCreated = false
       }
-
     },
 
     async startStream (): Promise <void> {
@@ -215,7 +204,7 @@ export default defineComponent({
     },
 
     toggleStream (): void {
-      if (this.isRoomCreated) {
+      if (this.isStreamActive) {
         this.destroyRoom()
         return
       }
@@ -240,26 +229,25 @@ export default defineComponent({
     },
 
     listenToEvents (): void {
-      this.publisherHandler?.emitter.on('error', err => {
+      this.publisherHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], err => {
         console.error(err)
-        this.isRoomCreated = false
         this.isLoading = false
         this.destroyRoom()
         this.toast.error(this.$t('services.webrtc.errors.commonStreamError'))
-    })
+      })
 
-    this.publisherHandler?.emitter.on('startstream', () => {
-      this.isRoomCreated = true
-      this.isLoading = false
-    })
+      this.publisherHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED, () => {
+        this.isStreamActive = true
+        this.isLoading = false
+      })
+
+      this.publisherHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED, () => {
+        this.isStreamActive = false
+      }) 
     }
   },
 
   async mounted () {
-
-    this.$nextTick(() => {
-    })
-
     this.getUserMedia().then(() => {
 
       this.publisherStream.forEach(stream => stream.getTracks().forEach(track => {
@@ -277,10 +265,11 @@ export default defineComponent({
     })
   },
 
-  unmounted () {
+  unmounted() {
     this.publisherHandler?.emitter.removeAllListeners()
-    this.destroyRoom()
+    this.publisherHandler?.destroyStream()
   },
+
 
   render (): VNode {
     return <RoomLayout>
@@ -303,7 +292,7 @@ export default defineComponent({
         controls: () => <div class='publisher-stream__controls'>
             <StateBar userRole={UserRole.WORKER}
               onStreamtoggle={() => this.toggleStream()}
-              isStreamActive={this.isRoomCreated}
+              isStreamActive={this.isStreamActive}
               onMuteVideo={(muted) => muted ? this.muteVideo() : this.unMuteVideo()}
               onMuteAudio={(muted) => muted ? this.muteAudio() : this.unMuteAudio()}
               onApplydevices={() => this.applyDevices()}
@@ -311,11 +300,10 @@ export default defineComponent({
           </div>,
         chat: () => <div class='publisher-stream__chat'>
           { 
-            //TODO: if no publisherID dongle
             this.userData.username && <Chat
               room={this.userData.streamId}
               chatName={this.userData.username || 'no-name'}
-              isRoomAvailable={this.isRoomCreated}
+              isRoomAvailable={this.isStreamActive}
             />
           }
         </div>
