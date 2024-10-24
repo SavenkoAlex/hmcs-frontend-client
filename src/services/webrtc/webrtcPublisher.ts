@@ -6,7 +6,7 @@ import {
   WebRTCHandlerConstructor 
 } from '@/types/global'
 
-import { PLUGIN_EVENT } from '@/types/janus'
+import { VIDEO_ROOM_PLUGIN_EVENT, webRTCEventJanusMap, AttachEvent } from '@/types/janus'
 /**
  * Some WebRTC plugin with init (activate) function
  */
@@ -65,10 +65,10 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   // attach a event listener on janus events
   protected listen () {
     // Catching Janus on message event
-    this.emitter.on('message', async ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+    this.emitter.on(webRTCEventJanusMap[AttachEvent.ONMESSAGE], async ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
       if (msg.error) {
         console.error(msg.error)
-        this.emitter.emit('error', msg.error)
+        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], msg.error)
         return
       }
 
@@ -77,13 +77,13 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         return
       }
       
-      const eventType: PLUGIN_EVENT = msg.videoroom
+      const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
 
       try {
         await this.handlePluginEvent(eventType)
       } catch (err) {
         console.error(err)
-        this.emitter.emit('error', err)
+        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], err)
       }
     })
 
@@ -96,25 +96,21 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     })
   }
 
-  protected async handlePluginEvent (eventType: PLUGIN_EVENT) {
+  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT) {
     switch (eventType) {
-      case PLUGIN_EVENT.PUB_JOINED:
+
+      case VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED:
         const jsep = await this.createOffer()
         if (!jsep) {
-          this.emitter.emit('error', 'answer is not created')
+          this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], 'answer is not created')
           console.error('offer is not created')
           return 
         }
-        const publishResult = await this.publish(jsep)
-        if (publishResult) {
-          this.emitter.emit('startstream')
-        } else {
-          this.emitter.emit('error', 'publishing failed')
-        }
+        this.publish(jsep)
         break
 
-      case PLUGIN_EVENT.CREATED:
-        this.emitter.emit('roomcreated')
+      case VIDEO_ROOM_PLUGIN_EVENT.CREATED:
+        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.CREATED)
         break
 
       default:
@@ -192,7 +188,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   }
   
   /**
-   * 
+   * publish media
    * @param jsep 
    * @returns 
    */

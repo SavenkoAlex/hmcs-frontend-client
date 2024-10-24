@@ -10,7 +10,8 @@ import {
   WebRTCHandlerConstructor,
   Room
 } from '@/types/global'
-import { PLUGIN_EVENT } from '@/types/janus'
+
+import { VIDEO_ROOM_PLUGIN_EVENT, webRTCEventJanusMap as webRTCEvent, AttachEvent } from '@/types/janus'
 
 /**
  * WebRTCHandler main functions to control webrtc connection (subscriber)
@@ -72,10 +73,10 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
   // attach a event listener on janus events
   protected listen () {
     // Catching Janus on message event
-    this.emitter.on(PLUGIN_EVENT.MESSAGE, async ({jsep, msg}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+    this.emitter.on(webRTCEvent[AttachEvent.ONMESSAGE], async ({jsep, msg}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
       if (msg.error) {
         console.error(msg.error)
-        this.emitter.emit('error', msg.error)
+        this.emitter.emit(webRTCEvent[AttachEvent.ERROR], msg.error)
         return
       }
 
@@ -86,31 +87,25 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
         })
       }
 
-      const eventType: PLUGIN_EVENT = msg.videoroom
+      const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
 
       try {
         await this.handlePluginEvent(eventType)
       } catch (err) {
         console.error(err)
-        this.emitter.emit('error', err)
+        this.emitter.emit(webRTCEvent[AttachEvent.ERROR], err)
       }
     })
-
-    this.emitter.on(PLUGIN_EVENT.REMOTE_TRACK, (track, mid, on, metadata) => {
-      this.emitter.emit('track', {
-        track,
-        mid,
-        on,
-        metadata
-      })
-    }) 
   }
 
-  protected async handlePluginEvent (eventType: PLUGIN_EVENT) {
+  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT) {
     switch (eventType) {
-      case PLUGIN_EVENT.SUB_JOINED:
-        this.emitter.emit('startstream')
+      case VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED:
+        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED)
         break
+
+      case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
+        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED)
 
       default:
         console.warn('unhandled message ', eventType)

@@ -9,6 +9,9 @@ import {
   HandlerDescription, 
 } from '@/types/global'
 
+import { webRTCEventJanusMap, AttachEvent, VIDEO_ROOM_PLUGIN_EVENT } from '@/types/janus'
+
+/** webrtc handler constains plugin handler and event emitter  */
 type WebRTCHandlerConstructor = {
   webrtcPlugin: typeof JanusJS.Janus,
   handler: JanusJS.PluginHandle, 
@@ -22,6 +25,10 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
 
     const janusInstance = new Janus ({
       server: import.meta.env.VITE_WEBRTC_SERVER,
+      error: (err) => reject(err),
+
+      destroyed: () => emitter.emit('destroyed'),
+      
       success: () => {
         if (!janusInstance) {
           reject('webrtc plugin is not available')
@@ -29,28 +36,77 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
 
         janusInstance.attach({
           plugin: pluginName,
+          
           success: (janusHandler) => { 
             janusHandler.send({ message: { request: 'setup' } })
             resolve({ handler: janusHandler as T, emitter }) 
           },
-          onmessage: (msg: JanusJS.Message, jsep: JanusJS.JSEP | undefined) => {
-            emitter.emit('message', { msg, jsep })
+          
+          error: (error) => {
+            emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], error)
           },
-          onremotetrack: (track: MediaStreamTrack, mid: string, on: boolean, metadata?: unknown) => {
-            emitter.emit('remotetrack', track, mid, on, metadata)
+
+          consentDialog: (on) => {
+            emitter.emit(webRTCEventJanusMap[AttachEvent.CONSENTDIALOG], on)
           },
+
+          webrtcState: (isConnected) => {
+            emitter.emit(webRTCEventJanusMap[AttachEvent.WEBRTCSTATE], isConnected)
+          },
+
+          iceState: (state) => {
+            emitter.emit(webRTCEventJanusMap[AttachEvent.ICESTATE], state)
+          },
+
+          mediaState: (medium, receiving, mid) => {
+            emitter.emit(webRTCEventJanusMap[AttachEvent.MEDIASTATE], { medium, receiving, mid })
+          },
+
+          slowLink: (uplink, lost, mid) => {
+            emitter.emit(webRTCEventJanusMap[AttachEvent.SLOWLINK], { uplink, lost, mid })
+          },
+
+          onmessage: (msg: JanusJS.Message , jsep: JanusJS.JSEP | undefined) => {
+            emitter.emit(webRTCEventJanusMap[AttachEvent.ONMESSAGE], { msg, jsep })
+          },
+          
+          /**
+           * Handles remote track events.
+           * 
+           * @param {MediaStreamTrack} track - The media stream track.
+           * @param {string} mid - The media identifier.
+           * @param {boolean} on - Indicates if the track is active.
+           * @param {unknown} [metadata] - Optional metadata.
+           * @returns {void}
+           */
+          onremotetrack: (track: MediaStreamTrack, mid: string, on: boolean, metadata?: unknown): void => {
+            emitter.emit<{ track: MediaStreamTrack, mid: string, on: boolean, metadata?: unknown }>(
+              webRTCEventJanusMap[AttachEvent.ONREMOTETRACK],
+              { track, mid, on, metadata }
+            );
+          },
+
+          onlocaltrack: (track, on) => {
+            emitter.emit(webRTCEventJanusMap[AttachEvent.ONLOCALTRACK], { track, on })
+          },
+
           ondata: (data: string) => {
-            emitter.emit('data', data)
+            emitter.emit(webRTCEventJanusMap[AttachEvent.ONDATA], data)
           },
           ondataopen: (label: unknown, protocol: unknown) => {
-            emitter.emit('dataopen', label)
+            emitter.emit(webRTCEventJanusMap[AttachEvent.ONDATAOPEN], label)
           },
-        })
+
+          oncleanup: () => {
+            emitter.emit(webRTCEventJanusMap[AttachEvent.ONCLEANUP])
+          },
+
+          ondetached: () => {
+            emitter.emit(webRTCEventJanusMap[AttachEvent.DETACHED])
+          }
+
+        } as JanusJS.PluginOptions )
       },
-      error: (err) => reject(err),
-      destroyed: () => {
-        emitter.emit('destroyed')
-      }
     })
 
   })

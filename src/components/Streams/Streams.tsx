@@ -10,7 +10,7 @@ import {
 import '@/components/Streams/Streams.scss'
 
 /** types */
-import { Room, supKey } from '@/types/global'
+import { Room, supKey, User } from '@/types/global'
 import { StreamsData } from '@/components/Streams/types'
 
 //SVG
@@ -36,67 +36,83 @@ export default defineComponent({
   watch: {
     pluginHandler: {
       handler: function () {
-        this.markOnline()
+        this.getRooms()
+        this.markUsersOnline()
       }
-    }
+    },
   },
 
   setup () {
-    const rooms = ref <Record <number, Room>>({})
     const pluginHandler = inject<SubscriberStreamHandler | null> (supKey, null)
-
     return {
-      rooms,
       pluginHandler,
     }
-
   },
 
   data(): StreamsData {
     return {
-      users: []
+      users: [],
+      rooms: {},
+      userStreams: []
     }
   },
 
   methods: {
-    async getRooms (): Promise <Room[]> {
+    async getRooms (): Promise <void> {
       if (!this.pluginHandler) {
-        return []
+        this.rooms = {}
+        return
       }
 
       const rooms = await this.pluginHandler.getPublishers()
-      return rooms || []
+      
+      if (!rooms || !rooms.length) {
+        this.rooms =  {}
+        return
+      }
 
-    },
-
-    markOnline () {
-      this.getRooms().then(result => {
-        for (const room of result) {
+      for (const room of rooms) {
+        if (room.room) {
           this.rooms[room.room] = room
         }
-      })
+      }
     },
-  },
 
+    async getUsers (): Promise <void> {
+      const users  = await userApi.getUsers()
+      if (users && users.length > 0) {
+        this.users = users
+        return
+      }
+
+      this.users = []
+    },
+
+    markUsersOnline () {
+      const extendedUsers = this.users.map(item => ({
+        user: item,
+        isOnline: (item.streamId && item.streamId in this.rooms) || false
+      }))
+      this.userStreams = extendedUsers
+    }
+  },
 
   async mounted () {
-
-    const users  = await userApi.getUsers()
-    if (users && users.length > 0) {
-      this.users = users
-    }
-    this.markOnline()
+    await this.getRooms()
+    await this.getUsers()
+    this.markUsersOnline()
   },
+
 
   render (): VNode {
     return <div class='streamer-list'>
       {
-        this.users.length ?
-          this.users.map(user => 
+        this.userStreams.length ?
+          this.userStreams.map(({ user, isOnline }) => 
             <div class='streamer-list__item'>
               <StreamItem 
-                stream={user}
-                online={ !!(user?.streamId && user.streamId in this.rooms) }
+                stream={ user }
+                online={ isOnline }
               />
             </div>
           )
