@@ -11,7 +11,7 @@ import {
 import { Chat, Data } from '@/components/Chat/types'
 import { ElementScale, UserRole, chatKey } from '@/types/global'
 import { JanusTextMessage } from '@/services/webrtc/webrtcDataExchange'
-
+import { AttachEvent, TEXT_ROOM_PLUGIN_EVENT, webRTCEventJanusMap } from '@/types/janus'
 /** styles */
 import '@/components/Chat/Chat.scss'
 
@@ -65,18 +65,23 @@ export default defineComponent({
 
   computed: {
     ...mapGetters('user', ['userData', 'userRole']),
+    chatRoom (): number {
+      return (this.room + 1) * 1000
+    }
   },
 
   watch: {
-    room (newValue: number, oldValue) {
-
-      if (newValue == oldValue) {
-        return
-      }
-
-      if (this.chatHandler) {
-        this.chatHandler.destroyHandler(this.room)
-      }
+    chatHandler: {
+      handler: function (newValue: ChatHandler | null) {
+        if (!newValue) {
+          return
+        }
+        this.addListeners()
+        if (this.isRoomAvailable && !this.isRoomExists) {
+          this.initChat()
+        }
+      },
+      immediate: true
     },
 
     isRoomAvailable: {
@@ -84,10 +89,8 @@ export default defineComponent({
         if (!newValue ) {
           return
         }
-
         this.initChat()
       }, 
-      immediate: true
     },
   },
 
@@ -95,7 +98,6 @@ export default defineComponent({
     const chatHandler = inject <ChatHandler | null> (chatKey, null)
     const currentChat = ref <string> ()
     const chatLinks = ref <Record<string, Chat>>({})
-    const isRoomAvailable = ref <boolean> (false)
     const isRoomExists = ref <boolean> (false)
     const inputMessage = ref <string> ('')
     const chatMessages = ref<HTMLBaseElement>()
@@ -105,7 +107,6 @@ export default defineComponent({
       chatHandler,
       currentChat,
       chatLinks,
-      isRoomAvailable,
       isRoomExists,
       inputMessage,
       chatMessages,
@@ -134,13 +135,12 @@ export default defineComponent({
         return false
       }
 
-      const result = await this.chatHandler.sendMessage(text, this.room)
+      const result = await this.chatHandler.sendMessage(text, this.chatRoom)
       return result
     },
 
     handleError (error: unknown): void {
       this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
-      this.isRoomAvailable = false
     },
 
     handleData (data: string): void {
@@ -163,7 +163,6 @@ export default defineComponent({
 
     ondataopen(label: string) {
       this.isRoomExists = true
-      this.isRoomAvailable = this.userRole !== UserRole.ANONYMOUS
     },
 
     /** scroll down chat messages */
@@ -203,11 +202,11 @@ export default defineComponent({
       } 
       
       if (!this.isRoomExists) {
-        this.isRoomExists = await this.chatHandler.createRoom(this.room)
+        this.isRoomExists = await this.chatHandler.createRoom(this.chatRoom)
       }
 
       if (this.isRoomExists) {
-        this.isRoomAvailable = await this.chatHandler.register(this.chatName, this.room)
+        await this.chatHandler.register(this.chatName, this.chatRoom)
       }
 
       if (!this.isRoomAvailable || !this.isRoomExists) {
@@ -223,38 +222,35 @@ export default defineComponent({
       /**
        * depends on user role we have to create or join existing room
        */
-      const exists = await this.chatHandler?.exists(this.room)
+      const exists = await this.chatHandler?.exists(this.chatRoom)
+      this.isRoomExists = exists
 
-      if (exists && this.userRole === UserRole.USER) {
+      if (this.isRoomExists && this.userRole === UserRole.USER) {
         this.joinAsSubscriber()
         return 
-      } else if (!exists && UserRole.WORKER) {
+      } else if (this.userRole === UserRole.WORKER) {
         this.joinAsPublisher()
         return
       }
 
-      this.isRoomExists = exists
       if (this.userRole !== UserRole.ANONYMOUS) {
-        this.isRoomAvailable = await this.chatHandler.register(this.chatName, this.room)
+        await this.chatHandler.register(this.chatName, this.chatRoom)
         if (!this.isRoomAvailable) {
           this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
         }
         return
       }
-      this.isRoomAvailable = false
     },
     async joinAsSubscriber() {
       if (!this.chatHandler) {
-        this.isRoomAvailable = false
         this.toast(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
         return
       }
 
-      const result = await this.chatHandler.register(this.chatName, this.room * 1000)
+      const result = await this.chatHandler.register(this.userData?.username || 'noname', this.chatRoom)
 
       if (!result) {
         this.toast(this.$t('services.chat.errors.canNotConnectChat'))
-        this.isRoomAvailable = false
       }
     },
     
@@ -265,29 +261,27 @@ export default defineComponent({
       this.join()
     },
 
+    destroyChat () {
+      if (!this.chatHandler) {
+        return
+      }
+      this.chatHandler.destroyHandler(this.chatRoom)
+    },
+
     addListeners () {
-      this.chatHandler?.emitter.on('pluginerror', this.handleError)
-      this.chatHandler?.emitter.on('handlererror', this.handleError)
-      this.chatHandler?.emitter.on('handlerdata', this.handleData)
-      this.chatHandler?.emitter.on('plugindata', this.handleData)
-      this.chatHandler?.emitter.on('dataisopen', this.ondataopen)
+      this.chatHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], err => this.handleError(err))
+      this.chatHandler?.emitter.on(TEXT_ROOM_PLUGIN_EVENT.DATA, data => this.handleData(data))
+      this.chatHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ONDATAOPEN], data => this.ondataopen(data))
     }
   },
 
-  
   mounted() {
-    this.$nextTick(() => {
-      this.addListeners()
-    })
-
     this.currentChat = `${this.$t('components.chat.defaultChatName')} ${this.chatName}`
-
     this.chatLinks[this.currentChat] = {
       id: `${this.currentChat}`,
       name: `${this.currentChat}`,
       messages: []
     }
-
     // we need observer to scroll added messages to bottom 
     this.observer = new MutationObserver(this.observeChat)
 
@@ -352,7 +346,7 @@ export default defineComponent({
           <TextInput
             placeholder='Сообщение'
             onEnter={() => this.addMessage()}
-            disabled={!this.isRoomAvailable}
+            disabled={!this.isRoomExists}
             modelValue={this.inputMessage}
             onUpdate:modelValue={(data: string) => this.inputMessage = data}
           >

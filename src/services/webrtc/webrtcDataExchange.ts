@@ -1,14 +1,13 @@
 import Janus, { JanusJS } from 'janus-gateway'
-import eventEmitter from 'events'
-import { 
-  StreamHandler, 
- } from '@/services/webrtc/webrtcAbstract'
+import { StreamHandler } from '@/services/webrtc/webrtcAbstract'
 
  import { 
   JanusPlugin,   
   HandlerDescription,
   WebRTCHandlerConstructor 
 } from '@/types/global'
+
+import { TEXT_ROOM_PLUGIN_EVENT, AttachEvent, webRTCEventJanusMap } from '@/types/janus'
 
 /** message type */
 export const enum MessageType {
@@ -111,9 +110,9 @@ export class ChatHandler extends StreamHandler {
   }
 
   protected listen(): void {
-    this.emitter.on('message', ({ msg, jsep }: { msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+    this.emitter.on(webRTCEventJanusMap[AttachEvent.ONMESSAGE], async ({ msg, jsep }: { msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
       if (msg.error) {
-        this.emitter.emit('pluginerror', msg.error)
+        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], msg.error)
         return
       }
 
@@ -129,31 +128,52 @@ export class ChatHandler extends StreamHandler {
             this.handler.send({ 
               message, 
               jsep, 
-              success: () => this.emitter.emit('connected') ,
-              error: err => this.emitter.emit('pluginerror', err)
+              error: err => this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], err)
             })
           },
-          error: (err) => this.emitter.emit('pluginerror', err)
+          error: (err) => this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], err)
         })
         return
       }
 
-      this.emitter.emit('plugindata', msg)
+      const msgType: TEXT_ROOM_PLUGIN_EVENT = msg.textroom
+
+      try {
+        await this.handlePluginEvent(msgType, msg)
+      } catch (err) {
+        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], err)
+      }
     })
 
-    this.emitter.on('data', data => {
-      if (data?.textroom?.error) {
-        this.emitter.emit('handlererror', data)
-        return
+    this.emitter.on(webRTCEventJanusMap[AttachEvent.ONDATA], data => {
+      try {
+        const parsed = typeof data === 'string' ? JSON.parse(data) : data
+        if (parsed?.error) {
+          this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], parsed.error)
+          return
+        }
+        /** data recieved */
+        this.emitter.emit(TEXT_ROOM_PLUGIN_EVENT.DATA, parsed)
+      } catch (err) {
+        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], err)
       }
-      /** data recieved */
-      this.emitter.emit('handlerdata', data)
-    }),
-    
-    /** data channel openned */
-    this.emitter.on('dataopen', (label) => {
-      this.emitter.emit('dataisopen', label)
+      
     })
+  }
+
+  protected async handlePluginEvent (eventType: TEXT_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
+    switch (eventType) {
+
+      case TEXT_ROOM_PLUGIN_EVENT.JOINED:
+        this.emitter.emit(TEXT_ROOM_PLUGIN_EVENT.JOINED)
+        break;
+
+      case TEXT_ROOM_PLUGIN_EVENT.SUCCESS:
+        console.log('room created', msg)
+
+      default:
+        console.warn('unhandled message ', eventType)
+    }
   }
 
   /** register an user in chat */
@@ -205,8 +225,8 @@ export class ChatHandler extends StreamHandler {
 
       this.handler.send({ 
         message,
-        error: (err) => { console.error(err); resolve(false) },
-        success: (data) => { console.log('success ', data); resolve(true)}
+        error: (err) => resolve(false),
+        success: (data) => resolve(true)
       })
     })
   }
@@ -271,7 +291,8 @@ export class ChatHandler extends StreamHandler {
     return new Promise (resolve => {
       const message = {
         textroom: 'destroy',
-        room: streamId
+        room: streamId,
+        permanent: true
       }
 
       this.handler.data({

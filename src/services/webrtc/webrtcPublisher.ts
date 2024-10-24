@@ -80,23 +80,15 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
 
       try {
-        await this.handlePluginEvent(eventType)
+        await this.handlePluginEvent(eventType, msg)
       } catch (err) {
         console.error(err)
         this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], err)
       }
     })
-
-    this.emitter.on('event', (event) => {
-      this.emitter.emit('event', event)
-    })
-
-    this.emitter.on('destroyed', (event) => {
-      this.emitter.emit('destroyed', event) 
-    })
   }
 
-  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT) {
+  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
     switch (eventType) {
 
       case VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED:
@@ -107,10 +99,11 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
           return 
         }
         this.publish(jsep)
+        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED)
         break
 
-      case VIDEO_ROOM_PLUGIN_EVENT.CREATED:
-        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.CREATED)
+      case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
+        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED)
         break
 
       default:

@@ -31,6 +31,16 @@ export const enum VIDEO_ROOM_PLUGIN_EVENT  {
   RTP_FWD_LIST = 'rtp_fwd_list',
 }
 
+/** text room plugin events */
+export const enum TEXT_ROOM_PLUGIN_EVENT {
+  EDITED = 'edited',
+  DESTROYED = 'destroyed',
+  KICKED = 'kicked',
+  JOINED = 'joined',
+  SUCCESS = 'success',
+  DATA = 'datarecivied'
+}
+
 /** janus attach events */
 export type JanusAttchCb =
   // the handle was successfully created and is ready to be used;
@@ -99,6 +109,24 @@ export const enum AttachEvent {
   ONCLEANUP = 'oncleanup',
   DETACHED = 'detached'
 }
+
+export const enum TextRoomPluginError {
+  JANUS_TEXTROOM_ERROR_NO_MESSAGE	= 411,
+  JANUS_TEXTROOM_ERROR_INVALID_JSON,
+  JANUS_TEXTROOM_ERROR_MISSING_ELEMENT,
+  JANUS_TEXTROOM_ERROR_INVALID_ELEMENT,
+  JANUS_TEXTROOM_ERROR_INVALID_REQUEST,
+  JANUS_TEXTROOM_ERROR_ALREADY_SETUP,
+  JANUS_TEXTROOM_ERROR_NO_SUCH_ROOM,
+  JANUS_TEXTROOM_ERROR_ROOM_EXISTS,
+  JANUS_TEXTROOM_ERROR_UNAUTHORIZED,
+  JANUS_TEXTROOM_ERROR_USERNAME_EXISTS,
+  JANUS_TEXTROOM_ERROR_ALREADY_IN_ROOM,
+  JANUS_TEXTROOM_ERROR_NOT_IN_ROOM,
+  JANUS_TEXTROOM_ERROR_NO_SUCH_USER,
+  JANUS_TEXTROOM_ERROR_UNKNOWN_ERROR =	499
+}
+
 
 export const webRTCEventJanusMap = {
   [AttachEvent.SUCCESS]: 'connected',

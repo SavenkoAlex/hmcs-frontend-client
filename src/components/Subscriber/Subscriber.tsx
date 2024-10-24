@@ -4,7 +4,8 @@ import {
   TransitionGroup,
   Transition,
   VNode,
-  inject
+  inject,
+  useTemplateRef
 } from 'vue'
 
 /** store */
@@ -29,7 +30,7 @@ import userApi from '@/api/user'
 /** types */
 import { Data } from '@/components/Subscriber/types'
 import { StreamRole, supKey, chatKey } from '@/types/global'
-import { webRTCEventJanusMap, AttachEvent } from '@/types/janus'
+import { webRTCEventJanusMap, AttachEvent, VIDEO_ROOM_PLUGIN_EVENT } from '@/types/janus'
 
 /** layouts */
 import RoomLayout from '@/layouts/Room/Room'
@@ -83,7 +84,7 @@ export default defineComponent({
   setup () {
 
     const remoteStream = ref <MediaStream> ()
-    const remoteVideoNode = ref <HTMLMediaElement> ()
+    const remoteVideoNode = useTemplateRef <HTMLMediaElement> ('video')
     const constraints = {
       audio: false,
       video: true
@@ -169,6 +170,11 @@ export default defineComponent({
         webRTCEventJanusMap[AttachEvent.ERROR], error => this.onError(error)
       )
 
+      this.subscriberHandler?.emitter.on(
+        VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED, () => {
+
+        }
+      )
     }
   },
 
@@ -219,6 +225,7 @@ export default defineComponent({
                 srcObject={this.remoteStream}
                 autoplay
                 playsinline
+                ref={'video'}
               />
               </TransitionGroup>
             : <Transition name='offline'>
