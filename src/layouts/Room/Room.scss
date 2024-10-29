@@ -14,10 +14,14 @@
 
   &__controls {
     position: relative;
-    height: fit-content;
+    height: 0;
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
     @media screen and (max-height: 667px) {
-      bottom: 4rem;
+      bottom: 2rem;
     }
   }
 

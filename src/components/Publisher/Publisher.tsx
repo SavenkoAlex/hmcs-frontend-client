@@ -289,15 +289,14 @@ export default defineComponent({
               }
             </TransitionGroup>
           </div>,
-        controls: () => <div class='publisher-stream__controls'>
-            <StateBar userRole={UserRole.WORKER}
-              onStreamtoggle={() => this.toggleStream()}
-              isStreamActive={this.isStreamActive}
-              onMuteVideo={(muted) => muted ? this.muteVideo() : this.unMuteVideo()}
-              onMuteAudio={(muted) => muted ? this.muteAudio() : this.unMuteAudio()}
-              onApplydevices={() => this.applyDevices()}
-            />
-          </div>,
+        controls: () => <StateBar 
+          userRole={UserRole.WORKER}
+          onStreamtoggle={() => this.toggleStream()}
+          isStreamActive={this.isStreamActive}
+          onMuteVideo={(muted) => muted ? this.muteVideo() : this.unMuteVideo()}
+          onMuteAudio={(muted) => muted ? this.muteAudio() : this.unMuteAudio()}
+          onApplydevices={() => this.applyDevices()}
+        />,
         chat: () => <div class='publisher-stream__chat'>
           { 
             this.userData.username && <Chat

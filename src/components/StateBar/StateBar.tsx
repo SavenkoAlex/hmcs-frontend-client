@@ -27,6 +27,7 @@ import MicMuteController from '@/components/MicMuteController/MicMuteController'
 import CameraMuteController from '@/components/CameraMuteController/CameraMuteController'
 import StreamController from '@/components/StreamController/StreamController'
 import AccountIndicator from '@/components/AccountIndicator/AccountIndicator'
+import HidePanelController from '@/components/HidePanelController/HidePanelController'
 
 /** icons */
 import AddCallIcon from '@/assets/images/small/video_call_16dp.svg'
@@ -41,7 +42,8 @@ export default defineComponent({
     IconButton,
     DeviceController,
     MicMuteController,
-    AccountIndicator
+    AccountIndicator,
+    HidePanelController
   },
 
   props: {
@@ -172,10 +174,10 @@ export default defineComponent({
       onUpdate:modelValue={() => this.$emit('streamtoggle')}
     />
 
+    const hide = <HidePanelController/>
     const empty = <div></div>
 
     const elements: Record <StateBarElements, VNode> = {
-      live,
       joinreq,
       devices,
       camera,
@@ -184,19 +186,25 @@ export default defineComponent({
       amount,
       fee,
       stream,
-      empty
+      empty,
+      hide
     }
 
     return <div class='state-bar'>
-      {
-        this.barElements 
-          ? this.barElements.map((item, index) => {
-            return <div class='state-bar__control'>
-                { elements[item] || null } 
-              </div>
-          })
-          : null
-      }  
+      <div class='state-bar__panel'>
+        {
+          this.barElements 
+            ? this.barElements.map(item => {
+              return <div class='state-bar__control'>
+                  { elements[item] || null } 
+                </div>
+            })
+            : null
+        }
+      </div>
+      <div class='state-bar__info'>
+        { live }
+      </div>
     </div>
   }
 })

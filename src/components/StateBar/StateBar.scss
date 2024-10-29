@@ -1,25 +1,23 @@
 
-    
   .state-bar {
-    display: grid;
-    grid-template: 1fr / repeat(6, 1fr);
-    column-gap: 1rem;
-    padding: .5rem 1rem;
-    height: 100%;
-    border-radius: 24px;
-    margin: 0 2px;
-    background-color: rgba($color: $primary-7, $alpha: .7);
 
-    @media screen and (max-height: 667px) {
-      padding: .5rem .5rem;
-      column-gap: .5rem;
+    &__panel {
+      display: grid;
+      grid-auto-flow: column;
+      column-gap: 1rem;
+      border-radius: 24px;
+      background-color: rgba($color: $primary-5, $alpha: .6);
+
+       @media screen and (max-height: 667px) {
+        padding: .5rem .5rem;
+      }
     }
-
+    
     &__live {
-      position: absolute;
+      display: inline-flex;
+      position: fixed;
       top: calc(8vh + 1rem);
       left: 1rem;
-      display: flex;
       flex-direction: row;
       justify-content: center;
       align-items: center;
@@ -30,10 +28,13 @@
     }
 
     &__control {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
       @media screen and (max-height: 667px) {
         width: 2rem;
         height: 2rem;
-        
       }
     }
   }

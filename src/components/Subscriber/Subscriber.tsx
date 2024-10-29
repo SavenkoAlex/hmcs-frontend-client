@@ -238,13 +238,10 @@ export default defineComponent({
               </Transition>
           }
         </div>,
-        controls: () => <div class='subscriber__stream-controls'>
-          <StateBar
-            userRole={this.userData?.role || StreamRole.OBSERVER}
-            amount={this.publisherAccount?.amount || 0}
-          />
-        </div>,
-
+        controls: () => <StateBar
+          userRole={this.userData?.role || StreamRole.OBSERVER}
+          amount={this.publisherAccount?.amount || 0}
+        />,
         chat: () => <div class='subscriber__content'>
           <Chat
             chatName={this.publisher?.username || '-'}
