@@ -5,8 +5,8 @@ import {
 } from 'vue'
 
 /** icons */
-import PlayIcon from '@/assets/images/play_32.svg'
-import StopIcon from '@/assets/images/stop_32.svg'
+import PlayIcon from '@/assets/images/small/play_16dp.svg'
+import StopIcon from '@/assets/images/small/stop_16dp.svg'
 
 /** components  */
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'

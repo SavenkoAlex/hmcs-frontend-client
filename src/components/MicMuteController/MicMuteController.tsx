@@ -5,8 +5,8 @@ import {
 } from 'vue'
 
 /** icons */
-import Mic from '@/assets/images/mic_32.svg'
-import MicOff from '@/assets/images/mic_off_32.svg'
+import Mic from '@/assets/images/small/mic_16dp.svg'
+import MicOff from '@/assets/images/small/mic_off_16dp.svg'
 
 /** components */
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'

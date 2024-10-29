@@ -1,27 +1,30 @@
-@media (max-width: 767px) {
-  .room {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    gap: .1rem;
+.room {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  gap: .1rem;
 
-    &__media {
-      width: 100%;
-      height: fit-content;
-      display: inline-flex;
-      flex: 0 1 auto
-    }
+  &__media {
+    width: 100%;
+    height: fit-content;
+    display: inline-flex;
+    flex: 0 1 auto
+  }
 
-    &__controls {
-      width: 100%;
-      height: fit-content;
+  &__controls {
+    position: relative;
+    height: fit-content;
+    width: 100%;
+    @media screen and (max-height: 667px) {
+      bottom: 4rem;
     }
+  }
 
-    &__chat {
-      width: 100%;
-      display: inline-flex;
-      flex: 1 0 auto;
-    }
+  &__chat {
+    width: 100%;
+    display: inline-flex;
+    flex: 1 0 auto;
   }
 }
 

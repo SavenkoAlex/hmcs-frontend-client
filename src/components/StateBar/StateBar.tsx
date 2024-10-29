@@ -16,7 +16,7 @@ import {
 
 import { Data } from '@/components/StateBar/types'
 
-import { BarConfiguration, BarConfigutations, StateBarElements } from '@/components/StateBar/types'
+import { BarConfigutations, StateBarElements } from '@/components/StateBar/types'
 
 /** components */
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
@@ -29,8 +29,8 @@ import StreamController from '@/components/StreamController/StreamController'
 import AccountIndicator from '@/components/AccountIndicator/AccountIndicator'
 
 /** icons */
-import AddCallIcon from '@/assets/images/video_call_32.svg'
-import PayIcon from '@/assets/images/credit_card_32.svg'
+import AddCallIcon from '@/assets/images/small/video_call_16dp.svg'
+import PayIcon from '@/assets/images/small/send_money_16dp.svg'
 
 export default defineComponent({
 

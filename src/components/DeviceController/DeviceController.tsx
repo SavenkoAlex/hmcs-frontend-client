@@ -28,7 +28,7 @@ import {
 
 /** components */
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
-import CameraIcon from '@/assets/images/gears_32.svg'
+import CameraIcon from '@/assets/images/small/tune_16dp.svg'
 import Modal from '@/components/general/Modal/Modal'
 import Label from '@/components/general/Label/Label'
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'

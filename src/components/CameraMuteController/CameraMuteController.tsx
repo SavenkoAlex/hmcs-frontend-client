@@ -5,8 +5,8 @@ import {
 } from 'vue'
 
 /** icons */
-import Camera from '@/assets/images/videocam_32.svg'
-import CameraOff from '@/assets/images/videocam_off_32.svg'
+import Camera from '@/assets/images/small/videocam_16dp.svg'
+import CameraOff from '@/assets/images/small/videocam_off_16dp.svg'
 
 /** components  */
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
