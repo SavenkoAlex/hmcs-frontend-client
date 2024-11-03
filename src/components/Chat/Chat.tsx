@@ -19,7 +19,7 @@ import '@/components/Chat/Chat.scss'
 import Label from '@/components/general/Label/Label'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
-import Send from '@/assets/images/small/send_money_16dp.svg'
+import Send from '@/assets/images/small/send_24dp.svg'
 
 /** services */
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'

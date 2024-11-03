@@ -17,6 +17,8 @@ export default defineComponent({
 
   name: 'HidePanelController',  
 
+  emits: ['collapsepanel'],
+
   computed: {
     elClass () {
       return this.isHidden ? 'hide-panel-controller_hidden' : 'hide-panel-controller'

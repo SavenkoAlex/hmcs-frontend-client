@@ -1,5 +1,4 @@
 
-@media  (max-width: 767px) {
   .modal {
     &__content {
       min-height: 20%;
@@ -72,7 +71,6 @@
       opacity: 0.6;
     }
   }
-}
 
 .modal-enter-active,
 .modal-leave-active {

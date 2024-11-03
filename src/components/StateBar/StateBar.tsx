@@ -1,7 +1,8 @@
 import {
   defineComponent,
   VNode,
-  PropType
+  PropType,
+  useTemplateRef
 } from 'vue'
 
 /* styles */
@@ -43,7 +44,7 @@ export default defineComponent({
     DeviceController,
     MicMuteController,
     AccountIndicator,
-    HidePanelController
+    HidePanelController,
   },
 
   props: {
@@ -68,7 +69,8 @@ export default defineComponent({
     'muteAudio',
     'muteVideo',
     'updateDevices',
-    'applydevices'
+    'applydevices',
+    'showdevicesconfiguration',
   ],
 
   computed: {
@@ -93,6 +95,18 @@ export default defineComponent({
       return this.isStreaming
         ? this.$t('pages.stateBar.stopStream')
         : this.$t('pages.stateBar.startStream')
+    },
+
+    panelStyle () {
+      return this.isControlHidden
+        ? 'state-bar__panel_hidden'
+        : 'state-bar__panel'
+    },
+    
+    controlStyle () {
+      return this.isControlHidden
+        ? 'state-bar__control_hidden'
+        : 'state-bar__control'
     }
   },
 
@@ -106,7 +120,17 @@ export default defineComponent({
       user: null,
       account: null,
       isCameraMuted: false,
-      isMicMuted: false
+      isMicMuted: false,
+      isControlHidden: false,
+      isDeviceConfigurationVisible: false
+    }
+  },
+
+  setup () {
+    const stateBar = useTemplateRef <HTMLElement> ('statebar')
+
+    return {
+      stateBar
     }
   },
 
@@ -120,7 +144,11 @@ export default defineComponent({
     onVideoMute () {
       this.isCameraMuted = !this.isCameraMuted
       this.$emit('muteVideo', this.isCameraMuted)
-    }
+    },
+
+    collapsePanel(isHidden: boolean): void {
+      this.isControlHidden = isHidden
+    },
   },
 
   render (): VNode {
@@ -141,7 +169,7 @@ export default defineComponent({
     </div>
 
     const devices = <DeviceController
-      onApplydevices={() => this.$emit('applydevices')}
+      onShowdevicesconfiguration={() => this.$emit('showdevicesconfiguration')}
     />
 
     const mic = <MicMuteController 
@@ -154,6 +182,7 @@ export default defineComponent({
       // TODO: Do check
       onUpdate:modelValue={this.onVideoMute}  
     />
+
     const increase = <div class='state-bar__increase'>
       <IconButton
         mode={'primary'}
@@ -174,7 +203,9 @@ export default defineComponent({
       onUpdate:modelValue={() => this.$emit('streamtoggle')}
     />
 
-    const hide = <HidePanelController/>
+    const hide = <HidePanelController
+      onCollapsepanel={(isHidden: boolean) => this.collapsePanel(isHidden)}
+    />
     const empty = <div></div>
 
     const elements: Record <StateBarElements, VNode> = {
@@ -191,13 +222,14 @@ export default defineComponent({
     }
 
     return <div class='state-bar'>
-      <div class='state-bar__panel'>
+      <div class={this.panelStyle} ref={'statebar'}>
         {
           this.barElements 
-            ? this.barElements.map(item => {
-              return <div class='state-bar__control'>
+            ? this.barElements.map((item, index) => {
+              return <div 
+                class={index === this.barElements.length - 1 ? 'state-bar__control' : this.controlStyle}>
                   { elements[item] || null } 
-                </div>
+              </div>
             })
             : null
         }

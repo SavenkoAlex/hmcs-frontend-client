@@ -15,7 +15,9 @@ export type Data = {
   user: null | User,
   account: null | UserAccount,
   isCameraMuted: boolean,
-  isMicMuted: boolean
+  isMicMuted: boolean,
+  isControlHidden: boolean,
+  isDeviceConfigurationVisible: boolean
 }
 
 export type BarConfiguration = {

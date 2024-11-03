@@ -19,7 +19,7 @@ export default defineComponent({
       <div class='room__controls'>
         { this.$slots.controls?.() }
       </div>
-        <div class='room__chat'>
+      <div class='room__chat'>
         { this.$slots.chat?.() }
       </div> 
     </div>
