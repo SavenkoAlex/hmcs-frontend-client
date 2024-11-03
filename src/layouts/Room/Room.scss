@@ -7,9 +7,7 @@
 
   &__media {
     width: 100%;
-    height: fit-content;
     display: inline-flex;
-    flex: 0 1 auto
   }
 
   &__controls {
@@ -29,7 +27,7 @@
   &__chat {
     width: 100%;
     display: inline-flex;
-    flex: 1 0 auto;
+    flex: 1 0 25%;
   }
 }
 
