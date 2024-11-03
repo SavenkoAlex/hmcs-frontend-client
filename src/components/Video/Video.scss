@@ -2,14 +2,34 @@
   width: 100%;
   border-radius: 26px;
   display: flex;
-  flex: 0 1 auto;
+  flex: 0 1 100%;
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  position: relative;
+  height: auto;
+
+  @media (aspect-ratio: 3/4) {
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  }
+
+  @media (aspect-ratio < 9/16) {
+    padding-bottom: 75.25%; /* 16:9 Aspect Ratio */
+  }
   
+  @media (aspect-ratio: 16/9) {
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  }
+
+  // add rules for all popular aspect ratios
+
+
   video {
+    position: absolute;
     width: 100%;
-    height: auto;
+    height: 100%;
+    top: 0;
+    left: 0;
   }
 }
 
