@@ -16,7 +16,7 @@ import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import LiveIndicator from '@/components/LiveIndicator/LiveIndicator'
 
 /** icons */
-import CardsPic from '@/assets/images/cards.svg'
+import CardsPic from '@/assets/images/small/error_16dp.svg'
 
 export default defineComponent({
 

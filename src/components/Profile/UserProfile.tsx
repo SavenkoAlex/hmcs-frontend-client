@@ -20,7 +20,7 @@ import Form from '@/components/general/Form/Form'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
 
 /** icons */
-import DefaultAvatar from '@/assets/images/225-default-avatar.svg'
+import DefaultAvatar from '@/assets/images/small/person_16dp.svg'
 
 /** styles */
 import '@/components/Profile/Profile.scss'

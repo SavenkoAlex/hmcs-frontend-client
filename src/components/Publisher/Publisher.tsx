@@ -16,6 +16,7 @@ import StateBar from '@/components/StateBar/StateBar'
 import Chat from '@/components/Chat/Chat'
 import BaseVideo from '@/components/Video/Video'
 import Loader from '@/components/general/Loader/Loader' 
+import DeviceConfigurationModal from '@/components/DeviceController/DeviceConfigurationModal'
 
 /** types */
 import { UserRole, MediaDevice, pubKey, chatKey} from '@/types/global'
@@ -42,7 +43,8 @@ export default defineComponent({
     Chat,
     BaseVideo,
     RoomLayout,
-    Loader
+    Loader,
+    DeviceConfigurationModal
   },
 
   computed: {
@@ -74,7 +76,7 @@ export default defineComponent({
     const isStreamActive = ref<boolean> (false)
     const isLoading = ref<boolean>(false)
     const toast = useToast()
-
+    const isDeviceConfigurationVisible = ref<boolean>(false)
     return {
       publisherNode,
       clientNode,
@@ -89,7 +91,8 @@ export default defineComponent({
       chatHandler,
       isLoading,
       isStreamActive,
-      toast
+      toast,
+      isDeviceConfigurationVisible
     }
   },
 
@@ -274,7 +277,6 @@ export default defineComponent({
   render (): VNode {
     return <RoomLayout>
       {{
-        default: () => <Loader isVisible={this.isLoading }/>,
         media: () => <div class="publisher-stream__publisher-video">
             <TransitionGroup>
               {
@@ -289,15 +291,15 @@ export default defineComponent({
               }
             </TransitionGroup>
           </div>,
-        controls: () => <div class='publisher-stream__controls'>
-            <StateBar userRole={UserRole.WORKER}
-              onStreamtoggle={() => this.toggleStream()}
-              isStreamActive={this.isStreamActive}
-              onMuteVideo={(muted) => muted ? this.muteVideo() : this.unMuteVideo()}
-              onMuteAudio={(muted) => muted ? this.muteAudio() : this.unMuteAudio()}
-              onApplydevices={() => this.applyDevices()}
-            />
-          </div>,
+        controls: () => <StateBar 
+          userRole={UserRole.WORKER}
+          onStreamtoggle={() => this.toggleStream()}
+          isStreamActive={this.isStreamActive}
+          onMuteVideo={(muted) => muted ? this.muteVideo() : this.unMuteVideo()}
+          onMuteAudio={(muted) => muted ? this.muteAudio() : this.unMuteAudio()}
+          onApplydevices={() => this.applyDevices()}
+          onShowdevicesconfiguration={() => this.isDeviceConfigurationVisible = true}
+        />,
         chat: () => <div class='publisher-stream__chat'>
           { 
             this.userData.username && <Chat
@@ -306,6 +308,14 @@ export default defineComponent({
               isRoomAvailable={this.isStreamActive}
             />
           }
+        </div>,
+        default: () => <div>
+          <DeviceConfigurationModal
+            isModalVisible={this.isDeviceConfigurationVisible}
+            onApplydevices={() => this.applyDevices}
+            onClosedevicesconfiguration={ () => this.isDeviceConfigurationVisible = false }
+          />
+          <Loader isVisible={this.isLoading }/>
         </div>
     }}
     </RoomLayout>
