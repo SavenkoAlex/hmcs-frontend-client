@@ -152,22 +152,11 @@ export default defineComponent({
     }
   },
 
-  mounted () {
-    /*
-    SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
-      if (result) {
-        this.handler = result
-      }
-    })
-      */
-  },
-
   render(): VNode {
     return <DefaultLayout>
     {{
       header: () => <MainNavbar/>,
       default: () => <RouterView/>,
-      footer: () => <MainFooter/>
     }}
     </DefaultLayout>
   }
