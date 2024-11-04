@@ -21,14 +21,14 @@
     align-items: center;
 
     @media screen and (max-height: 667px) {
-      bottom: 2rem;
+      bottom: 5%;
     }
   }
 
   &__chat {
     width: 100%;
     display: inline-flex;
-    flex: 1 0 40%;
+    flex: 1 0 35%;
   }
 }
 
