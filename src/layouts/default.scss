@@ -10,11 +10,6 @@
     display: flex;
     flex: 0 0 8vh;
     width: 100%;
-
-    @media (max-height: 844px ) and (max-height: 640px) {
-      display: flex;
-      flex: 0 0 4vh;
-    }
   }
 
   &__content {
@@ -27,6 +22,6 @@
   &__footer {
     display: flex;
     width: 100%;
-    flex: 0 1 .2rem;
+    flex: 0 0 auto;
   }
 }
