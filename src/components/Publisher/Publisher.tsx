@@ -48,7 +48,7 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters(States.APP, ['devices']),
+    ...mapGetters(States.APP, ['devices', 'performanceNavigationType']),
     ...mapGetters(States.USER, ['userData']
     ),
     
@@ -116,7 +116,19 @@ export default defineComponent({
         this.listenToEvents()
       },
       immediate: true
-    } 
+    },
+
+    performanceNavigationType (newValue: NavigationTimingType | null) {
+      if (newValue === 'reload') {
+        this.isLoading = true
+        this.isStreamActive = false
+
+        setTimeout(() => {
+          this.reconnectStream()
+        }, 2000)
+      }
+
+    }
   },
 
   methods: {
@@ -134,7 +146,6 @@ export default defineComponent({
       const devicesArray: MediaDevice[] = Object.values(this.devices)
       const videoTracks = devicesArray.filter((item: MediaDevice) => item.selected && item.kind === 'videoinput')
       const audioTracks = devicesArray.filter((item: MediaDevice) => item.selected && item.kind === 'audioinput')
-
 
       this.constraints = videoTracks.map((item: MediaDevice, index: number) => {
         return {
@@ -191,7 +202,6 @@ export default defineComponent({
         this.isLoading = false
         this.toast.error(this.$t('services.webrtc.errors.canNotStartStream'))
       }
-
     },
 
     getNewPublisherId (): number | null {
@@ -247,6 +257,22 @@ export default defineComponent({
       this.publisherHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED, () => {
         this.isStreamActive = false
       }) 
+    },
+
+    async reconnectStream (): Promise <void> {
+      if (!this.publisherHandler) {
+        this.isLoading = false
+        // TODO start timeout again
+        return
+      }
+
+      const isRoomAvailable = await this.publisherHandler.isStreamAvailable()
+      
+      if (!isRoomAvailable || !this.videoTrack) {
+        this.isLoading = false
+        return
+      }
+      this.publisherHandler.reconnect(this.videoTrack)
     }
   },
 
@@ -302,10 +328,10 @@ export default defineComponent({
         />,
         chat: () => <div class='publisher-stream__chat'>
           { 
-            this.userData.username && <Chat
+            <Chat
               room={this.userData.streamId}
               chatName={this.userData.username || 'no-name'}
-              isRoomAvailable={this.isStreamActive}
+              isStreamAvailable={this.isStreamActive}
             />
           }
         </div>,

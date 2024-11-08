@@ -81,12 +81,12 @@
   "services": {
     "webrtc": {
       "errors": {
-        "webRTCIsNotAvailable": "Соединение не установлено",
+        "webRTCIsNotAvailable": "Соединение не установлено, попробуйте обновить страницу",
         "canNotStartStream": "Не возможно начать эфир",
         "canNotStopStream": "Не возможно остановить эфир",
         "userVideoIsNotAvailable": "Видео пользователя недоступно",
         "commonStreamError": "Произошла ошибка при передаче видео",
-        "canNotConnectStream": "Не удалось подключиться к стриму"
+        "canNotConnectStream": "Не удалось подключиться к эфиру"
       },
       "success": {
         "streamStarted": "Эфир начался, Вы онлайн",

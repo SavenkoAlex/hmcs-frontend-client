@@ -25,9 +25,7 @@ import { authentificate } from '@/api/login'
 
 /** store */
 import { mapActions, mapGetters } from 'vuex'
-import { userStateKey } from '@/store'
 import { UserRole } from '@/types/global'
-import Label from '../general/Label/Label'
 import { RouterLink } from 'vue-router'
 
 export default defineComponent({
@@ -105,6 +103,7 @@ export default defineComponent({
           label={{
             text: this.$t('pages.loginForm.login')
           }}
+          autofocus={true}
           placeholder={this.$t('pages.loginForm.login')}
           modelValue={this.login}
           onUpdate:modelValue={(event) => this.login = event}

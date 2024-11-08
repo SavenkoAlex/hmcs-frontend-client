@@ -290,4 +290,113 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       })
     })
   }
+
+  async isStreamAvailable (): Promise <boolean> {
+    return new Promise(resolve => {
+      if (!this.options.roomId || !this.handler) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'exists',
+        room: this.options.roomId
+      }
+      
+      this.handler.send({
+        message,
+        success: (data) => resolve(!!data?.exists),
+        error: () => resolve(false)
+      })
+    })
+  }
+
+  /**
+   * kicks and rejoin publisher
+   * @param track 
+   * @param secret 
+   * @returns 
+   */
+  async reconnect (track: MediaStreamTrack, secret?: string): Promise <boolean> {
+    return new Promise(resolve => {
+
+      if (!this.handler || !this.options.roomId) {
+        resolve(false)
+        return
+      }
+
+      this.mediaTrack = track
+      this.kick(this.options.roomId, secret)
+        .then(result => result)
+        .then(result => {
+          if (result) {
+            return this.joinAsPublisher()
+          }
+        })
+        .then(result => {
+          resolve(!!result)
+        })
+    })
+  } 
+  
+  /**
+   * kick out of room some user by id
+   * @param secret 
+   * @returns 
+   */
+  async kick (userId: number, secret?: string): Promise <boolean> {
+    return new Promise (resolve => {
+      if (!this.handler || !userId) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'kick',
+        room: this.options.roomId,
+        id: userId
+      }
+
+      const success = (data: unknown) => {
+        console.log(data)
+        resolve(!!data)
+      }
+      const error = () => resolve(false)
+
+      if (secret) {
+        this.handler.send({
+          message: { ...message, ...{ secret } },
+          success,
+          error
+        })
+        return
+      }
+
+      this.handler.send({
+        message,
+        success,
+        error
+      })
+    })
+  }
+
+  async listParticipants (): Promise<unknown[]> {
+    return new Promise (resolve => {
+      if (!this.handler || !this.options.roomId) {
+        resolve([])
+        return
+      }
+
+      const message = {
+        request: 'listparticipants',
+        room: this.options.roomId
+      }
+
+      this.handler.send({
+        message,
+        success: (data) => resolve(data),
+        error: () => resolve([])
+      })
+    })
+  }
 }
