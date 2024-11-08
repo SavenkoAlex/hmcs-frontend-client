@@ -6,10 +6,42 @@
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  position: relative;
+  height: auto;
+
+  padding-bottom: 100%;
+
+  @media (aspect-ratio: 3/4) {
+    padding-bottom: 50%;
+  }
+
+  @media (min-aspect-ratio > 3/4) and (max-aspect-ratio: 9/19.5) {
+    padding-bottom: 60%;
+  }
   
+  @media (aspect-ratio: 9/16){
+    padding-bottom: 50%;
+  }
+
+  @media (aspect-ratio: 16/9) {
+    padding-bottom: 56.25%;
+  }
+
+  @media (aspect-ratio: 5/3) {
+    padding-bottom: 60%;
+  }
+
+  @media (aspect-ratio: 5/4) {
+    padding-bottom: 80%;
+  }
+
   video {
+    object-fit: cover;
+    position: absolute;
     width: 100%;
-    height: auto;
+    height: 100%;
+    top: 0;
+    left: 0;
   }
 }
 

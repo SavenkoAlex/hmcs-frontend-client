@@ -3,13 +3,11 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  gap: .1rem;
 
   &__media {
     width: 100%;
-    height: fit-content;
     display: inline-flex;
-    flex: 0 1 auto
+    flex: 0 1 auto;
   }
 
   &__controls {
@@ -18,18 +16,19 @@
     height: 0;
     width: 100%;
     display: flex;
+    flex: 0 0 auto;
     justify-content: center;
     align-items: center;
 
     @media screen and (max-height: 667px) {
-      bottom: 2rem;
+      bottom: 5%;
     }
   }
 
   &__chat {
     width: 100%;
     display: inline-flex;
-    flex: 1 0 auto;
+    flex: 1 0 35%;
   }
 }
 

@@ -171,7 +171,6 @@ export default defineComponent({
     {{
       header: () => <MainNavbar/>,
       default: () => <RouterView/>,
-      footer: () => <MainFooter/>
     }}
     </DefaultLayout>
   }
