@@ -116,6 +116,28 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     return this.unsubscribe()
   }
 
+  /** check if room exists */
+  async isStreamAvailable (roomId: number): Promise <boolean> {
+    return new Promise (resolve => {
+        if (!roomId) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'exists',
+        room: roomId
+      }
+      
+      this.handler?.send({
+        message,
+        success: (data) => resolve(!!data?.exists),
+        error: () => resolve(false)
+      })
+    })
+    
+  }
+
   getPublishers (): Promise <Room[]> {
 
     return new Promise(resolve => {

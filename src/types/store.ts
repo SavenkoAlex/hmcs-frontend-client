@@ -17,6 +17,7 @@ export interface AppState {
   webrtcSessionId: Maybe<string | number>
   chatSessionId: Maybe<string | number>,
   devices: Record<string, MediaDevice>
+  performanceNavigationType: NavigationTimingType | null
 }
 
 export const enum States {

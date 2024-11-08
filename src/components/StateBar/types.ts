@@ -44,7 +44,6 @@ export const BarConfigutations: BarConfiguration = {
     StateBarElements.MIC,
     StateBarElements.JOIN_REQ, 
     StateBarElements.INCREASE,
-    StateBarElements.AMOUNT,
     StateBarElements.HIDE
   ],
   [StreamRole.PUBLISHER]: [
@@ -62,8 +61,5 @@ export const BarConfigutations: BarConfiguration = {
   [StreamRole.OBSERVER]: [
     StateBarElements.JOIN_REQ, 
     StateBarElements.INCREASE,
-    StateBarElements.FEE,
-    StateBarElements.EMPTY,
-    StateBarElements.AMOUNT
   ]
 }

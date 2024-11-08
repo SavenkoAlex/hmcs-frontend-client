@@ -16,5 +16,9 @@ export const mutations = {
 
   [AppMutationTypes.REMOVE_ALL_DEVICES]: (state: AppState) => {
     state.devices = {}
+  },
+
+  [AppMutationTypes.PERWFORMANCE_NAVIGATION_TYPE]: (state: AppState, payload: NavigationTimingType | null) => {
+    state.performanceNavigationType = payload
   }
 }

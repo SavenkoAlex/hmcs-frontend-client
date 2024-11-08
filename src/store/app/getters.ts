@@ -9,5 +9,9 @@ export const getters = {
   },
   devices: function (state: AppState) {
     return state.devices
+  },
+
+  performanceNavigationType: function (state: AppState) {
+    return state.performanceNavigationType
   }
 }

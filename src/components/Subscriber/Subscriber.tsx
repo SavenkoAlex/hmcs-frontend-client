@@ -78,6 +78,22 @@ export default defineComponent({
         this.addListeners()
       },
       immediate: true
+    },
+
+    async mountPoint (newValue: number) {
+      if (!Number.isInteger(newValue)) {
+        return 
+      }
+
+      if (!this.subscriberHandler || !this.publisherId) {
+        this.toast(this.$t('services.webrtc.errors.canNotConnectStream'))
+        return
+      }
+      const isStreamActive = await this.subscriberHandler.isStreamAvailable(newValue)
+      if (!isStreamActive) {
+        return
+      }
+      this.subscriberHandler.join(this.publisherId, newValue)
     }
   },
 
@@ -151,9 +167,10 @@ export default defineComponent({
     },
 
     onError (error: Error) {
+      this.subscriberHandler?.leave()
+      this.isJoined = false
       console.error(error)
       this.toast(this.$t('services.webrtc.errors.canNotConnectStream'))
-      this.isJoined = false
     },
 
     onJoined () {
@@ -161,57 +178,34 @@ export default defineComponent({
     },
 
     addListeners () {
-      
       this.subscriberHandler?.emitter.on(
         webRTCEventJanusMap[AttachEvent.ONREMOTETRACK], data => this.onremotetrack(data)
       )
-      
       this.subscriberHandler?.emitter.on(
         webRTCEventJanusMap[AttachEvent.ERROR], error => this.onError(error)
       )
-
       this.subscriberHandler?.emitter.on(
         VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED, () => {
-
         }
       )
     }
   },
 
   async mounted () {
-
     if (!this.publisherId) {
       return
     }
-
     this.publisher = await this.getUserData()
-
     if (!this.publisher) {
       return
     }
-
     if (this.publisher.streamId) {
       this.mountPoint = this.publisher.streamId
     }
-
-    if (!this.mountPoint) {
-      return
-    }
-
-    if (!this.subscriberHandler) {
-      return
-    }
-
-    if (!this.publisherId || !this.publisher.streamId) {
-      return
-    }
-
-    this.subscriberHandler.join(this.publisherId, this.publisher.streamId)
   },
 
   unmounted () {
-    this.subscriberHandler?.handler.detach()
-    this.chatPluginHandler?.handler.detach()
+    this.subscriberHandler?.leave()
   },
 
   render (): VNode {
@@ -246,7 +240,7 @@ export default defineComponent({
           <Chat
             chatName={this.publisher?.username || '-'}
             room={this.publisher?.streamId || 0}
-            isRoomAvailable={this.isJoined}
+            isStreamAvailable={this.isJoined}
           />
         </div>
       }}

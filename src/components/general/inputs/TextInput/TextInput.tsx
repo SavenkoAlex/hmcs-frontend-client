@@ -64,6 +64,10 @@ export default defineComponent({
     isRequired: {
       type: Boolean as PropType <boolean>,
       default: false
+    },
+    autofocus: {
+      type: Boolean as PropType<boolean>,
+      default: false
     }
   },
 
@@ -129,6 +133,7 @@ export default defineComponent({
           onKeypress={(event: KeyboardEvent) => event.key === 'Enter' && this.$emit('enter', event)}
           disabled={this.disabled}
           required={this.isRequired}
+          autofocus={this.autofocus}
         />
       </Transition>
     </div>

@@ -52,13 +52,16 @@ export default defineComponent({
     provide<typeof publisherHandler> (pubKey, publisherHandler)
     provide<typeof chatHandler> (chatKey, chatHandler)
 
+    const performanceObserver = ref <PerformanceObserver>()
+
     const toast = useToast()
 
     return {
       chatHandler,
       subscriberHandler,
       publisherHandler,
-      toast
+      toast,
+      performanceObserver
     }
   },
 
@@ -90,7 +93,7 @@ export default defineComponent({
   },
   
   methods: {
-    ...mapActions(States.APP, ['setWebrtcSessionId', 'setChatSessionId']),
+    ...mapActions(States.APP, ['setWebrtcSessionId', 'setChatSessionId', 'setPerformanceNavigationType']),
 
     initSubscriber () {
       SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
@@ -149,7 +152,18 @@ export default defineComponent({
         default:
           this.initSubscriber()
       }
+    },
+
+    setPerformanceTimingType (list: PerformanceObserverEntryList) {
+      list.getEntries().forEach(item => {
+        this.setPerformanceNavigationType((item as unknown as { type: NavigationTimingType })?.type  || null)
+      })
     }
+  },
+
+  mounted () {
+    this.performanceObserver = new PerformanceObserver(this.setPerformanceTimingType)
+    this.performanceObserver.observe({ type: 'navigation', buffered: true });
   },
 
   render(): VNode {

@@ -21,5 +21,9 @@ export const actions = {
 
   clearDevices(context: AppActionContext) {
     context.commit(AppMutationTypes.REMOVE_ALL_DEVICES)
+  },
+
+  setPerformanceNavigationType (context: AppActionContext, payload: NavigationTimingType | null) {
+    context.commit(AppMutationTypes.PERWFORMANCE_NAVIGATION_TYPE, payload)
   }
 }
