@@ -72,6 +72,10 @@ export default defineComponent({
 
     isChatDisabled (): boolean {
       return !this.isStreamAvailable || !this.isRoomExists
+    },
+
+    isReadyToConnect (): boolean {
+      return !!(this.isStreamAvailable && this.chatHandler)
     }
   },
 
@@ -82,18 +86,14 @@ export default defineComponent({
           return
         }
         this.addListeners()
-        this.initChat()
       },
       immediate: true
     },
 
-    isStreamAvailable: {
-      handler: function (newValue: boolean) {
-        if (!newValue ) {
-          return
-        }
-        this.initChat()
-      }, 
+    isReadyToConnect (newValue) {
+      if (newValue) {
+        this.join()
+      }
     },
   },
 
@@ -246,13 +246,6 @@ export default defineComponent({
         this.toast(this.$t('services.chat.errors.canNotConnectChat'))
       }
       return result
-    },
-
-    async initChat () {
-      if (!this.chatHandler || !this.isStreamAvailable) {
-        return
-      }
-      this.join()
     },
 
     destroyChat () {
