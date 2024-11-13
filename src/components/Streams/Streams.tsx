@@ -10,20 +10,20 @@ import {
 import '@/components/Streams/Streams.scss'
 
 /** types */
-import { Room, supKey, User } from '@/types/global'
+import { supKey } from '@/types/global'
 import { StreamsData } from '@/components/Streams/types'
 
-//SVG
-import { RouterLink } from 'vue-router'
 
 /** api */
 import userApi from '@/api/user'
 
 /** components */
 import StreamItem from '@/components/Streams/StreamItem'
+import BaseLoader from '@/components/general/Loader/Loader'
 
 /** webrtcHandler */
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+import Loader from '@/components/general/Loader/Loader'
 
 export default defineComponent({
 
@@ -35,10 +35,13 @@ export default defineComponent({
 
   watch: {
     pluginHandler: {
-      handler: function () {
-        this.getRooms()
-        this.markUsersOnline()
-      }
+      handler: function (newValue) {
+        if (!newValue) {
+          return
+        }
+        this.getOnlineUsers()
+      }, 
+      immediate: true
     },
   },
 
@@ -53,7 +56,8 @@ export default defineComponent({
     return {
       users: [],
       rooms: {},
-      userStreams: []
+      userStreams: [],
+      isLoading: false
     }
   },
 
@@ -79,7 +83,13 @@ export default defineComponent({
     },
 
     async getUsers (): Promise <void> {
-      const users  = await userApi.getUsers()
+      const onlineRooms = Object.keys(this.rooms).map(item => Number.parseInt(item, 10))
+      if (!onlineRooms?.length) {
+        this.users = []
+        return
+      }
+
+      const users  = await userApi.getUsersByStream(onlineRooms)
       if (users && users.length > 0) {
         this.users = users
         return
@@ -94,31 +104,37 @@ export default defineComponent({
         isOnline: (item.streamId && item.streamId in this.rooms) || false
       }))
       this.userStreams = extendedUsers
-    }
-  },
+    },
 
-  async mounted () {
-    await this.getRooms()
-    await this.getUsers()
-    this.markUsersOnline()
+    /** get online users */
+    async getOnlineUsers (): Promise <void> {
+      this.isLoading = true
+      await this.getRooms()
+      await this.getUsers()
+      this.markUsersOnline()
+      this.isLoading = false
+    }
   },
 
 
   render (): VNode {
     return <div class='streamer-list'>
+      <Loader
+        isVisible={this.isLoading}
+      />
       {
-        this.userStreams.length ?
-          this.userStreams.map(({ user, isOnline }) => 
-            <div class='streamer-list__item'>
-              <StreamItem 
-                stream={ user }
-                online={ isOnline }
-              />
-            </div>
-          )
-        : <div class='streamer-list__empty'>
-          <p> { this.$t('components.streams.streamsListEmpty') } </p>
-        </div>
+        this.userStreams.length 
+          ? this.userStreams.map(({ user, isOnline }) => 
+              <div class='streamer-list__item'>
+                <StreamItem 
+                  stream={ user }
+                  online={ isOnline }
+                />
+              </div>
+            )
+          : <div class='streamer-list__empty'>
+            <p> { this.$t('components.streams.streamsListEmpty') } </p>
+          </div>
       }
     </div>
   }

@@ -126,7 +126,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         request: 'create',
         room: this.options.roomId,
         description: this.options.displayName,
-        permanent: true
+        permanent: false
       }
 
       this.handler?.send({

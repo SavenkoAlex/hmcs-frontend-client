@@ -28,23 +28,40 @@ export default {
   },
 
   getUser: async (userId: string): Promise <User | null> => {
-
     if (!userId) {
       return null
     }
 
     const response = await axios.request<User>({
-      url: `api/auth/user/${userId}`,
+      url: `/api/auth/user/${userId}`,
       method: 'GET',
+    }).catch(err => {
+      console.error(err)
+      return null
+    })
+    
+    if (!response?.data) {
+      return null
+    }
+    return response.data
+  },
+
+
+  getUsersByStream: async (streams: number[]): Promise <User[]> => {
+    if (!streams?.length) {
+      return []
+    }
+
+    const response = await axios.post<User[]>('/api/auth/users', {
+      streams      
     }).catch(err => {
       console.error(err)
       return null
     })
 
     if (!response?.data) {
-      return null
+      return []
     }
-    
     return response.data
   }
 }
