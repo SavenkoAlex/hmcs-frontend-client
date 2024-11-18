@@ -46,7 +46,6 @@ export default {
     return response.data
   },
 
-
   getUsersByStream: async (streams: number[]): Promise <User[]> => {
     if (!streams?.length) {
       return []

@@ -127,6 +127,20 @@ export const enum TextRoomPluginError {
   JANUS_TEXTROOM_ERROR_UNKNOWN_ERROR =	499
 }
 
+export const enum VideoRoomPluginError {
+  // create a new handle
+  JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM = 425,
+  JANUS_VIDEOROOM_ERROR_NO_SUCH_FEED = 428,
+  JANUS_VIDEOROOM_ERROR_MISSING_ELEMENT,
+  JANUS_VIDEOROOM_ERROR_INVALID_ELEMENT,
+  JANUS_VIDEOROOM_ERROR_INVALID_SDP_TYPE,
+  JANUS_VIDEOROOM_ERROR_PUBLISHERS_FULL,
+  JANUS_VIDEOROOM_ERROR_UNAUTHORIZED,
+  JANUS_VIDEOROOM_ERROR_ALREADY_PUBLISHED,
+  JANUS_VIDEOROOM_ERROR_NOT_PUBLISHED,
+  JANUS_VIDEOROOM_ERROR_ID_EXISTS,
+  JANUS_VIDEOROOM_ERROR_INVALID_SDP,
+}
 
 export const webRTCEventJanusMap = {
   [AttachEvent.SUCCESS]: 'connected',
@@ -144,3 +158,10 @@ export const webRTCEventJanusMap = {
   [AttachEvent.ONCLEANUP]: "closed",
   [AttachEvent.DETACHED]: AttachEvent.DETACHED
 } as const
+
+export type ErrorMessage = {
+  error_code: number,
+  error: string
+}
+
+

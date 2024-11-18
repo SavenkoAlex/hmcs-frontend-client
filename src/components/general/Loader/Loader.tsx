@@ -27,7 +27,7 @@ export default defineComponent({
 
   computed: {
     style () {
-      if (this.isVisible || !this.isDelayPassed) {
+      if (this.isVisible || this.timeout) {
         return { display: 'block' }
       } 
       return { display: 'none' }
@@ -40,7 +40,10 @@ export default defineComponent({
         if (newValue) {
           this.isDelayPassed = false
           this.timeout = setTimeout(() => {
-            this.isDelayPassed = true
+            if (this.timeout) {
+              clearTimeout(this.timeout)
+              this.timeout = null
+            }
           }, this.delay)
         }
       },

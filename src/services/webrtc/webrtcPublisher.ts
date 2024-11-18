@@ -3,10 +3,18 @@ import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
 import { 
   JanusPlugin,   
   HandlerDescription,
-  WebRTCHandlerConstructor 
+  WebRTCHandlerConstructor,
+  VideoErrorHanlerEvent
 } from '@/types/global'
 
-import { VIDEO_ROOM_PLUGIN_EVENT, webRTCEventJanusMap, AttachEvent } from '@/types/janus'
+import { 
+  VIDEO_ROOM_PLUGIN_EVENT, 
+  VideoRoomPluginError,
+  ErrorMessage,
+  webRTCEventJanusMap, 
+  AttachEvent,
+} from '@/types/janus'
+import { errorMessages } from 'vue/compiler-sfc'
 /**
  * Some WebRTC plugin with init (activate) function
  */
@@ -68,7 +76,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     this.emitter.on(webRTCEventJanusMap[AttachEvent.ONMESSAGE], async ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
       if (msg.error) {
         console.error(msg.error)
-        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], msg.error)
+        this.handlePluginError(msg as ErrorMessage)
+        //this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], msg)
         return
       }
 
@@ -108,6 +117,21 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
 
       default:
         console.warn('unhandled message ', eventType)
+    }
+  }
+
+  protected async handlePluginError (error: ErrorMessage) {
+    switch (error.error_code) {
+      case VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM:
+        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], VideoErrorHanlerEvent.NEED_RECONNECTION)
+        break
+      
+      case VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_ALREADY_PUBLISHED:
+        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR],VideoErrorHanlerEvent.NEED_RESTART_STREAM)
+        break
+
+      default:
+        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], VideoErrorHanlerEvent.UNKNWON)
     }
   }
 

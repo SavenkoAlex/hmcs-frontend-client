@@ -203,3 +203,19 @@ export const chatKey = Symbol('chatHandler') as InjectionKey<string>
 
 /** outputs type */
 export type Output = 'log' | 'error' | 'warn'
+
+/** video error states */
+export const enum VideoErrorHanlerEvent {
+  NEED_RECONNECTION = 'needReconnection',
+  NEED_RECREATE_ROOM = 'needRecreateRoom',
+  NEED_RESTART_STREAM = 'needRestartStream',
+  NEED_REJOIN = 'needRejoin',
+  LIMIT_REACHED = 'limitReached',
+  UNKNWON = 'unknown'
+}
+
+/** 
+ * default retry number 
+ * count of same plugin error that can be handled some how
+ */
+export const errorRetryNumber = 5

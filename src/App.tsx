@@ -26,8 +26,10 @@ import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import Janus from 'janus-gateway'
 
 /** types */
-import { JanusPlugin, UserRole, supKey, pubKey, chatKey } from '@/types/global'
+import { JanusPlugin, UserRole, supKey, pubKey, chatKey, VideoErrorHanlerEvent } from '@/types/global'
 import { mapGetters, mapActions } from 'vuex'
+import { VideoErrorState } from '@/types/store'
+import { webRTCEventJanusMap, AttachEvent } from '@/types/janus'
 
 /** store */
 import { States } from '@/types/store'
@@ -67,7 +69,7 @@ export default defineComponent({
 
   computed: {
     ...mapGetters(States.USER, [ 'userRole', 'isAuthentificated', 'userData']),
-    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId'])
+    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId', 'videoErrorState'])
   },
 
   watch: {
@@ -89,16 +91,29 @@ export default defineComponent({
         this.initHandlers()
       },
       immediate: true
+    },
+
+    videoErrorState (newValue: VideoErrorState | null) {
+      if (newValue?.state === VideoErrorHanlerEvent.NEED_RECONNECTION) {
+        this.initHandlers()
+        this.setVideoErrorState(null)
+      }
     }
   },
   
   methods: {
-    ...mapActions(States.APP, ['setWebrtcSessionId', 'setChatSessionId', 'setPerformanceNavigationType']),
+    ...mapActions(States.APP, [
+      'setWebrtcSessionId', 
+      'setChatSessionId', 
+      'setPerformanceNavigationType',
+      'setVideoErrorState'
+    ]),
 
     initSubscriber () {
       SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
         if (result) {
           this.subscriberHandler = result
+          this.publisherHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], this.listenToError)
           this.setWebrtcSessionId(result.handler.getId())
         } else {
           this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
@@ -127,6 +142,7 @@ export default defineComponent({
         displayName: this.userData.username
       }).then(result => {
         this.publisherHandler = result
+        this.publisherHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], this.listenToError)
         this.setWebrtcSessionId(result?.handler.getId())
       })
 
@@ -158,6 +174,11 @@ export default defineComponent({
       list.getEntries().forEach(item => {
         this.setPerformanceNavigationType((item as unknown as { type: NavigationTimingType })?.type  || null)
       })
+    },
+
+    /** sets error state to store */
+    listenToError (error: VideoErrorHanlerEvent): void {
+      this.setVideoErrorState(error)
     }
   },
 
