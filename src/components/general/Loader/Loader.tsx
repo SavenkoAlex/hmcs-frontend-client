@@ -27,7 +27,7 @@ export default defineComponent({
 
   computed: {
     style () {
-      if (this.isVisible || !this.isDelayPassed) {
+      if (this.isVisible || this.timeout) {
         return { display: 'block' }
       } 
       return { display: 'none' }
@@ -37,19 +37,25 @@ export default defineComponent({
   watch: {
     isVisible: {
       handler: function (newValue: boolean) {
-        if (newValue) {
-          this.isDelayPassed = false
-          this.timeout = setTimeout(() => {
-            this.isDelayPassed = true
-          }, this.delay)
+        if (!newValue) {
+          return
         }
+
+        if (this.timeout) {
+          clearTimeout(this.timeout)
+        }
+
+        this.timeout = setTimeout(() => {
+          if (this.timeout) {
+            this.timeout = null
+          }
+        }, this.delay)
       },
       immediate: true
     }
   },
   data (): Data {
     return {
-      isDelayPassed: false,
       timeout: null
     }
   },

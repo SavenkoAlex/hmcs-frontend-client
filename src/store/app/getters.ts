@@ -13,5 +13,9 @@ export const getters = {
 
   performanceNavigationType: function (state: AppState) {
     return state.performanceNavigationType
+  },
+
+  videoErrorState: function (state: AppState) {
+    return state.videoErrorState
   }
 }

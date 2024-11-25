@@ -18,7 +18,7 @@ const i18n = createI18n({
   fallbackLocale: 'en-US'
 })
 
-const toastOptions:PluginOptions = {
+const toastOptions: PluginOptions = {
   position: POSITION.BOTTOM_CENTER,
   closeOnClick: true,
   hideProgressBar: true

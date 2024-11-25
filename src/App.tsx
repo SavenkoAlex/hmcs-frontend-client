@@ -26,12 +26,14 @@ import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import Janus from 'janus-gateway'
 
 /** types */
-import { JanusPlugin, UserRole, supKey, pubKey, chatKey } from '@/types/global'
+import { JanusPlugin, UserRole, supKey, pubKey, chatKey, VideoErrorState } from '@/types/global'
+import { webRTCEventJanusMap, AttachEvent, VideoRoomPluginError } from '@/types/janus'
 import { mapGetters, mapActions } from 'vuex'
 
 /** store */
 import { States } from '@/types/store'
 import { useToast } from 'vue-toastification'
+
 
 export default defineComponent({
 
@@ -47,7 +49,6 @@ export default defineComponent({
     const subscriberHandler = ref <SubscriberStreamHandler | null> (null)
     const publisherHandler = ref <PublisherStreamHandler | null> (null)
     const chatHandler = ref <ChatHandler | null> (null)
-    
     provide<typeof subscriberHandler> (supKey, subscriberHandler)
     provide<typeof publisherHandler> (pubKey, publisherHandler)
     provide<typeof chatHandler> (chatKey, chatHandler)
@@ -67,7 +68,7 @@ export default defineComponent({
 
   computed: {
     ...mapGetters(States.USER, [ 'userRole', 'isAuthentificated', 'userData']),
-    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId'])
+    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId', 'videoErrorState'])
   },
 
   watch: {
@@ -89,11 +90,27 @@ export default defineComponent({
         this.initHandlers()
       },
       immediate: true
+    },
+
+    videoErrorState (newValue) {
+      if (!newValue) {
+        return
+      }
+      
+      if (newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM) {
+        this.initHandlers()
+        this.setVideoErrorState(null)
+      }
     }
   },
   
   methods: {
-    ...mapActions(States.APP, ['setWebrtcSessionId', 'setChatSessionId', 'setPerformanceNavigationType']),
+    ...mapActions(States.APP, [
+      'setWebrtcSessionId', 
+      'setChatSessionId', 
+      'setPerformanceNavigationType',
+      'setVideoErrorState'
+    ]),
 
     initSubscriber () {
       SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
@@ -158,7 +175,8 @@ export default defineComponent({
       list.getEntries().forEach(item => {
         this.setPerformanceNavigationType((item as unknown as { type: NavigationTimingType })?.type  || null)
       })
-    }
+    },
+
   },
 
   mounted () {

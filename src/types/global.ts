@@ -1,6 +1,7 @@
 import eventEmitter from 'events'
 import Janus, { JanusJS } from 'janus-gateway'
 import { InjectionKey } from 'vue'
+import { VideoRoomPluginError } from '@/types/janus'
 
 export type Room = {       
   room : number
@@ -203,3 +204,17 @@ export const chatKey = Symbol('chatHandler') as InjectionKey<string>
 
 /** outputs type */
 export type Output = 'log' | 'error' | 'warn'
+
+/** 
+ * default retry number 
+ * count of same plugin error that can be handled some how
+ */
+export const errorRetryNumber = 3
+
+/**
+ * video server response error code with number of attempts to fix 
+ */
+export type VideoErrorState = {
+  state: VideoRoomPluginError,
+  retry: number
+}

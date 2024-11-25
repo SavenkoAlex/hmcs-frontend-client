@@ -1,12 +1,21 @@
 import Janus, { JanusJS } from 'janus-gateway'
 import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
+
 import { 
   JanusPlugin,   
   HandlerDescription,
-  WebRTCHandlerConstructor 
+  WebRTCHandlerConstructor,
 } from '@/types/global'
 
-import { VIDEO_ROOM_PLUGIN_EVENT, webRTCEventJanusMap, AttachEvent } from '@/types/janus'
+import { 
+  VIDEO_ROOM_PLUGIN_EVENT, 
+  VideoRoomPluginError,
+  webRTCEventJanusMap, 
+  AttachEvent,
+  ErrorMessage,
+  CustomJanusApiResponse
+} from '@/types/janus'
+
 /**
  * Some WebRTC plugin with init (activate) function
  */
@@ -19,13 +28,12 @@ export interface WebRTCPlugin <T extends Record <string, unknown>, P extends Rec
  * WebRTCHandler main functions to control webrtc connection
  */
 export interface WebRTCHandler {
-  createStream: (track: MediaStreamTrack, mountPoint: number) => Promise <boolean>
-  destroyStream: (mountId: number) => Promise <boolean>
+  connect: (track: MediaStreamTrack, mountPoint: number) => Promise <boolean | CustomJanusApiResponse <any>>
+  leave: (mountId: number) => Promise <boolean>
+  reconnect: (track: MediaStreamTrack, secret?: string) => Promise <boolean>
   modifyToPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
   modifyToPublic?: (mointId: number) => Promise <boolean>
 }
-
-
 
 export class PublisherStreamHandler extends StreamHandler implements  WebRTCHandler { 
   
@@ -67,8 +75,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     // Catching Janus on message event
     this.emitter.on(webRTCEventJanusMap[AttachEvent.ONMESSAGE], async ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
       if (msg.error) {
-        console.error(msg.error)
-        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], msg.error)
+        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], msg?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
         return
       }
 
@@ -115,10 +122,13 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * Send create room request 
    * @returns { number | false } room number or false in case of fail
    */
-  private createRoom (): Promise <number | false> {
+  private createRoom (): Promise <CustomJanusApiResponse<number>> {
     return new Promise (resolve => {
       if (!this.handler) {
-        resolve(false)
+        resolve({ 
+          success: false, 
+          errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM
+        })
         return
       }
 
@@ -133,15 +143,21 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         message,
         success: (response) => {
           if (response?.room) {
-            resolve(response.room)
+            resolve({
+              success: true,
+              data: response?.room
+            })
             return
           }
           // resolve sensible description like room exists
-          resolve(false)
+          resolve({ success: false })
         },
         error: (err) => {
           console.error(err)
-          resolve(false)
+          resolve({
+            success: false,
+            errorCode: (err as unknown as ErrorMessage)?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN
+          })
         }
       })
     })
@@ -247,31 +263,37 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * @param options 
    * @returns 
    */
-  async createStream (track: MediaStreamTrack): Promise <boolean> {
+  async connect (track: MediaStreamTrack): Promise <CustomJanusApiResponse <number>> {
 
     if (!track) {
       console.error('no media stream track detected')
-      return false
+      return {
+        success: false,
+        errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM
+      }
     }
 
     try {
       this.mediaTrack = track
-      const roomNumber = await this.createRoom()
+      const response = await this.createRoom()
 
-      if (!roomNumber) {
-        console.error('room is not available')
-        return false
+      if (!response?.success) {
+        return response
       }
 
       const result = await this.joinAsPublisher()
-      return result
+      return {
+        success: true
+      }
     } catch (err) {
       console.error(err)
-      return false
+      return {
+        success: false
+      }
     }
   }
 
-  async destroyStream (): Promise<boolean> {
+  async leave (): Promise<boolean> {
     return new Promise (resolve => {
       if (!this.handler) {
         resolve(false)

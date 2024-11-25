@@ -1,8 +1,5 @@
 import Janus, { JanusJS } from 'janus-gateway'
-import eventEmitter from 'events'
-import { 
-  StreamHandler,
- } from  '@/services/webrtc/webrtcAbstract'
+import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
 
  import { 
   HandlerDescription, 
@@ -11,13 +8,18 @@ import {
   Room
 } from '@/types/global'
 
-import { VIDEO_ROOM_PLUGIN_EVENT, webRTCEventJanusMap as webRTCEvent, AttachEvent } from '@/types/janus'
+import { 
+  VIDEO_ROOM_PLUGIN_EVENT, 
+  webRTCEventJanusMap as webRTCEvent, 
+  AttachEvent,
+  VideoRoomPluginError
+} from '@/types/janus'
 
 /**
  * WebRTCHandler main functions to control webrtc connection (subscriber)
  */
 export interface WebRTCHandler {
-  join: (publisherId: string, roomId: number, track?: MediaStreamTrack[]) => Promise <boolean>
+  connect: (publisherId: string, roomId: number, track?: MediaStreamTrack[]) => Promise <boolean>
   leave: () => Promise <boolean>
   getPublishers: () => Promise<Room[] | null>
   requestPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
@@ -76,14 +78,14 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     this.emitter.on(webRTCEvent[AttachEvent.ONMESSAGE], async ({jsep, msg}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
       if (msg.error) {
         console.error(msg.error)
-        this.emitter.emit(webRTCEvent[AttachEvent.ERROR], msg.error)
+        this.emitter.emit(webRTCEvent[AttachEvent.ERROR], msg.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
         return
       }
 
       if (jsep) {
         this.handler.createAnswer({
           jsep,
-          success: (sdp) => this.connect(sdp)
+          success: (sdp) => this.attach(sdp)
         })
       }
 
@@ -166,7 +168,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     })
   }
 
-  async join (publisherId: string, roomId: number): Promise <boolean> {
+  async connect (publisherId: string, roomId: number): Promise <boolean> {
     return new Promise (resolve => {
       if (!this.handler || publisherId) {
         resolve(false)
@@ -214,7 +216,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     })
   }
 
-  private connect (sdp: JanusJS.JSEP): Promise <true | false> {
+  private attach (sdp: JanusJS.JSEP): Promise <true | false> {
     return new Promise (resolve => {
       if (!this.handler) {
         resolve(false)

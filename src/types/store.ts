@@ -1,4 +1,4 @@
-import { Maybe, MediaDevice } from '@/types/global'
+import { Maybe, MediaDevice, VideoErrorState } from '@/types/global'
 
 export const isAuthentificated = import.meta.env.VITE_IS_AUTHENTIFICATED || 'isa'
 export const userData = import.meta.env.VITE_USER_DATA || 'usa'
@@ -17,7 +17,8 @@ export interface AppState {
   webrtcSessionId: Maybe<string | number>
   chatSessionId: Maybe<string | number>,
   devices: Record<string, MediaDevice>
-  performanceNavigationType: NavigationTimingType | null
+  performanceNavigationType: NavigationTimingType | null,
+  videoErrorState: VideoErrorState | null
 }
 
 export const enum States {

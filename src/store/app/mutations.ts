@@ -1,6 +1,6 @@
 import { AppMutationTypes } from '@/store/app/mutation-types'
 import { AppState } from '@/types/store'
-import { Maybe, MediaDevice } from '@/types/global'
+import { Maybe, MediaDevice, VideoErrorHanlerEvent } from '@/types/global'
 import { Payload } from 'vuex'
 
 export const mutations = {
@@ -20,5 +20,9 @@ export const mutations = {
 
   [AppMutationTypes.PERWFORMANCE_NAVIGATION_TYPE]: (state: AppState, payload: NavigationTimingType | null) => {
     state.performanceNavigationType = payload
+  },
+
+  [AppMutationTypes.SET_VIDEO_ERROR_STATE]: (state: AppState, payload: { state: VideoErrorHanlerEvent, retry: number} | null ) => {
+    state.videoErrorState = payload
   }
 }
