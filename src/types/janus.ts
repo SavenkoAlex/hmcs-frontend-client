@@ -128,8 +128,10 @@ export const enum TextRoomPluginError {
 }
 
 export const enum VideoRoomPluginError {
+  INVALID_REQUEST_ON_UNCONFIGURED_PARTICIPANT,
   // create a new handle
   JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM = 425,
+  ROOM_ALREADY_EXISTS = 427,
   JANUS_VIDEOROOM_ERROR_NO_SUCH_FEED = 428,
   JANUS_VIDEOROOM_ERROR_MISSING_ELEMENT,
   JANUS_VIDEOROOM_ERROR_INVALID_ELEMENT,
@@ -140,6 +142,7 @@ export const enum VideoRoomPluginError {
   JANUS_VIDEOROOM_ERROR_NOT_PUBLISHED,
   JANUS_VIDEOROOM_ERROR_ID_EXISTS,
   JANUS_VIDEOROOM_ERROR_INVALID_SDP,
+  JANUS_VIDEOROOM_ERROR_UNKNOWN = 999,
 }
 
 export const webRTCEventJanusMap = {
@@ -162,6 +165,12 @@ export const webRTCEventJanusMap = {
 export type ErrorMessage = {
   error_code: number,
   error: string
+}
+
+export type CustomJanusApiResponse <T extends any>= {
+  success: boolean,
+  errorCode?: number | VideoRoomPluginError
+  data?: T
 }
 
 

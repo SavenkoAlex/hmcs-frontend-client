@@ -26,14 +26,14 @@ import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import Janus from 'janus-gateway'
 
 /** types */
-import { JanusPlugin, UserRole, supKey, pubKey, chatKey, VideoErrorHanlerEvent } from '@/types/global'
+import { JanusPlugin, UserRole, supKey, pubKey, chatKey, VideoErrorState } from '@/types/global'
+import { webRTCEventJanusMap, AttachEvent, VideoRoomPluginError } from '@/types/janus'
 import { mapGetters, mapActions } from 'vuex'
-import { VideoErrorState } from '@/types/store'
-import { webRTCEventJanusMap, AttachEvent } from '@/types/janus'
 
 /** store */
 import { States } from '@/types/store'
 import { useToast } from 'vue-toastification'
+
 
 export default defineComponent({
 
@@ -49,7 +49,6 @@ export default defineComponent({
     const subscriberHandler = ref <SubscriberStreamHandler | null> (null)
     const publisherHandler = ref <PublisherStreamHandler | null> (null)
     const chatHandler = ref <ChatHandler | null> (null)
-    
     provide<typeof subscriberHandler> (supKey, subscriberHandler)
     provide<typeof publisherHandler> (pubKey, publisherHandler)
     provide<typeof chatHandler> (chatKey, chatHandler)
@@ -93,8 +92,12 @@ export default defineComponent({
       immediate: true
     },
 
-    videoErrorState (newValue: VideoErrorState | null) {
-      if (newValue?.state === VideoErrorHanlerEvent.NEED_RECONNECTION) {
+    videoErrorState (newValue) {
+      if (!newValue) {
+        return
+      }
+      
+      if (newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM) {
         this.initHandlers()
         this.setVideoErrorState(null)
       }
@@ -113,7 +116,6 @@ export default defineComponent({
       SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
         if (result) {
           this.subscriberHandler = result
-          this.publisherHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], this.listenToError)
           this.setWebrtcSessionId(result.handler.getId())
         } else {
           this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
@@ -142,7 +144,6 @@ export default defineComponent({
         displayName: this.userData.username
       }).then(result => {
         this.publisherHandler = result
-        this.publisherHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], this.listenToError)
         this.setWebrtcSessionId(result?.handler.getId())
       })
 
@@ -176,10 +177,6 @@ export default defineComponent({
       })
     },
 
-    /** sets error state to store */
-    listenToError (error: VideoErrorHanlerEvent): void {
-      this.setVideoErrorState(error)
-    }
   },
 
   mounted () {

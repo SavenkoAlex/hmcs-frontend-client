@@ -93,7 +93,7 @@ export default defineComponent({
       if (!isStreamActive) {
         return
       }
-      this.subscriberHandler.join(this.publisherId, newValue)
+      this.subscriberHandler.connect(this.publisherId, newValue)
     }
   },
 
@@ -205,6 +205,11 @@ export default defineComponent({
   },
 
   unmounted () {
+    this.subscriberHandler?.leave()
+  },
+
+  beforeRouteLeave () {
+    console.log('111')
     this.subscriberHandler?.leave()
   },
 

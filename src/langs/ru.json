@@ -85,12 +85,15 @@
         "canNotStartStream": "Не возможно начать эфир",
         "canNotStopStream": "Не возможно остановить эфир",
         "userVideoIsNotAvailable": "Видео пользователя недоступно",
-        "commonStreamError": "Произошла ошибка при передаче видео",
+        "commonStreamError": "Произошла ошибка при передаче видео, попробуйте обновить страницу",
         "canNotConnectStream": "Не удалось подключиться к эфиру"
       },
       "success": {
         "streamStarted": "Эфир начался, Вы онлайн",
         "streamStopped": "Эфир закончен"
+      },
+      "info": {
+        "tryToRestartStream": "Попробуйте перезапустить эфир"
       }
     },
     "chat": {
