@@ -252,7 +252,7 @@ export default defineComponent({
       if (!this.chatHandler) {
         return
       }
-      this.chatHandler.destroyHandler(this.chatRoom)
+      this.chatHandler.destroyChat(this.chatRoom)
     },
 
     addListeners () {

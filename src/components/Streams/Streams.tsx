@@ -1,29 +1,28 @@
 import {
   defineComponent,
   VNode,
-  ref,
   inject,
-  Transition
 } from 'vue'
 
 /** styles */
 import '@/components/Streams/Streams.scss'
 
 /** types */
-import { supKey } from '@/types/global'
+import { videoHandlerKey } from '@/types/global'
 import { StreamsData } from '@/components/Streams/types'
-
 
 /** api */
 import userApi from '@/api/user'
 
 /** components */
 import StreamItem from '@/components/Streams/StreamItem'
-import BaseLoader from '@/components/general/Loader/Loader'
 
 /** webrtcHandler */
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 import Loader from '@/components/general/Loader/Loader'
+
+/** toast */
+import { useToast } from 'vue-toastification'
 
 export default defineComponent({
 
@@ -46,9 +45,12 @@ export default defineComponent({
   },
 
   setup () {
-    const pluginHandler = inject<SubscriberStreamHandler | null> (supKey, null)
+    const pluginHandler = inject<SubscriberStreamHandler | null> (videoHandlerKey, null)
+    const toast = useToast()
+
     return {
       pluginHandler,
+      toast
     }
   },
 
@@ -68,7 +70,7 @@ export default defineComponent({
         return
       }
 
-      const rooms = await this.pluginHandler.getPublishers()
+      const rooms = await this.pluginHandler.getStreams()
       
       if (!rooms || !rooms.length) {
         this.rooms =  {}
@@ -108,11 +110,17 @@ export default defineComponent({
 
     /** get online users */
     async getOnlineUsers (): Promise <void> {
-      this.isLoading = true
-      await this.getRooms()
-      await this.getUsers()
-      this.markUsersOnline()
-      this.isLoading = false
+      try {
+        this.isLoading = true
+        await this.getRooms()
+        await this.getUsers()
+        this.markUsersOnline()
+      } catch (err) {
+        this.isLoading = false
+        this.toast.error(this.$t('services.webrtc.errors.canNotConnectStream'))
+      } finally {
+        this.isLoading = false
+      }
     }
   },
 

@@ -19,11 +19,11 @@ import Loader from '@/components/general/Loader/Loader'
 import DeviceConfigurationModal from '@/components/DeviceController/DeviceConfigurationModal'
 
 /** types */
-import { UserRole, MediaDevice, pubKey, chatKey, VideoErrorState } from '@/types/global'
+import { UserRole, MediaDevice, videoHandlerKey, chatKey, VideoErrorState } from '@/types/global'
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import { States } from '@/types/store'
-import { webRTCEventJanusMap, AttachEvent, VIDEO_ROOM_PLUGIN_EVENT, VideoRoomPluginError } from '@/types/janus'
+import { webRTCEventJanusMap, AttachEvent, VIDEO_ROOM_PLUGIN_EVENT, VideoRoomPluginError, } from '@/types/janus'
 
 /** store */
 import { mapActions, mapGetters } from 'vuex'
@@ -50,13 +50,28 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters(States.APP, ['devices', 'performanceNavigationType', 'videoErrorState']),
+    ...mapGetters(States.APP, [
+      'devices', 
+      'performanceNavigationType', 
+      'videoErrorState', 
+      'isVideoHandlerAvailable',
+      'isChatHandlerAvailable',
+      'webrtcState',
+      'connectionState',
+      'streamConfigured',
+      'streamJoined',
+      'streamPublished'
+    ]),
     ...mapGetters(States.USER, ['userData']
     ),
-    
-    isHandlerAvailable (): boolean {
-      return !!this.publisherHandler
-    },
+
+    isPluginConnected (): boolean {
+      if (this.connectionState === 'connected') {
+        return true
+      }
+
+      return false
+    }
   },
 
   setup () {
@@ -65,17 +80,18 @@ export default defineComponent({
     const publisherStream = ref <MediaStream[]> ([])
     const clientStream = ref <MediaStream> ()
     const publisherId = ref<number>()
+
     const constraints: MediaStreamConstraints[] = [{
-      audio: false,
+      audio: true,
       video: true
     }]
 
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
     const crypto = inject<Crypto>('crypto')
-    const publisherHandler = inject <PublisherStreamHandler | null> (pubKey, null)
+    const publisherHandler = inject <PublisherStreamHandler | null> (videoHandlerKey, null)
     const chatHandler = inject <ChatHandler | null> (chatKey, null)
-    const isStreamActive = ref<boolean> (false)
+    //const isStreamActive = ref<boolean> (false)
     const isLoading = ref<boolean>(false)
     const toast = useToast()
     const isDeviceConfigurationVisible = ref<boolean>(false)
@@ -93,9 +109,9 @@ export default defineComponent({
       publisherHandler,
       chatHandler,
       isLoading,
-      isStreamActive,
+      //isStreamActive,
       toast,
-      isDeviceConfigurationVisible
+      isDeviceConfigurationVisible,
     }
   },
 
@@ -111,20 +127,18 @@ export default defineComponent({
       this.audioTrack = newValue[0].getAudioTracks()[0]
     },
 
-    publisherHandler : {
-      handler: function (newValue: PublisherStreamHandler | null) {
+    isVideoHandlerAvailable: {
+      handler: function (newValue: boolean) {
         if (!newValue) {
           return
         }
         this.listenToEvents()
-      },
-      immediate: true
+      }
     },
 
     performanceNavigationType (newValue: NavigationTimingType | null) {
       if (newValue === 'reload') {
         this.isLoading = true
-        this.isStreamActive = false
 
         setTimeout(() => {
           this.reconnectStream()
@@ -137,6 +151,10 @@ export default defineComponent({
         return
       }
       this.executeAction(newValue)
+    },
+
+    streamConfigured (newValue) {
+      this.isLoading = false
     }
   },
 
@@ -226,7 +244,7 @@ export default defineComponent({
     },
 
     toggleStream (): void {
-      if (this.isStreamActive) {
+      if (this.streamConfigured) {
         this.destroyRoom()
         return
       }
@@ -256,13 +274,12 @@ export default defineComponent({
         this.isLoading = false
       })
 
-      this.publisherHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED, () => {
-        this.isStreamActive = true
+      this.publisherHandler?.emitter.on(webRTCEventJanusMap[VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED], () => {
         this.isLoading = false
       })
 
       this.publisherHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED, () => {
-        this.isStreamActive = false
+        this.isLoading = false
       }) 
     },
 
@@ -277,6 +294,7 @@ export default defineComponent({
       const isRoomExists = await this.publisherHandler.isStreamAvailable()
       
       if (!isRoomExists || !this.videoTrack) {
+        this.toast.info(this.$t('services.webrtc.info.tryToRestartStream'))
         this.isLoading = false
         return
       }
@@ -338,6 +356,7 @@ export default defineComponent({
               {
                 this.publisherStream.map((stream: MediaStream, index: number) => {
                   return <BaseVideo
+                    key={index}
                     srcObject={stream} 
                     autoplay
                     playsinline
@@ -350,7 +369,8 @@ export default defineComponent({
         controls: () => <StateBar 
           userRole={UserRole.WORKER}
           onStreamtoggle={() => this.toggleStream()}
-          isStreamActive={this.isStreamActive}
+          isStreamActive={this.streamConfigured}
+          isStartStreamDisabled={!this.isPluginConnected}
           onMuteVideo={(muted) => muted ? this.muteVideo() : this.unMuteVideo()}
           onMuteAudio={(muted) => muted ? this.muteAudio() : this.unMuteAudio()}
           onApplydevices={() => this.applyDevices()}
@@ -361,7 +381,7 @@ export default defineComponent({
             <Chat
               room={this.userData.streamId}
               chatName={this.userData.username || 'no-name'}
-              isStreamAvailable={this.isStreamActive}
+              isStreamAvailable={this.streamConfigured}
             />
           }
         </div>,

@@ -1,11 +1,10 @@
 import { ActionContext } from 'vuex'
 import { State, AppState } from '@/types/store'
-import { Maybe, MediaDevice, errorRetryNumber} from '@/types/global'
+import { ConnectionState, Maybe, MediaDevice, errorRetryNumber, MediaState} from '@/types/global'
 import { VideoRoomPluginError } from '@/types/janus'
 import { AppMutationTypes } from '@/store/app/mutation-types'
-import { ErrorController, ErrorStateController } from '@/services/VideoServerErrorStateController/ErrorStateController'
-
-const errorStateController = new ErrorStateController()
+import { ErrorController } from '@/services/VideoServerErrorStateController/WebRTCStateController'
+import { App } from 'vue'
 
 type AppActionContext = ActionContext <AppState, State>
 
@@ -37,7 +36,59 @@ export const actions = {
       return
     }
 
-    const newState = errorStateController.getState(context.state.videoErrorState, payload)
-    context.commit(AppMutationTypes.SET_VIDEO_ERROR_STATE, newState)
+    // const newState = errorStateController.getState(context.state.videoErrorState, payload)
+    context.commit(AppMutationTypes.SET_VIDEO_ERROR_STATE, true)
+  },
+
+  setIsVideoHandlerAvailable (context: AppActionContext, payload: boolean) {
+    context.commit(AppMutationTypes.SET_IS_VIDEO_HANDLER_AVAILABLE, payload)
+  },
+
+  setIsChatHandlerAvailable (context: AppActionContext, payload: boolean) {
+    context.commit(AppMutationTypes.SET_IS_CHAT_HANDLER_AVAILABLE, payload)
+  },
+
+  setWebrtcPluginSuccess (context: AppActionContext, payload: boolean) {
+    context.commit(AppMutationTypes.SET_WEBRTC_PLUGIN_SUCCESS, payload)
+  },
+
+  setWebrtcPluginError (context: AppActionContext, payload: boolean) {
+    context.commit(AppMutationTypes.SET_WEBRTC_PLUGIN_ERROR, payload)
+  },
+
+  setWebrtcPluginConsentDialog (context: AppActionContext, payload: boolean) {
+    context.commit(AppMutationTypes.SET_WEBRTC_PLUGIN_CONSENT_DIALOG, payload)
+  },
+
+  setWebrtcPluginWebrtcState (context: AppActionContext, payload: ConnectionState) {
+    context.commit(AppMutationTypes.SET_WEBRTC_PLUGIN_WEBRTC_STATE, payload)
+  },
+
+  setWebrtcPluginConnectionState (context: AppActionContext, payload: ConnectionState) {
+    context.commit(AppMutationTypes.SET_WEBRTC_PLUGIN_CONNECTION_STATE, payload)
+  },
+
+  setWebrtcPluginIceState (context: AppActionContext, payload: ConnectionState) {
+    context.commit(AppMutationTypes.SET_WEBRTC_PLUGIN_ICE_STATE, payload)
+  },
+
+  setWebrtcPluginMediaState (context: AppActionContext, payload: MediaState) {
+    context.commit(AppMutationTypes.SET_WEBRTC_PLUGIN_MEDIA_STATE, payload)
+  },
+
+  setWebrtcPluginSlowLink (context: AppActionContext, payload: boolean) {
+    context.commit(AppMutationTypes.SET_WEBRTC_PLUGIN_SLOW_LINK, payload)
+  },
+
+  setStreamConfigured (context: AppActionContext, payload: boolean) {
+    context.commit(AppMutationTypes.SET_STREAM_STATE_CONFIGURED, payload)
+  },
+
+  setStreamPublished (context: AppActionContext, payload: boolean) {
+    context.commit(AppMutationTypes.SET_STREAM_STATE_PUBLISHED, payload)
+  },
+
+  setStreamJoined (context: AppActionContext, payload: boolean) {
+    context.commit(AppMutationTypes.SET_STREAM_STATE_JOINED, payload)
   }
 }

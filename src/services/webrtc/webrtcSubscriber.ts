@@ -21,7 +21,7 @@ import {
 export interface WebRTCHandler {
   connect: (publisherId: string, roomId: number, track?: MediaStreamTrack[]) => Promise <boolean>
   leave: () => Promise <boolean>
-  getPublishers: () => Promise<Room[] | null>
+  getStreams: () => Promise<Room[] | null>
   requestPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
   sendMessage?: (mes: string) => Promise <boolean>
 }
@@ -87,12 +87,13 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
           jsep,
           success: (sdp) => this.attach(sdp)
         })
+        return
       }
 
       const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
 
       try {
-        await this.handlePluginEvent(eventType)
+        await this.handlePluginEvent(eventType, msg)
       } catch (err) {
         console.error(err)
         this.emitter.emit(webRTCEvent[AttachEvent.ERROR], err)
@@ -100,7 +101,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     })
   }
 
-  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT) {
+  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
     switch (eventType) {
       case VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED:
         this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED)
@@ -108,6 +109,16 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
 
       case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
         this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED)
+        break
+      case VIDEO_ROOM_PLUGIN_EVENT.ATTACHED:
+        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.ATTACHED, msg.streams)
+        break
+
+      case VIDEO_ROOM_PLUGIN_EVENT.EVENT:
+        if (msg.started) {
+          this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.STARTED, msg.started === 'ok')
+        }
+        break
 
       default:
         console.warn('unhandled message ', eventType)
@@ -140,7 +151,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     
   }
 
-  getPublishers (): Promise <Room[]> {
+  getStreams(): Promise <Room[]> {
 
     return new Promise(resolve => {
       if (!this.handler) {

@@ -50,7 +50,7 @@ export default defineComponent({
   props: {
     /** logged user role */
     userRole: {
-      type: String as unknown as PropType <UserRole>,
+      type: Number as PropType <UserRole>,
       required: true,
     },
     /** do we have a stream */
@@ -61,6 +61,10 @@ export default defineComponent({
     amount: {
       type: Number as PropType <number>,
       default: 0
+    },
+    isStartStreamDisabled: {
+      type: Boolean as PropType <boolean>,
+      default: false
     }
   },
 
@@ -201,6 +205,7 @@ export default defineComponent({
     const stream = <StreamController
       modelValue={this.isStreamActive}
       onUpdate:modelValue={() => this.$emit('streamtoggle')}
+      disabled={this.isStartStreamDisabled}
     />
 
     const hide = <HidePanelController

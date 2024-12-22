@@ -2,6 +2,8 @@ import eventEmitter from 'events'
 import Janus, { JanusJS } from 'janus-gateway'
 import { InjectionKey } from 'vue'
 import { VideoRoomPluginError } from '@/types/janus'
+import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 
 export type Room = {       
   room : number
@@ -200,6 +202,7 @@ export type WebRTCHandlerConstructor = {
 /** plugin handlers */
 export const supKey = Symbol('subscriberHandler') as InjectionKey<string>
 export const pubKey = Symbol('publisherHandler') as InjectionKey<string>
+export const videoHandlerKey = Symbol('videoHandler') as InjectionKey <string>
 export const chatKey = Symbol('chatHandler') as InjectionKey<string>
 
 /** outputs type */
@@ -218,3 +221,12 @@ export type VideoErrorState = {
   state: VideoRoomPluginError,
   retry: number
 }
+
+/** video handler */
+export type VideoHandler <T extends UserRole> = T extends UserRole.WORKER
+  ? PublisherStreamHandler
+  : SubscriberStreamHandler
+
+export type ConnectionState = 'connected' | 'failed' | 'disconnected' | 'closed'
+export type MediaState = { medium: 'audio' | 'video', receiving: boolean, mid?: number }
+export type SlowLink = { uplink: boolean, lost: number, mid: string }
