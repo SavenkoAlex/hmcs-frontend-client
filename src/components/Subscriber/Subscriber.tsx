@@ -69,6 +69,14 @@ export default defineComponent({
 
       return publisherId
     },
+
+    publisherName (): string {
+      return this.publisher?.username ?? '-'
+    },
+
+    streamId (): number {
+      return this.publisher?.streamId ?? 0
+    }
   },
 
   watch: {
