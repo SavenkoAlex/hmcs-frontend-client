@@ -19,15 +19,14 @@ import { RouterView } from 'vue-router'
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 /** webrtc publisher handler */
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
-
 /** chat handler */
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 import Janus from 'janus-gateway'
 
 /** types */
-import { JanusPlugin, UserRole, supKey, pubKey, chatKey, VideoErrorState } from '@/types/global'
-import { webRTCEventJanusMap, AttachEvent, VideoRoomPluginError } from '@/types/janus'
+import { JanusPlugin, UserRole, supKey, pubKey, chatKey, videoHandlerKey,VideoErrorState, VideoHandler } from '@/types/global'
+import { webRTCEventJanusMap, AttachEvent, VideoRoomPluginError, CommonVideoPluginError } from '@/types/janus'
 import { mapGetters, mapActions } from 'vuex'
 
 /** store */
@@ -46,11 +45,10 @@ export default defineComponent({
   },
 
   setup () {
-    const subscriberHandler = ref <SubscriberStreamHandler | null> (null)
-    const publisherHandler = ref <PublisherStreamHandler | null> (null)
     const chatHandler = ref <ChatHandler | null> (null)
-    provide<typeof subscriberHandler> (supKey, subscriberHandler)
-    provide<typeof publisherHandler> (pubKey, publisherHandler)
+    const videoHandler = ref <SubscriberStreamHandler | PublisherStreamHandler | null> (null)
+
+    provide<typeof videoHandler> (videoHandlerKey, videoHandler)
     provide<typeof chatHandler> (chatKey, chatHandler)
 
     const performanceObserver = ref <PerformanceObserver>()
@@ -59,8 +57,7 @@ export default defineComponent({
 
     return {
       chatHandler,
-      subscriberHandler,
-      publisherHandler,
+      videoHandler,
       toast,
       performanceObserver
     }
@@ -68,7 +65,15 @@ export default defineComponent({
 
   computed: {
     ...mapGetters(States.USER, [ 'userRole', 'isAuthentificated', 'userData']),
-    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId', 'videoErrorState'])
+    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId', 'videoErrorState']),
+
+    roomNumber (): number | null {
+      if (this.userRole === UserRole.WORKER) {
+        return this.userData?.streamId || null
+      }
+
+      return this.$route.params.id ? Number(this.$route.params.id) : null
+    }
   },
 
   watch: {
@@ -97,10 +102,16 @@ export default defineComponent({
         return
       }
       
-      if (newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM) {
+      if (newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM ||
+        newValue.state === CommonVideoPluginError.SERVER_DOWN ||
+        newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN
+      ) {
         this.initHandlers()
-        this.setVideoErrorState(null)
       }
+    },
+
+    chatHandler (newValue) {
+      this.setIsChatHandlerAvailable(!!newValue)
     }
   },
   
@@ -109,13 +120,15 @@ export default defineComponent({
       'setWebrtcSessionId', 
       'setChatSessionId', 
       'setPerformanceNavigationType',
-      'setVideoErrorState'
+      'setVideoErrorState',
+      'setIsVideoHandlerAvailable',
+      'setIsChatHandlerAvailable'
     ]),
 
     initSubscriber () {
       SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
         if (result) {
-          this.subscriberHandler = result
+          this.videoHandler = result
           this.setWebrtcSessionId(result.handler.getId())
         } else {
           this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
@@ -143,7 +156,7 @@ export default defineComponent({
         roomId: this.userData.streamId,
         displayName: this.userData.username
       }).then(result => {
-        this.publisherHandler = result
+        this.videoHandler = result
         this.setWebrtcSessionId(result?.handler.getId())
       })
 
@@ -155,7 +168,19 @@ export default defineComponent({
       })
     },
 
-    initHandlers () {
+    async initHandlers () {
+      if (this.videoHandler) {
+        await this.videoHandler.leave()
+      }
+
+      if (this.chatHandler && this.roomNumber) {
+        if (this.userRole === UserRole.WORKER) {
+          await this.chatHandler.destroyChat(this.roomNumber)
+        } else {
+          await this.chatHandler.leave(this.roomNumber)
+        }
+      }
+
       switch (this.userRole) {
         case UserRole.WORKER: {
           this.initPublisher()

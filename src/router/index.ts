@@ -11,7 +11,10 @@ import Login from '@/pages/Login/Login'
 import NotFound from '@/pages/NotFound/NotFound'
 import Subscriber from '@/pages/Subscriber/Subscriber'
 import Registeration from '@/pages/Registration/Registeration'
-import  { userRoleAuth } from '@/router/middleware/auth'
+import { store } from '@/store'
+import { userRoleAuth } from '@/router/middleware/auth'
+import { States } from '@/types/store'
+import { UserRole } from '@/types/global'
 
 const routes: RouteRecordRaw[] = []
 
@@ -20,7 +23,7 @@ const serverRoutes = [
     // root
     name: 'root',
     path: '/',
-    redirect: 'streams'
+    redirect: () => store.getters?.userRole === UserRole.WORKER ? 'stream' : 'streams'
   },
   {
     // all streams list

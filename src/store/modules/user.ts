@@ -24,4 +24,4 @@ export const user: Module <UserState, State> = {
   mutations
 }
 
-export const userStateKey: InjectionKey <Store <UserState>> = Symbol()
+export const userStateKey: InjectionKey <Store <UserState>> = Symbol('user')

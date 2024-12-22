@@ -30,23 +30,13 @@ export default defineComponent({
 
   computed: {
     ...mapGetters(States.USER, {
-      userRole: 'userType',
+      userRole: 'userRole',
       userId: 'userId'
     })
   },
 
-  data (): Data {
-    return {
-      userRole: UserRole.USER
-    }
-  },
-
   methods: {
     async getUser() {}
-  },
-
-  created() {
-    console.log('created')
   },
 
   render (): VNode {
@@ -57,7 +47,7 @@ export default defineComponent({
             userId={this.userId}
           />
           : this.userRole === UserRole.WORKER
-            ? <WorkerProfile
+            ? <UserProfile
               userId={this.userId}
             />
             : <div class={'user-profile__container_empty'}>

@@ -13,9 +13,6 @@ import './MainNavbar.scss'
 import LogoIcon from '@/assets/images/small/error_16dp.svg'
 import { RouterLink } from 'vue-router'
 
-/** store */
-import { useStore } from '@/store'
-
 /** types */
 import { UserRole } from '@/types/global'
 import { States } from '@/types/store'

@@ -5,6 +5,7 @@ import {
   JanusPlugin,   
   HandlerDescription,
   WebRTCHandlerConstructor,
+  Room
 } from '@/types/global'
 
 import { 
@@ -13,7 +14,8 @@ import {
   webRTCEventJanusMap, 
   AttachEvent,
   ErrorMessage,
-  CustomJanusApiResponse
+  CustomJanusApiResponse,
+  IceState,
 } from '@/types/janus'
 
 /**
@@ -31,6 +33,7 @@ export interface WebRTCHandler {
   connect: (track: MediaStreamTrack, mountPoint: number) => Promise <boolean | CustomJanusApiResponse <any>>
   leave: (mountId: number) => Promise <boolean>
   reconnect: (track: MediaStreamTrack, secret?: string) => Promise <boolean>
+  getStreams: () => Promise <Room[]>
   modifyToPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
   modifyToPublic?: (mointId: number) => Promise <boolean>
 }
@@ -40,7 +43,6 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   roomNumber: number | null
   mediaTrack: MediaStreamTrack | null
   options: HandlerDescription
-
   private constructor ({
     webrtcPlugin,
     handler, 
@@ -73,26 +75,32 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   // attach a event listener on janus events
   protected listen () {
     // Catching Janus on message event
+    // the rest of emits MUST be handled on client side at this moment
     this.emitter.on(webRTCEventJanusMap[AttachEvent.ONMESSAGE], async ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
       if (msg.error) {
-        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], msg?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
+        this.handlePluginError(msg)
         return
       }
 
       if (jsep) {
         this.handler.handleRemoteJsep({ jsep })
+        if (msg?.configured) {
+          this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, true)
+        }
         return
       }
-      
+
       const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
 
       try {
+        // track plugin events
         await this.handlePluginEvent(eventType, msg)
       } catch (err) {
         console.error(err)
         this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], err)
       }
     })
+
   }
 
   protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
@@ -105,17 +113,28 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
           console.error('offer is not created')
           return 
         }
-        this.publish(jsep)
-        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED)
+        await this.publish(jsep)
         break
 
       case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
+        this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, false)
         this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED)
         break
 
       default:
-        console.warn('unhandled message ', eventType)
+        console.warn('unhandled message ', eventType, msg)
     }
+  }
+
+  protected handlePluginError (msg: JanusJS.Message) {
+
+    const errorCode = msg.error_code
+      switch (errorCode) {
+
+      default:
+        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], msg?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN, msg)
+      }
+
   }
 
   /**
@@ -269,11 +288,21 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       console.error('no media stream track detected')
       return {
         success: false,
-        errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM
+        errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NO_MEDIA
       }
     }
 
     try {
+      const rooms = await this.getStreams()
+      const exists = rooms.find(room => room.room === this.options.roomId)
+
+      if (exists) {
+        return {
+          success: false,
+          errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_ROOM_ALEAВY_CREATED
+        }
+      } 
+
       this.mediaTrack = track
       const response = await this.createRoom()
 
@@ -281,9 +310,10 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         return response
       }
 
+      // async call just request and wait for response
       const result = await this.joinAsPublisher()
       return {
-        success: true
+        success: result
       }
     } catch (err) {
       console.error(err)
@@ -418,6 +448,34 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         message,
         success: (data) => resolve(data),
         error: () => resolve([])
+      })
+    })
+  }
+
+  getStreams (): Promise <Room[]> {
+
+    return new Promise(resolve => {
+      if (!this.handler) {
+        return []
+      }
+
+      const message = {
+        request: 'list',
+      }
+
+      this.handler?.send({
+        message,
+        success: (res) => {
+          if (res?.list && Array.isArray(res.list)) {
+            resolve(res.list)
+            return
+          }
+          resolve([])
+        },
+        error: err => {
+          console.error(err)
+          resolve([])
+        }
       })
     })
   }

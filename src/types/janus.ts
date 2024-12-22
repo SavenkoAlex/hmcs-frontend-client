@@ -4,6 +4,7 @@ import { JanusJS } from 'janus-gateway'
 export const enum VIDEO_ROOM_PLUGIN_EVENT  {
   PUB_JOINED = 'joined',
   SUB_JOINED = 'subscribed',
+  ATTACHED = 'attached',
   PUB_LIST = 'publisher_list',
   PARTICIPANTS_LIST = 'participants_list',
   PUB_PEER_JOINED = 'publisher_joined',
@@ -29,6 +30,7 @@ export const enum VIDEO_ROOM_PLUGIN_EVENT  {
   RTP_FWD_STARTED = 'rtp_fwd_started',
   RTP_FWD_STOPPED = 'rtp_fwd_stopped',
   RTP_FWD_LIST = 'rtp_fwd_list',
+  EVENT = 'event'
 }
 
 /** text room plugin events */
@@ -94,9 +96,10 @@ export type JanusAttchCb =
   'detached' 
 
 export const enum AttachEvent {
-  SUCCESS = 'succes',
+  SUCCESS = 'success',
   ERROR = 'error',
   CONSENTDIALOG = 'consentDialog',
+  CONNECTIONSTATE = 'connectionState',
   WEBRTCSTATE = 'webrtcState',
   ICESTATE = 'iceState',
   MEDIASTATE = 'mediaState',
@@ -143,13 +146,20 @@ export const enum VideoRoomPluginError {
   JANUS_VIDEOROOM_ERROR_ID_EXISTS,
   JANUS_VIDEOROOM_ERROR_INVALID_SDP,
   JANUS_VIDEOROOM_ERROR_UNKNOWN = 999,
+  JANUS_VIDEOROOM_ERROR_ROOM_ALEAВY_CREATED,
+  JANUS_VIDEOROOM_ERROR_NO_MEDIA
 }
 
+export const enum CommonVideoPluginError {
+  SERVER_DOWN = 200
+}
+
+// plugin events used in handler initialization
 export const webRTCEventJanusMap = {
   [AttachEvent.SUCCESS]: 'connected',
   [AttachEvent.ERROR]: AttachEvent.ERROR,
   [AttachEvent.CONSENTDIALOG]: AttachEvent.CONSENTDIALOG,
-  [AttachEvent.WEBRTCSTATE]: AttachEvent.WEBRTCSTATE,
+  [AttachEvent.WEBRTCSTATE]: 'webrtstate',
   [AttachEvent.ICESTATE]: 'webrtcicestate',
   [AttachEvent.MEDIASTATE]: 'webrtcmediastate',
   [AttachEvent.SLOWLINK]: AttachEvent.SLOWLINK,
@@ -159,7 +169,10 @@ export const webRTCEventJanusMap = {
   [AttachEvent.ONDATAOPEN]: AttachEvent.ONDATAOPEN,
   [AttachEvent.ONDATA]: AttachEvent.ONDATA,
   [AttachEvent.ONCLEANUP]: "closed",
-  [AttachEvent.DETACHED]: AttachEvent.DETACHED
+  [AttachEvent.DETACHED]: AttachEvent.DETACHED,
+  [VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED]: VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED,
+  'onConnectionState': 'onConnectionState',
+  'destroyed': 'destroyed'
 } as const
 
 export type ErrorMessage = {
@@ -172,5 +185,7 @@ export type CustomJanusApiResponse <T extends any>= {
   errorCode?: number | VideoRoomPluginError
   data?: T
 }
+
+export type IceState = 'connected' | 'disconnected' | 'failed' | 'checking'
 
 

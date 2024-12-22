@@ -172,7 +172,7 @@ export class ChatHandler extends StreamHandler {
         console.log('room created', msg)
 
       default:
-        console.warn('unhandled message ', eventType)
+        console.warn('unhandled message ', eventType, msg)
     }
   }
 
@@ -286,7 +286,7 @@ export class ChatHandler extends StreamHandler {
     })
   }
 
-  destroyHandler (streamId: number): Promise <boolean> {
+  destroyChat (streamId: number): Promise <boolean> {
     
     return new Promise (resolve => {
       const message = {

@@ -29,7 +29,7 @@ import userApi from '@/api/user'
 
 /** types */
 import { Data } from '@/components/Subscriber/types'
-import { StreamRole, supKey, chatKey } from '@/types/global'
+import { StreamRole, chatKey, videoHandlerKey } from '@/types/global'
 import { webRTCEventJanusMap, AttachEvent, VIDEO_ROOM_PLUGIN_EVENT } from '@/types/janus'
 
 /** layouts */
@@ -40,6 +40,8 @@ import bg from '@/assets/images/taro-bg.jpg'
 
 /** notifier */
 import { useToast } from 'vue-toastification'
+/* locales */
+import { I18n, useI18n } from 'vue-i18n'
 
 export default defineComponent({
 
@@ -107,12 +109,13 @@ export default defineComponent({
     }
     const subscriberName = ref <string>('sasha the programmer')
     const mountPoint = ref <number> ()
-    const subscriberHandler = inject <SubscriberStreamHandler | null> (supKey, null)
+    const subscriberHandler = inject <SubscriberStreamHandler | null> (videoHandlerKey, null)
     const chatPluginHandler = inject <ChatHandler | null> (chatKey, null)
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
     const toast = useToast()
     const isJoined = ref <boolean> (false)
+    const { t } = useI18n()
 
     return {
       remoteStream,
@@ -125,7 +128,8 @@ export default defineComponent({
       subscriberName,
       subscriberHandler,
       toast,
-      isJoined
+      isJoined,
+      t
     }
   },
 
@@ -151,7 +155,8 @@ export default defineComponent({
       const { track } = descripption
       this.remoteStream = new MediaStream([track])
       if (this.remoteStream && this.remoteVideoNode) {
-        Janus.attachMediaStream(this.remoteVideoNode, this.remoteStream)
+        //Janus.attachMediaStream(this.remoteVideoNode, this.remoteStream)
+        this.remoteVideoNode.srcObject = this.remoteStream
         this.isJoined = true
         return
       }
@@ -167,10 +172,13 @@ export default defineComponent({
     },
 
     onError (error: Error) {
+      console.error(error)
+      this.toast(this.t('services.webrtc.errors.canNotConnectStream'))
+      if (!this.isJoined) {
+        return
+      }
       this.subscriberHandler?.leave()
       this.isJoined = false
-      console.error(error)
-      this.toast(this.$t('services.webrtc.errors.canNotConnectStream'))
     },
 
     onJoined () {
@@ -178,16 +186,17 @@ export default defineComponent({
     },
 
     addListeners () {
-      this.subscriberHandler?.emitter.on(
-        webRTCEventJanusMap[AttachEvent.ONREMOTETRACK], data => this.onremotetrack(data)
-      )
-      this.subscriberHandler?.emitter.on(
-        webRTCEventJanusMap[AttachEvent.ERROR], error => this.onError(error)
-      )
-      this.subscriberHandler?.emitter.on(
-        VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED, () => {
+      this.subscriberHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ONREMOTETRACK], data => this.onremotetrack(data))
+      this.subscriberHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], error => this.onError(error))
+      this.subscriberHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.STARTED, (started: boolean) => {
+        if (!started) {
+          this.toast(this.t('services.webrtc.errors.canNotConnectStream'))
         }
-      )
+      })
+      this.subscriberHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.ATTACHED, (streams) => {
+        console.log('streams:', streams)
+      })
+
     }
   },
 
@@ -209,7 +218,6 @@ export default defineComponent({
   },
 
   beforeRouteLeave () {
-    console.log('111')
     this.subscriberHandler?.leave()
   },
 
