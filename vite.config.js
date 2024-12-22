@@ -5,8 +5,10 @@ import svgLoader from 'vite-svg-loader'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import fs from 'fs'
+import { fileURLToPath } from 'node:url'
 
 const path = require('path')
+const externalId = fileURLToPath(new URL('node_modules/janus-gateway/dist/janus.es.js', import.meta.url))
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -36,7 +38,7 @@ export default defineConfig({
       cert: fs.readFileSync(path.resolve(__dirname, 'certs/taro.com.crt'))
     },
     cors: {
-      origin: false
+      origin: true
     },
     proxy: {
       '/api' : {
@@ -70,6 +72,17 @@ export default defineConfig({
       include: [/node_modules/],
       esmExternals: true
     },
+    rollupOptions: {
+      treeshake: false,
+      external: [externalId],
+      output: {
+        format: 'iife',
+        name: 'janusBundle',
+        globals: {
+          [externalId]: 'Janus'
+        }
+      }
+    }
   },
 })
 

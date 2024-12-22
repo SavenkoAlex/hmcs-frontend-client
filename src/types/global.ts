@@ -1,6 +1,9 @@
 import eventEmitter from 'events'
 import Janus, { JanusJS } from 'janus-gateway'
 import { InjectionKey } from 'vue'
+import { VideoRoomPluginError } from '@/types/janus'
+import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 
 export type Room = {       
   room : number
@@ -184,12 +187,13 @@ export const enum JanusPlugin {
 
 /** plugin handler parameters */
 export interface HandlerDescription {
-  streamId: number
+  // stream id of publisher used as room id
+  roomId: number
   displayName: string,
 }
 
 export type WebRTCHandlerConstructor = {
-  plugin: typeof Janus,
+  webrtcPlugin: typeof Janus,
   handler: JanusJS.PluginHandle, 
   emitter: eventEmitter.EventEmitter,
   options?: HandlerDescription
@@ -198,7 +202,31 @@ export type WebRTCHandlerConstructor = {
 /** plugin handlers */
 export const supKey = Symbol('subscriberHandler') as InjectionKey<string>
 export const pubKey = Symbol('publisherHandler') as InjectionKey<string>
+export const videoHandlerKey = Symbol('videoHandler') as InjectionKey <string>
 export const chatKey = Symbol('chatHandler') as InjectionKey<string>
 
 /** outputs type */
 export type Output = 'log' | 'error' | 'warn'
+
+/** 
+ * default retry number 
+ * count of same plugin error that can be handled some how
+ */
+export const errorRetryNumber = 3
+
+/**
+ * video server response error code with number of attempts to fix 
+ */
+export type VideoErrorState = {
+  state: VideoRoomPluginError,
+  retry: number
+}
+
+/** video handler */
+export type VideoHandler <T extends UserRole> = T extends UserRole.WORKER
+  ? PublisherStreamHandler
+  : SubscriberStreamHandler
+
+export type ConnectionState = 'connected' | 'failed' | 'disconnected' | 'closed'
+export type MediaState = { medium: 'audio' | 'video', receiving: boolean, mid?: number }
+export type SlowLink = { uplink: boolean, lost: number, mid: string }

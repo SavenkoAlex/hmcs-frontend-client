@@ -15,10 +15,11 @@ const i18n = createI18n({
     'ru-RU': ruLocale,
     'en_US': enLocale
   },
-  fallbackLocale: 'en-US'
+  fallbackLocale: 'en-US',
+  legacy: false
 })
 
-const toastOptions:PluginOptions = {
+const toastOptions: PluginOptions = {
   position: POSITION.BOTTOM_CENTER,
   closeOnClick: true,
   hideProgressBar: true

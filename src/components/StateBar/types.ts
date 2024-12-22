@@ -15,7 +15,9 @@ export type Data = {
   user: null | User,
   account: null | UserAccount,
   isCameraMuted: boolean,
-  isMicMuted: boolean
+  isMicMuted: boolean,
+  isControlHidden: boolean,
+  isDeviceConfigurationVisible: boolean
 }
 
 export type BarConfiguration = {
@@ -29,10 +31,10 @@ export const enum StateBarElements {
   MIC = 'mic',
   INCREASE = 'increase',
   AMOUNT = 'amount',
-  LIVE = 'live',
   FEE = 'fee',
   STREAM = 'stream',
-  EMPTY = 'empty'
+  EMPTY = 'empty',
+  HIDE = 'hide'
 }
 
 export const BarConfigutations: BarConfiguration = {
@@ -42,25 +44,22 @@ export const BarConfigutations: BarConfiguration = {
     StateBarElements.MIC,
     StateBarElements.JOIN_REQ, 
     StateBarElements.INCREASE,
-    StateBarElements.AMOUNT
+    StateBarElements.HIDE
   ],
   [StreamRole.PUBLISHER]: [
     StateBarElements.STREAM,
     StateBarElements.CAMERA,
     StateBarElements.MIC,
     StateBarElements.DEVICES, 
-    StateBarElements.LIVE,
+    StateBarElements.HIDE
   ],
   [StreamRole.PUBLISHER_OFFLINE]: [
     StateBarElements.DEVICES, 
     StateBarElements.STREAM,
+    StateBarElements.HIDE
   ],
   [StreamRole.OBSERVER]: [
     StateBarElements.JOIN_REQ, 
     StateBarElements.INCREASE,
-    StateBarElements.FEE,
-    StateBarElements.EMPTY,
-    StateBarElements.LIVE,
-    StateBarElements.AMOUNT,
   ]
 }

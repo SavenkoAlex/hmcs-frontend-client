@@ -20,8 +20,7 @@ import Form from '@/components/general/Form/Form'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
 
 /** icons */
-import DefaultAvatar from '@/assets/images/225-default-avatar.svg'
-import LogoutIcon from '@/assets/images/logout_24.svg'
+import DefaultAvatar from '@/assets/images/small/person_16dp.svg'
 
 /** styles */
 import '@/components/Profile/Profile.scss'
@@ -151,7 +150,7 @@ export default defineComponent({
         <TextButton
           mode={'fourth'}
           text={this.$t('common.exit')}
-          onClick={() => this.logout()}
+          onClick={() => this.logout(this.userRole)}
         />
       </div>
      

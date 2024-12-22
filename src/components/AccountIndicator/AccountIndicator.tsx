@@ -9,7 +9,7 @@ import { ElementScale } from '@/types/global'
 import { Style } from '@/components/AccountIndicator/types'
 
 /** components */
-import CoinIcon from '@/assets/images/toll_24.svg'
+import CoinIcon from '@/assets/images/small/error_16dp.svg'
 
 /** styles */
 import '@/components/AccountIndicator/AccountIndicator.scss'

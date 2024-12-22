@@ -11,7 +11,7 @@ import {
 import { Chat, Data } from '@/components/Chat/types'
 import { ElementScale, UserRole, chatKey } from '@/types/global'
 import { JanusTextMessage } from '@/services/webrtc/webrtcDataExchange'
-
+import { AttachEvent, TEXT_ROOM_PLUGIN_EVENT, webRTCEventJanusMap } from '@/types/janus'
 /** styles */
 import '@/components/Chat/Chat.scss'
 
@@ -19,7 +19,7 @@ import '@/components/Chat/Chat.scss'
 import Label from '@/components/general/Label/Label'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
-import Send from '@/assets/images/send_32.svg'
+import Send from '@/assets/images/small/send_24dp.svg'
 
 /** services */
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
@@ -29,6 +29,9 @@ import { mapGetters } from 'vuex'
 
 /** helpers */
 import { formatTime } from '@/helpers/helper'
+
+/** notifier */
+import { useToast } from 'vue-toastification'
 
 export default defineComponent({
 
@@ -52,48 +55,65 @@ export default defineComponent({
       type: String as PropType <string>,
       required: true
     },
+
+    /**room createing flag */
+    isStreamAvailable: {
+      type: Boolean as PropType <boolean>,
+      default: false
+    }
   },
 
   computed: {
     ...mapGetters('user', ['userData', 'userRole']),
+
+    chatRoom (): number {
+      return (this.room + 1) * 1000
+    },
+
+    isChatDisabled (): boolean {
+      return !this.isStreamAvailable || !this.isRoomExists
+    },
+
+    isReadyToConnect (): boolean {
+      return !!(this.isStreamAvailable && this.chatHandler)
+    }
   },
 
   watch: {
-    room (newValue: number, oldValue) {
-
-      if (newValue == oldValue) {
-        return
-      }
-
-      if (this.chatHandler) {
-        this.chatHandler.destroyHandler(this.room)
-      }
+    chatHandler: {
+      handler: function (newValue: ChatHandler | null) {
+        if (!newValue) {
+          return
+        }
+        this.addListeners()
+      },
+      immediate: true
     },
 
-    chatHandler (newValue) {
+    isReadyToConnect (newValue) {
       if (newValue) {
-        this.initChat ()
+        this.join()
       }
-    }
+    },
   },
 
   setup () {
     const chatHandler = inject <ChatHandler | null> (chatKey, null)
     const currentChat = ref <string> ()
     const chatLinks = ref <Record<string, Chat>>({})
-    const isRoomAvailable = ref <boolean> (false)
     const isRoomExists = ref <boolean> (false)
     const inputMessage = ref <string> ('')
     const chatMessages = ref<HTMLBaseElement>()
+    const toast = useToast()
 
     return {
       chatHandler,
       currentChat,
       chatLinks,
-      isRoomAvailable,
       isRoomExists,
       inputMessage,
-      chatMessages
+      chatMessages,
+      toast
     }
   },
 
@@ -118,17 +138,17 @@ export default defineComponent({
         return false
       }
 
-      const result = await this.chatHandler.sendMessage(text, this.room)
+      const result = await this.chatHandler.sendMessage(text, this.chatRoom)
       return result
     },
 
     handleError (error: unknown): void {
-      console.error('error handlelr ', error)
+      this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
     },
 
     handleData (data: string): void {
       try {
-        const dataParsed: JanusTextMessage = JSON.parse(data)
+        const dataParsed: JanusTextMessage = typeof data === 'string' ? JSON.parse(data) : data
 
         if (dataParsed.textroom === 'message' && this.currentChat) {
           this.chatLinks[this.currentChat].messages.push({
@@ -146,7 +166,6 @@ export default defineComponent({
 
     ondataopen(label: string) {
       this.isRoomExists = true
-      this.isRoomAvailable = this.userRole !== UserRole.ANONYMOUS
     },
 
     /** scroll down chat messages */
@@ -179,80 +198,81 @@ export default defineComponent({
       return `${hours}.${minutes}.${seconds}`
     },
 
+    /** create room and join */
     async joinAsPublisher () {
       if (!this.chatHandler || !this.userData?.streamId || !this.userData?.username) {
+        this.toast.error(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
         return false
       } 
+      
+      if (!this.isRoomExists) {
+        this.isRoomExists = await this.chatHandler.createRoom(this.chatRoom)
+      }
 
-      this.isRoomExists = await this.chatHandler.createRoom(this.room)
       if (this.isRoomExists) {
-        this.isRoomAvailable = await this.chatHandler.register(this.chatName, this.room)
+        await this.register()
       }
     },
 
     async join () {
       if (!this.chatHandler) {
+        this.toast.error(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
         return
       }
-      /**
-       * depends on user role we have to create or join existing room
-       */
-      const exists = await this.chatHandler?.exists(this.room)
 
-      if (exists && this.userRole === UserRole.USER) {
-        this.joinAsSubscriber()
-        return 
-      } else if (!exists && UserRole.WORKER) {
+      const exists = await this.chatHandler?.exists(this.chatRoom)
+      this.isRoomExists = exists
+
+      if (this.isRoomExists && (this.userRole === UserRole.USER || this.userRole === UserRole.WORKER)) {
+        this.register()
+        return
+      }
+
+      if (this.userRole === UserRole.WORKER) {
         this.joinAsPublisher()
         return
       }
-
-      this.isRoomExists = exists
-      if (this.userRole !== UserRole.ANONYMOUS) {
-        this.isRoomAvailable = await this.chatHandler.register(this.chatName, this.room)
-        return
-      }
-      this.isRoomAvailable = false
     },
 
-    async joinAsSubscriber() {
+    async register (): Promise <boolean> {
       if (!this.chatHandler) {
-        this.isRoomAvailable = false
-        return
+        this.toast(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
+        return false
       }
 
-      const result = await this.chatHandler.register(this.chatName, this.room)
+      const result = await this.chatHandler.register(this.userData?.username || 'noname', this.chatRoom)
 
       if (!result) {
-        this.isRoomAvailable = false
+        this.toast(this.$t('services.chat.errors.canNotConnectChat'))
       }
+      return result
     },
-    
-    async initChat () {
+
+    destroyChat () {
       if (!this.chatHandler) {
         return
       }
+      this.chatHandler.destroyChat(this.chatRoom)
+    },
 
-      this.chatHandler?.emitter.on('pluginerror', this.handleError)
-      this.chatHandler?.emitter.on('handlererror', this.handleError)
-      this.chatHandler?.emitter.on('handlerdata', this.handleData)
-      this.chatHandler?.emitter.on('plugindata', this.handleData)
-      this.chatHandler?.emitter.on('dataisopen', this.ondataopen)
-      this.join()
+    addListeners () {
+      this.chatHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], err => this.handleError(err))
+      this.chatHandler?.emitter.on(TEXT_ROOM_PLUGIN_EVENT.DATA, data => this.handleData(data))
+      this.chatHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ONDATAOPEN], data => this.ondataopen(data))
+    },
+
+    reconnect() {
+      console.log('here we are trying to recoonect')
     }
   },
 
-  
   mounted() {
-
     this.currentChat = `${this.$t('components.chat.defaultChatName')} ${this.chatName}`
-
     this.chatLinks[this.currentChat] = {
       id: `${this.currentChat}`,
       name: `${this.currentChat}`,
       messages: []
     }
-
     // we need observer to scroll added messages to bottom 
     this.observer = new MutationObserver(this.observeChat)
 
@@ -262,7 +282,10 @@ export default defineComponent({
       })
     }
 
-    this.initChat()
+  },
+
+  unmounted () {
+    this.chatHandler?.emitter.removeAllListeners()
   },
 
   render (): VNode {
@@ -314,7 +337,7 @@ export default defineComponent({
           <TextInput
             placeholder='Сообщение'
             onEnter={() => this.addMessage()}
-            disabled={!this.isRoomAvailable || !this.room}
+            disabled={this.isChatDisabled}
             modelValue={this.inputMessage}
             onUpdate:modelValue={(data: string) => this.inputMessage = data}
           >
@@ -322,7 +345,6 @@ export default defineComponent({
         </div>
         <div class='chat__button'>
           <IconButton
-            //disabled={this.isRoomAvailable}
             mode={'primary'}
             onClick={() => this.addMessage()}
           >

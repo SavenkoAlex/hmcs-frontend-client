@@ -1,20 +1,15 @@
 import {
   defineComponent,
   VNode,
-  ref,
   inject,
-  Transition
 } from 'vue'
 
 /** styles */
 import '@/components/Streams/Streams.scss'
 
 /** types */
-import { Room, supKey } from '@/types/global'
+import { videoHandlerKey } from '@/types/global'
 import { StreamsData } from '@/components/Streams/types'
-
-//SVG
-import { RouterLink } from 'vue-router'
 
 /** api */
 import userApi from '@/api/user'
@@ -24,6 +19,10 @@ import StreamItem from '@/components/Streams/StreamItem'
 
 /** webrtcHandler */
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+import Loader from '@/components/general/Loader/Loader'
+
+/** toast */
+import { useToast } from 'vue-toastification'
 
 export default defineComponent({
 
@@ -35,74 +34,115 @@ export default defineComponent({
 
   watch: {
     pluginHandler: {
-      handler: function () {
-        this.getRooms().then(result => {
-          for (const room of result) {
-            this.rooms[room.room] = room
-          }
-        }).catch(() => {
-          return []
-        })
-      }
-    }
+      handler: function (newValue) {
+        if (!newValue) {
+          return
+        }
+        this.getOnlineUsers()
+      }, 
+      immediate: true
+    },
   },
 
   setup () {
-    const rooms = ref <Record <number, Room>>({})
-    const pluginHandler = inject<SubscriberStreamHandler | null> (supKey, null)
+    const pluginHandler = inject<SubscriberStreamHandler | null> (videoHandlerKey, null)
+    const toast = useToast()
 
     return {
-      rooms,
       pluginHandler,
+      toast
     }
-
   },
 
   data(): StreamsData {
     return {
-      users: []
+      users: [],
+      rooms: {},
+      userStreams: [],
+      isLoading: false
     }
   },
 
   methods: {
-    async getRooms (): Promise <Room[]> {
+    async getRooms (): Promise <void> {
       if (!this.pluginHandler) {
-        return []
+        this.rooms = {}
+        return
       }
 
+      const rooms = await this.pluginHandler.getStreams()
+      
+      if (!rooms || !rooms.length) {
+        this.rooms =  {}
+        return
+      }
+
+      for (const room of rooms) {
+        if (room.room) {
+          this.rooms[room.room] = room
+        }
+      }
+    },
+
+    async getUsers (): Promise <void> {
+      const onlineRooms = Object.keys(this.rooms).map(item => Number.parseInt(item, 10))
+      if (!onlineRooms?.length) {
+        this.users = []
+        return
+      }
+
+      const users  = await userApi.getUsersByStream(onlineRooms)
+      if (users && users.length > 0) {
+        this.users = users
+        return
+      }
+
+      this.users = []
+    },
+
+    markUsersOnline () {
+      const extendedUsers = this.users.map(item => ({
+        user: item,
+        isOnline: (item.streamId && item.streamId in this.rooms) || false
+      }))
+      this.userStreams = extendedUsers
+    },
+
+    /** get online users */
+    async getOnlineUsers (): Promise <void> {
       try {
-        const rooms = await this.pluginHandler.getPublishers()
-        return rooms || []
+        this.isLoading = true
+        await this.getRooms()
+        await this.getUsers()
+        this.markUsersOnline()
       } catch (err) {
-        return []
+        this.isLoading = false
+        this.toast.error(this.$t('services.webrtc.errors.canNotConnectStream'))
+      } finally {
+        this.isLoading = false
       }
-
     }
   },
 
-  async mounted () {
-
-    const users  = await userApi.getUsers()
-    if (users && users.length > 0) {
-      this.users = users
-    }
-  },
 
   render (): VNode {
     return <div class='streamer-list'>
+      <Loader
+        isVisible={this.isLoading}
+      />
       {
-        this.users.length ?
-          this.users.map(user => 
-            <div class='streamer-list__item'>
-              <StreamItem 
-                stream={user}
-                online={ !!(user?.streamId && user.streamId in this.rooms) }
-              />
-            </div>
-          )
-        : <div class='streamer-list__empty'>
-          <p> { this.$t('components.streams.streamsListEmpty') } </p>
-        </div>
+        this.userStreams.length 
+          ? this.userStreams.map(({ user, isOnline }) => 
+              <div class='streamer-list__item'>
+                <StreamItem 
+                  stream={ user }
+                  online={ isOnline }
+                />
+              </div>
+            )
+          : <div class='streamer-list__empty'>
+            <p> { this.$t('components.streams.streamsListEmpty') } </p>
+          </div>
       }
     </div>
   }

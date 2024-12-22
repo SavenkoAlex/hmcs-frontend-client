@@ -4,7 +4,8 @@ import {
   TransitionGroup,
   Transition,
   VNode,
-  inject
+  inject,
+  useTemplateRef
 } from 'vue'
 
 /** store */
@@ -28,13 +29,19 @@ import userApi from '@/api/user'
 
 /** types */
 import { Data } from '@/components/Subscriber/types'
-import { StreamRole, supKey, chatKey } from '@/types/global'
+import { StreamRole, chatKey, videoHandlerKey } from '@/types/global'
+import { webRTCEventJanusMap, AttachEvent, VIDEO_ROOM_PLUGIN_EVENT } from '@/types/janus'
 
 /** layouts */
 import RoomLayout from '@/layouts/Room/Room'
 
 /**images */
-import SmokeBg from '@/assets/images/taro-bg.jpg'
+import bg from '@/assets/images/taro-bg.jpg'
+
+/** notifier */
+import { useToast } from 'vue-toastification'
+/* locales */
+import { I18n, useI18n } from 'vue-i18n'
 
 export default defineComponent({
 
@@ -72,20 +79,51 @@ export default defineComponent({
     }
   },
 
+  watch: {
+    subscriberHandler: {
+      handler (newValue) {
+        if (!newValue) {
+          return
+        }
+        this.addListeners()
+      },
+      immediate: true
+    },
+
+    async mountPoint (newValue: number) {
+      if (!Number.isInteger(newValue)) {
+        return 
+      }
+
+      if (!this.subscriberHandler || !this.publisherId) {
+        this.toast(this.$t('services.webrtc.errors.canNotConnectStream'))
+        return
+      }
+      const isStreamActive = await this.subscriberHandler.isStreamAvailable(newValue)
+      if (!isStreamActive) {
+        return
+      }
+      this.subscriberHandler.connect(this.publisherId, newValue)
+    }
+  },
+
   setup () {
 
     const remoteStream = ref <MediaStream> ()
-    const remoteVideoNode = ref <HTMLMediaElement> ()
+    const remoteVideoNode = useTemplateRef <HTMLMediaElement> ('video')
     const constraints = {
       audio: false,
       video: true
     }
     const subscriberName = ref <string>('sasha the programmer')
     const mountPoint = ref <number> ()
-    const subscriberHandler = inject <SubscriberStreamHandler | null> (supKey, null)
+    const subscriberHandler = inject <SubscriberStreamHandler | null> (videoHandlerKey, null)
     const chatPluginHandler = inject <ChatHandler | null> (chatKey, null)
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
+    const toast = useToast()
+    const isJoined = ref <boolean> (false)
+    const { t } = useI18n()
 
     return {
       remoteStream,
@@ -96,7 +134,10 @@ export default defineComponent({
       audioTrack,
       mountPoint,
       subscriberName,
-      subscriberHandler
+      subscriberHandler,
+      toast,
+      isJoined,
+      t
     }
   },
 
@@ -104,6 +145,7 @@ export default defineComponent({
     return {
       publisher: null,
       publisherAccount: null,
+      isPublisherAvailable: false
     }
   },
 
@@ -121,40 +163,70 @@ export default defineComponent({
       const { track } = descripption
       this.remoteStream = new MediaStream([track])
       if (this.remoteStream && this.remoteVideoNode) {
-        Janus.attachMediaStream(this.remoteVideoNode, this.remoteStream)
+        //Janus.attachMediaStream(this.remoteVideoNode, this.remoteStream)
+        this.remoteVideoNode.srcObject = this.remoteStream
+        this.isJoined = true
+        return
       }
+    },
+
+    onClosed () {
+      this.isJoined = false
     },
 
     collapseVideo (event: Event) {
       const video = event.target as HTMLVideoElement
       video.play()
     },
+
+    onError (error: Error) {
+      console.error(error)
+      this.toast(this.t('services.webrtc.errors.canNotConnectStream'))
+      if (!this.isJoined) {
+        return
+      }
+      this.subscriberHandler?.leave()
+      this.isJoined = false
+    },
+
+    onJoined () {
+      this.isJoined = true
+    },
+
+    addListeners () {
+      this.subscriberHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ONREMOTETRACK], data => this.onremotetrack(data))
+      this.subscriberHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], error => this.onError(error))
+      this.subscriberHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.STARTED, (started: boolean) => {
+        if (!started) {
+          this.toast(this.t('services.webrtc.errors.canNotConnectStream'))
+        }
+      })
+      this.subscriberHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.ATTACHED, (streams) => {
+        console.log('streams:', streams)
+      })
+
+    }
   },
 
   async mounted () {
-
     if (!this.publisherId) {
       return
     }
-
     this.publisher = await this.getUserData()
-
     if (!this.publisher) {
       return
     }
-
     if (this.publisher.streamId) {
       this.mountPoint = this.publisher.streamId
-    }
-
-    if (!this.mountPoint) {
-      return
     }
   },
 
   unmounted () {
-    this.subscriberHandler?.handler.detach()
-    this.chatPluginHandler?.handler.detach()
+    this.subscriberHandler?.leave()
+  },
+
+  beforeRouteLeave () {
+    this.subscriberHandler?.leave()
   },
 
   render (): VNode {
@@ -168,29 +240,28 @@ export default defineComponent({
                 srcObject={this.remoteStream}
                 autoplay
                 playsinline
+                ref={'video'}
               />
               </TransitionGroup>
             : <Transition name='offline'>
                 <div class={'subscriber__publisher-avatar'}>
                   <ImageMask
-                    image={SmokeBg}
+                    image={bg}
                     text={'offline'}
                   />
                 </div>
               </Transition>
           }
         </div>,
-        controls: () => <div class='subscriber__stream-controls'>
-          <StateBar
-            userRole={this.userData?.role || StreamRole.OBSERVER}
-            amount={this.publisherAccount?.amount || 0}
-          />
-        </div>,
-
+        controls: () => <StateBar
+          userRole={this.userData?.role || StreamRole.OBSERVER}
+          amount={this.publisherAccount?.amount || 0}
+        />,
         chat: () => <div class='subscriber__content'>
           <Chat
-            chatName={this.publisherName}
-            room={this.streamId}
+            chatName={this.publisher?.username || '-'}
+            room={this.publisher?.streamId || 0}
+            isStreamAvailable={this.isJoined}
           />
         </div>
       }}

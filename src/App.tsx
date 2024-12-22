@@ -19,19 +19,20 @@ import { RouterView } from 'vue-router'
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 /** webrtc publisher handler */
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
-
 /** chat handler */
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 import Janus from 'janus-gateway'
 
 /** types */
-import { JanusPlugin, UserRole, supKey, pubKey, chatKey } from '@/types/global'
+import { JanusPlugin, UserRole, supKey, pubKey, chatKey, videoHandlerKey,VideoErrorState, VideoHandler } from '@/types/global'
+import { webRTCEventJanusMap, AttachEvent, VideoRoomPluginError, CommonVideoPluginError } from '@/types/janus'
 import { mapGetters, mapActions } from 'vuex'
 
 /** store */
 import { States } from '@/types/store'
 import { useToast } from 'vue-toastification'
+
 
 export default defineComponent({
 
@@ -44,27 +45,35 @@ export default defineComponent({
   },
 
   setup () {
-    const subscriberHandler = ref <SubscriberStreamHandler | null> (null)
-    const publisherHandler = ref <PublisherStreamHandler | null> (null)
     const chatHandler = ref <ChatHandler | null> (null)
-    
-    provide<typeof subscriberHandler> (supKey, subscriberHandler)
-    provide<typeof publisherHandler> (pubKey, publisherHandler)
+    const videoHandler = ref <SubscriberStreamHandler | PublisherStreamHandler | null> (null)
+
+    provide<typeof videoHandler> (videoHandlerKey, videoHandler)
     provide<typeof chatHandler> (chatKey, chatHandler)
+
+    const performanceObserver = ref <PerformanceObserver>()
 
     const toast = useToast()
 
     return {
       chatHandler,
-      subscriberHandler,
-      publisherHandler,
-      toast
+      videoHandler,
+      toast,
+      performanceObserver
     }
   },
 
   computed: {
     ...mapGetters(States.USER, [ 'userRole', 'isAuthentificated', 'userData']),
-    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId'])
+    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId', 'videoErrorState']),
+
+    roomNumber (): number | null {
+      if (this.userRole === UserRole.WORKER) {
+        return this.userData?.streamId || null
+      }
+
+      return this.$route.params.id ? Number(this.$route.params.id) : null
+    }
   },
 
   watch: {
@@ -86,16 +95,40 @@ export default defineComponent({
         this.initHandlers()
       },
       immediate: true
+    },
+
+    videoErrorState (newValue) {
+      if (!newValue) {
+        return
+      }
+      
+      if (newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM ||
+        newValue.state === CommonVideoPluginError.SERVER_DOWN ||
+        newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN
+      ) {
+        this.initHandlers()
+      }
+    },
+
+    chatHandler (newValue) {
+      this.setIsChatHandlerAvailable(!!newValue)
     }
   },
   
   methods: {
-    ...mapActions(States.APP, ['setWebrtcSessionId', 'setChatSessionId']),
+    ...mapActions(States.APP, [
+      'setWebrtcSessionId', 
+      'setChatSessionId', 
+      'setPerformanceNavigationType',
+      'setVideoErrorState',
+      'setIsVideoHandlerAvailable',
+      'setIsChatHandlerAvailable'
+    ]),
 
     initSubscriber () {
       SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
         if (result) {
-          this.subscriberHandler = result
+          this.videoHandler = result
           this.setWebrtcSessionId(result.handler.getId())
         } else {
           this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
@@ -120,10 +153,10 @@ export default defineComponent({
       }
 
       PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
-        streamId: this.userData.streamId,
+        roomId: this.userData.streamId,
         displayName: this.userData.username
       }).then(result => {
-        this.publisherHandler = result
+        this.videoHandler = result
         this.setWebrtcSessionId(result?.handler.getId())
       })
 
@@ -135,7 +168,19 @@ export default defineComponent({
       })
     },
 
-    initHandlers () {
+    async initHandlers () {
+      if (this.videoHandler) {
+        await this.videoHandler.leave()
+      }
+
+      if (this.chatHandler && this.roomNumber) {
+        if (this.userRole === UserRole.WORKER) {
+          await this.chatHandler.destroyChat(this.roomNumber)
+        } else {
+          await this.chatHandler.leave(this.roomNumber)
+        }
+      }
+
       switch (this.userRole) {
         case UserRole.WORKER: {
           this.initPublisher()
@@ -149,17 +194,19 @@ export default defineComponent({
         default:
           this.initSubscriber()
       }
-    }
+    },
+
+    setPerformanceTimingType (list: PerformanceObserverEntryList) {
+      list.getEntries().forEach(item => {
+        this.setPerformanceNavigationType((item as unknown as { type: NavigationTimingType })?.type  || null)
+      })
+    },
+
   },
 
   mounted () {
-    /*
-    SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
-      if (result) {
-        this.handler = result
-      }
-    })
-      */
+    this.performanceObserver = new PerformanceObserver(this.setPerformanceTimingType)
+    this.performanceObserver.observe({ type: 'navigation', buffered: true });
   },
 
   render(): VNode {
@@ -167,7 +214,6 @@ export default defineComponent({
     {{
       header: () => <MainNavbar/>,
       default: () => <RouterView/>,
-      footer: () => <MainFooter/>
     }}
     </DefaultLayout>
   }

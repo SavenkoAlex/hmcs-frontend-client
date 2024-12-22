@@ -14,6 +14,7 @@
 ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 button,
@@ -46,7 +47,7 @@ body {
 
 @supports (font-variation-settings: 'wdth' 200) {
   body {
-    font-family: 'Inter-V';
+    font-family: 'Inter-V', sans-serif;
     font-variation-settings: 'wght' 300, 'slnt' -4;
     font-feature-settings: 'cv08', 'cv05';
   }

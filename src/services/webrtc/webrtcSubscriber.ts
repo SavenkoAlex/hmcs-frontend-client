@@ -1,8 +1,5 @@
 import Janus, { JanusJS } from 'janus-gateway'
-import eventEmitter from 'events'
-import { 
-  StreamHandler,
- } from  '@/services/webrtc/webrtcAbstract'
+import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
 
  import { 
   HandlerDescription, 
@@ -11,13 +8,20 @@ import {
   Room
 } from '@/types/global'
 
+import { 
+  VIDEO_ROOM_PLUGIN_EVENT, 
+  webRTCEventJanusMap as webRTCEvent, 
+  AttachEvent,
+  VideoRoomPluginError
+} from '@/types/janus'
+
 /**
  * WebRTCHandler main functions to control webrtc connection (subscriber)
  */
 export interface WebRTCHandler {
-  join: (track?: MediaStreamTrack[]) => Promise <boolean>
+  connect: (publisherId: string, roomId: number, track?: MediaStreamTrack[]) => Promise <boolean>
   leave: () => Promise <boolean>
-  getPublishers: () => Promise<Room[] | null>
+  getStreams: () => Promise<Room[] | null>
   requestPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
   sendMessage?: (mes: string) => Promise <boolean>
 }
@@ -36,30 +40,30 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
   options? : HandlerDescription
 
   private constructor ({
-    plugin,
+    webrtcPlugin,
     handler, 
     emitter,
   }: Omit<WebRTCHandlerConstructor, 'options'>) {
-    super({plugin, handler, emitter})
+    super({ webrtcPlugin, handler, emitter })
     this.mediaTrack = null
     this.publisher = null
   }
 
   // Static constructor
   static async init (
-    plugin: typeof Janus, 
+    webrtcPlugin: typeof Janus, 
     pluginName: JanusPlugin.VITE_WEBRTC_PLUGIN, 
     options?: HandlerDescription
   ): Promise<SubscriberStreamHandler | null> {
     
     try {
-      const result = await super.init(plugin, pluginName)
+      const result = await super.init(webrtcPlugin, pluginName)
 
       if (!result) {
         return null
       }
       const { handler, emitter } = result
-      const streamHandler = new SubscriberStreamHandler({plugin, handler, emitter})
+      const streamHandler = new SubscriberStreamHandler({webrtcPlugin, handler, emitter})
       streamHandler.listen()
       return streamHandler
     } catch (err) {
@@ -71,70 +75,87 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
   // attach a event listener on janus events
   protected listen () {
     // Catching Janus on message event
-    this.emitter.on('message', ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+    this.emitter.on(webRTCEvent[AttachEvent.ONMESSAGE], async ({jsep, msg}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+      if (msg.error) {
+        console.error(msg.error)
+        this.emitter.emit(webRTCEvent[AttachEvent.ERROR], msg.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
+        return
+      }
+
       if (jsep) {
         this.handler.createAnswer({
           jsep,
-          success: (sdp) => this.connect(sdp)
+          success: (sdp) => this.attach(sdp)
         })
+        return
+      }
+
+      const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
+
+      try {
+        await this.handlePluginEvent(eventType, msg)
+      } catch (err) {
+        console.error(err)
+        this.emitter.emit(webRTCEvent[AttachEvent.ERROR], err)
       }
     })
-
-    this.emitter.on('remotetrack', (track, mid, on, metadata) => {
-      this.emitter.emit('track', {
-        track,
-        mid,
-        on,
-        metadata
-      })
-    }) 
-
   }
 
-  async join () {
-    /*
-    const publisher = await this.getPublisher()
-    
-    if (!publisher) {
-      return false
+  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
+    switch (eventType) {
+      case VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED:
+        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED)
+        break
+
+      case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
+        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED)
+        break
+      case VIDEO_ROOM_PLUGIN_EVENT.ATTACHED:
+        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.ATTACHED, msg.streams)
+        break
+
+      case VIDEO_ROOM_PLUGIN_EVENT.EVENT:
+        if (msg.started) {
+          this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.STARTED, msg.started === 'ok')
+        }
+        break
+
+      default:
+        console.warn('unhandled message ', eventType)
     }
-    this.publisher = publisher
-
-    const subscriber = await this.joinAsSubscriber()
-    return !!subscriber
-    */
-
-    return true
   }
 
   async leave () {
     return this.unsubscribe()
   }
 
-  /**
-   * Extracts first participant with publisher status
-   * @returns 
-   */
-  private async getPublisher (): Promise <Publisher | null> {
-    /*
-    const publishers = await this.getPublishers()
-    if (!publishers || !publishers.length) {
-      return null
-    }
+  /** check if room exists */
+  async isStreamAvailable (roomId: number): Promise <boolean> {
+    return new Promise (resolve => {
+        if (!roomId) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'exists',
+        room: roomId
+      }
+      
+      this.handler?.send({
+        message,
+        success: (data) => resolve(!!data?.exists),
+        error: () => resolve(false)
+      })
+    })
     
-    const activePublishers = publishers.filter(p => p.room)
-    if (activePublishers.length) {
-      return activePublishers[0]
-    }
-    */
-    return null
   }
 
-  getPublishers (): Promise <Room[] | null> {
+  getStreams(): Promise <Room[]> {
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       if (!this.handler) {
-        reject('No plugin handler available')
+        return []
       }
 
       const message = {
@@ -143,62 +164,49 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
 
       this.handler?.send({
         message,
-        success: (res) => resolve(res.list as Room[]),
-        error: err => reject(null)
+        success: (res) => {
+          if (res?.list && Array.isArray(res.list)) {
+            resolve(res.list)
+            return
+          }
+          resolve([])
+        },
+        error: err => {
+          console.error(err)
+          resolve([])
+        }
       })
     })
-    /*
-    return new Promise ((resolve, reject) => {
-      if (!this.handler) {
-        reject('No plugin handler available')
-      }
-
-      const message = {
-        request: 'listparticipants',
-        room: this.options.streamId
-      }
-
-      this.handler?.send({
-        message,
-        success: (res) => resolve(res.participants as Publisher[]),
-        error: err => reject(null)
-      })
-    })
-    return Promise.resolve(null)
-      */
-    
   }
 
-  private joinAsSubscriber (): Promise <unknown> {
-    return Promise.resolve(null)
-    /*
-    return new Promise ((resolve, reject) => {
-      if (!this.handler) {
-        reject('No plugin handler available')
+  async connect (publisherId: string, roomId: number): Promise <boolean> {
+    return new Promise (resolve => {
+      if (!this.handler || publisherId) {
+        resolve(false)
       }
 
       const message = {
         request: 'join',
         ptype: 'subscriber',
-        room: this.options.streamId,
+        room: roomId,
         streams: [{
-          feed: this.publisher?.id
+          feed: roomId
         }]
       }
 
       this.handler?.send({
         message,
-        success: result => resolve(result),
-        error: err => reject(err)
+        success: () => resolve(true),
+        error: () => resolve(false)
       })
     })
-    */
   }
 
   private unsubscribe (): Promise <boolean> {
-    return new Promise ((resolve, reject) => {
+    return new Promise (resolve => {
       if (!this.handler) {
-        reject('No plugin handler available')
+        resolve(false)
+        return
       }
 
       const message = {
@@ -211,15 +219,18 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
       this.handler?.send({
         message,
         success: () => resolve(true),
-        error: () => reject(false)
+        error: (err) => {
+          console.error(err)
+          resolve(false)
+        }
       })
     })
   }
 
-  private connect (sdp: JanusJS.JSEP): Promise <true | false> {
-    return new Promise ((resolve, reject) => {
+  private attach (sdp: JanusJS.JSEP): Promise <true | false> {
+    return new Promise (resolve => {
       if (!this.handler) {
-        reject('No plugin available')
+        resolve(false)
         return
       }
 
@@ -230,9 +241,12 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
       this.handler.send({ 
         message,
         jsep: sdp,
-        success: (data) =>  resolve(true),
-        error: (error) => resolve(false)
-        })
+        success: () =>  resolve(true),
+        error: (error) => { 
+          console.error(error)
+          resolve(false)
+        }
+      })
     })
   }
 }

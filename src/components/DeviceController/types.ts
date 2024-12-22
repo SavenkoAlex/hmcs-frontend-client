@@ -6,7 +6,6 @@ export type DeviceList = {
 }
 
 export type Data = {
-  isModalVisible: boolean,
   devicesValidationError: string | null | false,
   cameras: MediaDevice[],
   mics: MediaDevice[]

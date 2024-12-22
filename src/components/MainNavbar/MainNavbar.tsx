@@ -10,22 +10,16 @@ import {
 import './MainNavbar.scss'
 
 /** components */
-import LogoIcon from '@/assets/images/logo48.svg'
+import LogoIcon from '@/assets/images/small/error_16dp.svg'
 import { RouterLink } from 'vue-router'
 
-/** store */
-import { useStore } from '@/store'
-
 /** types */
-import { UserRole, Maybe, JanusPlugin } from '@/types/global'
+import { UserRole } from '@/types/global'
 import { States } from '@/types/store'
 import { userLinks } from '@/router/types'
 import { mapGetters } from 'vuex'
 import { Data } from '@/components/MainNavbar/types'
 
-/** webrtc handler */
-import Janus, { JanusJS } from 'janus-gateway'
-import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 
 export default defineComponent({
 
