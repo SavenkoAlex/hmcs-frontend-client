@@ -64,18 +64,21 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters('user', ['userData', 'userRole']),
+    ...mapGetters('user', ['userData', 'userRole', 'isAuthentificated']),
 
     chatRoom (): number {
       return (this.room + 1) * 1000
     },
 
     isChatDisabled (): boolean {
-      return !this.isStreamAvailable || !this.isRoomExists
+      return !this.isStreamAvailable || !this.isRoomExists || !this.isAuthentificated
     },
 
     isReadyToConnect (): boolean {
       return !!(this.isStreamAvailable && this.chatHandler)
+    },
+    currentChatName (): string {
+      return `${this.$t('components.chat.defaultChatName')} ${this.chatName}`
     }
   },
 
@@ -95,6 +98,19 @@ export default defineComponent({
         this.join()
       }
     },
+
+    chatName (newValue: string) {
+      if (!newValue) {
+        return
+      }
+
+      this.currentChat = `${newValue}`
+      this.chatLinks[newValue] = {
+        id: `${newValue}`,
+        name: `${this.currentChatName}`,
+        messages: []
+      }
+    }
   },
 
   setup () {
@@ -267,12 +283,7 @@ export default defineComponent({
   },
 
   mounted() {
-    this.currentChat = `${this.$t('components.chat.defaultChatName')} ${this.chatName}`
-    this.chatLinks[this.currentChat] = {
-      id: `${this.currentChat}`,
-      name: `${this.currentChat}`,
-      messages: []
-    }
+    
     // we need observer to scroll added messages to bottom 
     this.observer = new MutationObserver(this.observeChat)
 

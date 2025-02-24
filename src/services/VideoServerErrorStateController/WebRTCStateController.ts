@@ -1,8 +1,7 @@
-import { ConnectionState, VideoErrorState, errorRetryNumber, MediaState, SlowLink  } from '@/types/global'
-import { AttachEvent, VideoRoomPluginError, webRTCEventJanusMap, VIDEO_ROOM_PLUGIN_EVENT } from '@/types/janus'
-import { States, AppState } from '@/types/store'
-import { useStore, store } from '@/store'
-import { Store } from 'vuex'
+import { ConnectionState, VideoErrorState, MediaState, SlowLink  } from '@/types/global'
+import { AttachEvent, VideoRoomPluginError, VIDEO_ROOM_PLUGIN_EVENT, TextRoomPluginError } from '@/types/janus'
+import { store } from '@/store'
+import { actions } from '@/store/app/actions'
 
 export const enum ErrorAction {
   'CONNECT' = 'connect',
@@ -78,5 +77,10 @@ export class WebRTCStateController implements IWebRTCStateController {
   setVideoMauntPointState (event: VIDEO_ROOM_PLUGIN_EVENT, payload: boolean) {
     const action = 'app/setStream' + event.charAt(0).toUpperCase() + String(event).slice(1);
     this.appStore.dispatch(`${action}`, payload, { root: true })
+  }
+
+  setChatErrorState (error: TextRoomPluginError) {
+    const action = 'app/setChatError'
+    this.appStore.dispatch(action, error, { root: true })
   }
 }

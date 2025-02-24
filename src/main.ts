@@ -22,7 +22,9 @@ const i18n = createI18n({
 const toastOptions: PluginOptions = {
   position: POSITION.BOTTOM_CENTER,
   closeOnClick: true,
-  hideProgressBar: true
+  hideProgressBar: true,
+  toastClassName: 'toast-container',
+  maxToasts: 10
 }
 
 createApp(App)

@@ -23,13 +23,14 @@ import Chat from '@/components/Chat/Chat'
 import BaseVideo from '@/components/Video/Video'
 import StateBar from '@/components/StateBar/StateBar'
 import ImageMask from '@/components/general/ImageMask/ImageMask'
+import Loader from '@/components/general/Loader/Loader' 
 
 /** api */
 import userApi from '@/api/user'
 
 /** types */
 import { Data } from '@/components/Subscriber/types'
-import { StreamRole, chatKey, videoHandlerKey } from '@/types/global'
+import { UserRole, chatKey, videoHandlerKey } from '@/types/global'
 import { webRTCEventJanusMap, AttachEvent, VIDEO_ROOM_PLUGIN_EVENT } from '@/types/janus'
 
 /** layouts */
@@ -42,6 +43,7 @@ import bg from '@/assets/images/taro-bg.jpg'
 import { useToast } from 'vue-toastification'
 /* locales */
 import { I18n, useI18n } from 'vue-i18n'
+import { States } from '@/types/store'
 
 export default defineComponent({
 
@@ -56,7 +58,8 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters('user', ['userData']),
+    ...mapGetters(States.USER, ['userData']),
+    ...mapGetters(States.APP, ['performanceNavigationType']),
 
     publisherId () {
       const publisherId: string | undefined = Array.isArray(this.$route.params?.id) 
@@ -103,7 +106,21 @@ export default defineComponent({
       if (!isStreamActive) {
         return
       }
-      this.subscriberHandler.connect(this.publisherId, newValue)
+      this.subscriberHandler.connect(newValue)
+    },
+
+    performanceNavigationType (newValue: NavigationTimingType | null) {
+      if (newValue === 'reload') {
+        this.isLoading = true
+
+        setTimeout(() => {
+          if (!Number.isInteger(this.mountPoint) || !this.publisherId) {
+            this.toast(this.$t('services.webrtc.errors.canNotConnectStream'))
+            return
+          }
+          this.subscriberHandler?.connect(this.mountPoint as number)
+        }, 2000)
+      }
     }
   },
 
@@ -145,7 +162,7 @@ export default defineComponent({
     return {
       publisher: null,
       publisherAccount: null,
-      isPublisherAvailable: false
+      isLoading: false
     }
   },
 
@@ -164,10 +181,9 @@ export default defineComponent({
       this.remoteStream = new MediaStream([track])
       if (this.remoteStream && this.remoteVideoNode) {
         //Janus.attachMediaStream(this.remoteVideoNode, this.remoteStream)
-        this.remoteVideoNode.srcObject = this.remoteStream
         this.isJoined = true
-        return
       }
+      this.isLoading = false
     },
 
     onClosed () {
@@ -185,6 +201,7 @@ export default defineComponent({
       if (!this.isJoined) {
         return
       }
+
       this.subscriberHandler?.leave()
       this.isJoined = false
     },
@@ -221,12 +238,8 @@ export default defineComponent({
     }
   },
 
-  unmounted () {
-    this.subscriberHandler?.leave()
-  },
-
-  beforeRouteLeave () {
-    this.subscriberHandler?.leave()
+  async unmounted () {
+    await this.subscriberHandler?.leave()
   },
 
   render (): VNode {
@@ -235,14 +248,14 @@ export default defineComponent({
         media: () => <div class="subscriber__publisher-media">
           { this.remoteStream 
             
-            ? <TransitionGroup>
+            ? <Transition>
               <BaseVideo
                 srcObject={this.remoteStream}
                 autoplay
                 playsinline
                 ref={'video'}
               />
-              </TransitionGroup>
+              </Transition>
             : <Transition name='offline'>
                 <div class={'subscriber__publisher-avatar'}>
                   <ImageMask
@@ -254,15 +267,18 @@ export default defineComponent({
           }
         </div>,
         controls: () => <StateBar
-          userRole={this.userData?.role || StreamRole.OBSERVER}
+          userRole={this.userData?.role || UserRole.ANONYMOUS}
           amount={this.publisherAccount?.amount || 0}
         />,
         chat: () => <div class='subscriber__content'>
           <Chat
-            chatName={this.publisher?.username || '-'}
+            chatName={this.publisherName || '-'}
             room={this.publisher?.streamId || 0}
             isStreamAvailable={this.isJoined}
           />
+        </div>,
+        default: () => <div>
+          <Loader isVisible={this.isLoading }/>
         </div>
       }}
       </RoomLayout>

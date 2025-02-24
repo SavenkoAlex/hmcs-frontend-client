@@ -149,7 +149,8 @@ export class ChatHandler extends StreamHandler {
       try {
         const parsed = typeof data === 'string' ? JSON.parse(data) : data
         if (parsed?.error) {
-          this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], parsed.error)
+
+          this.stateController.setChatErrorState(parsed.error_code)
           return
         }
         /** data recieved */
@@ -251,7 +252,7 @@ export class ChatHandler extends StreamHandler {
         stringified = JSON.stringify(message) 
       } catch (err) {
         console.error(err)
-        Promise.resolve(false)
+        resolve(false)
         return
       }
 
@@ -263,7 +264,6 @@ export class ChatHandler extends StreamHandler {
     })
   }
 
-  /** send private massege */
   sendPrivateMessage (text: string, to: string, streamId: number): Promise <boolean> {
     return new Promise (resolve => {
       if (!text || !to) {
@@ -274,7 +274,7 @@ export class ChatHandler extends StreamHandler {
         textroom: 'message',
         transaction: Janus.randomString(12),
         room: streamId,
-        to,
+        tos: to,
         text
       }
 
