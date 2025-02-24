@@ -18,8 +18,12 @@
     padding-left: 6px;
     margin-right: auto;
     cursor: none;
-    max-height: 32px;
     width: auto;
+
+    @media (max-width: 440px) {
+      scale: .75;
+      opacity: .9;
+    }
   }
 
   &__menu {

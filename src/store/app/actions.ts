@@ -1,10 +1,8 @@
 import { ActionContext } from 'vuex'
 import { State, AppState } from '@/types/store'
-import { ConnectionState, Maybe, MediaDevice, errorRetryNumber, MediaState} from '@/types/global'
-import { VideoRoomPluginError } from '@/types/janus'
+import { ConnectionState, Maybe, MediaDevice, MediaState } from '@/types/global'
+import { VideoRoomPluginError, TextRoomPluginError } from '@/types/janus'
 import { AppMutationTypes } from '@/store/app/mutation-types'
-import { ErrorController } from '@/services/VideoServerErrorStateController/WebRTCStateController'
-import { App } from 'vue'
 
 type AppActionContext = ActionContext <AppState, State>
 
@@ -80,6 +78,8 @@ export const actions = {
     context.commit(AppMutationTypes.SET_WEBRTC_PLUGIN_SLOW_LINK, payload)
   },
 
+/*************  ✨ Codeium Command ⭐  *************/
+/******  a9b75308-0778-4839-9fdb-7dbd8c7f7fe7  *******/
   setStreamConfigured (context: AppActionContext, payload: boolean) {
     context.commit(AppMutationTypes.SET_STREAM_STATE_CONFIGURED, payload)
   },
@@ -90,5 +90,9 @@ export const actions = {
 
   setStreamJoined (context: AppActionContext, payload: boolean) {
     context.commit(AppMutationTypes.SET_STREAM_STATE_JOINED, payload)
+  },
+
+  setChatError (context: AppActionContext, payload: TextRoomPluginError) {
+    context.commit(AppMutationTypes.SET_WEBRTC_CHAT_ERROR, payload)
   }
 }

@@ -10,7 +10,7 @@ import {
 import './MainNavbar.scss'
 
 /** components */
-import LogoIcon from '@/assets/images/small/error_16dp.svg'
+import LogoIcon from '@/assets/images/logo.svg'
 import { RouterLink } from 'vue-router'
 
 /** types */

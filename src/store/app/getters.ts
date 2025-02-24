@@ -58,5 +58,9 @@ export const getters = {
 
   [WebRTCVideoMountPointState.STREAM_PUBLISHED]: function (state: AppState) {
     return state[WebRTCVideoMountPointState.STREAM_PUBLISHED]
+  },
+
+  chatErrorState: function (state: AppState) {
+    return state.chatErrorState
   }
 }

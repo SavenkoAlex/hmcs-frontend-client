@@ -3,6 +3,8 @@
 @import 'colors.scss';
 @import 'mixins.scss';
 @import 'typography.scss';
+@import 'toast.scss';
+
 //@import 'grid.scss';
 
 *,
@@ -79,3 +81,5 @@ body {
     transform: translateX(0px);
   }
 }
+
+

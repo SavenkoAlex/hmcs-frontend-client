@@ -15,7 +15,6 @@ import {
   AttachEvent,
   ErrorMessage,
   CustomJanusApiResponse,
-  IceState,
 } from '@/types/janus'
 
 /**
@@ -31,7 +30,7 @@ export interface WebRTCPlugin <T extends Record <string, unknown>, P extends Rec
  */
 export interface WebRTCHandler {
   connect: (track: MediaStreamTrack, mountPoint: number) => Promise <boolean | CustomJanusApiResponse <any>>
-  leave: (mountId: number) => Promise <boolean>
+  leave: (destroy?: boolean) => Promise <boolean>
   reconnect: (track: MediaStreamTrack, secret?: string) => Promise <boolean>
   getStreams: () => Promise <Room[]>
   modifyToPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
@@ -252,6 +251,48 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     })
   }
 
+  private async unpublish (): Promise <boolean> {
+     return new Promise (resolve =>{
+     if (!this.handler) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'unpublish',
+      }
+
+      this.handler?.send({
+        message,
+        success: () =>  resolve(true),
+        error: (err) => { 
+          console.error(err)
+          resolve(false) 
+        }
+      })
+    })
+  }
+
+  private async destroy (): Promise <boolean> {
+    return new Promise (resolve => {
+      if (!this.handler) {
+        resolve(false)
+      }
+
+      const message = {
+        request: 'destroy',
+        room: this.options.roomId,
+        permanent: true
+      }
+
+      this.handler?.send({
+        message,
+        success: () => resolve(true),
+        error: () => resolve(false)
+      })
+    })
+  }
+
   private async createOffer (): Promise <JanusJS.JSEP | false> {
     return new Promise (resolve => {
       
@@ -323,24 +364,11 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     }
   }
 
-  async leave (): Promise<boolean> {
-    return new Promise (resolve => {
-      if (!this.handler) {
-        resolve(false)
-      }
-
-      const message = {
-        request: 'destroy',
-        room: this.options.roomId,
-        permanent: true
-      }
-
-      this.handler?.send({
-        message,
-        success: () => resolve(true),
-        error: () => resolve(false)
-      })
-    })
+  async leave (destroy = false): Promise<boolean> {
+    if (!destroy) {
+      return await this.unpublish()
+    }
+    return await this.destroy()
   }
 
   async isStreamAvailable (): Promise <boolean> {

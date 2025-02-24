@@ -15,6 +15,7 @@ export const app: Module <AppState, State> = {
     devices: {},
     performanceNavigationType: null,
     videoErrorState: null,
+    chatErrorState: null,
     isChatHandlerAvailable: false,
     isVideoHandlerAvailable: false,
     [AttachEvent.SUCCESS]: false,

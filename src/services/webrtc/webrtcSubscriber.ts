@@ -19,8 +19,8 @@ import {
  * WebRTCHandler main functions to control webrtc connection (subscriber)
  */
 export interface WebRTCHandler {
-  connect: (publisherId: string, roomId: number, track?: MediaStreamTrack[]) => Promise <boolean>
-  leave: () => Promise <boolean>
+  connect: (to: number, track?: MediaStreamTrack[]) => Promise <boolean>
+  leave: (from: number) => Promise <boolean>
   getStreams: () => Promise<Room[] | null>
   requestPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
   sendMessage?: (mes: string) => Promise <boolean>
@@ -125,8 +125,18 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     }
   }
 
-  async leave () {
-    return this.unsubscribe()
+  async leave (): Promise <boolean> {
+    return new Promise (resolve => {
+      const message = {
+        request: 'leave',
+      }
+
+      this.handler?.send({
+        message,
+        success: () => resolve(true),
+        error: () => resolve(false)
+      })
+    })
   }
 
   /** check if room exists */
@@ -179,18 +189,18 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     })
   }
 
-  async connect (publisherId: string, roomId: number): Promise <boolean> {
+  async connect (to: number): Promise <boolean> {
     return new Promise (resolve => {
-      if (!this.handler || publisherId) {
+      if (!this.handler) {
         resolve(false)
       }
 
       const message = {
         request: 'join',
         ptype: 'subscriber',
-        room: roomId,
+        room: to,
         streams: [{
-          feed: roomId
+          feed: to
         }]
       }
 
@@ -202,9 +212,9 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     })
   }
 
-  private unsubscribe (): Promise <boolean> {
+  unsubscribe (from: number): Promise <boolean> {
     return new Promise (resolve => {
-      if (!this.handler) {
+      if (!this.handler || !from) {
         resolve(false)
         return
       }
@@ -212,7 +222,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
       const message = {
         request: 'unsubscribe',
         streams: [{
-          feed: this.publisher?.id
+          feed: from
         }]
       }
 

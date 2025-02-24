@@ -1,7 +1,7 @@
 import { AppMutationTypes } from '@/store/app/mutation-types'
 import { AppState, WebRTCVideoMountPointState } from '@/types/store'
 import { ConnectionState, Maybe, MediaDevice, MediaState, SlowLink } from '@/types/global'
-import { AttachEvent, VideoRoomPluginError } from '@/types/janus'
+import { AttachEvent, VideoRoomPluginError, TextRoomPluginError } from '@/types/janus'
 import { Payload } from 'vuex'
 
 export const mutations = {
@@ -78,4 +78,8 @@ export const mutations = {
   [AppMutationTypes.SET_STREAM_STATE_PUBLISHED]: (state: AppState, payload: boolean) => {
     state[WebRTCVideoMountPointState.STREAM_PUBLISHED] = payload
   },
+
+  [AppMutationTypes.SET_WEBRTC_CHAT_ERROR]: (state: AppState, payload: TextRoomPluginError) => {
+    state.chatErrorState = payload
+  }
 }

@@ -1,5 +1,5 @@
 import { Maybe, MediaDevice, VideoErrorState, ConnectionState, MediaState, SlowLink } from '@/types/global'
-import { AttachEvent } from '@/types/janus'
+import { AttachEvent, TextRoomPluginError } from '@/types/janus'
 export const isAuthentificated = import.meta.env.VITE_IS_AUTHENTIFICATED || 'isa'
 export const userData = import.meta.env.VITE_USER_DATA || 'usa'
 export const amount = import.meta.env.VITE_AMOUNT || 'ama'
@@ -24,7 +24,8 @@ export interface AppState {
   chatSessionId: Maybe<string | number>,
   devices: Record<string, MediaDevice>
   performanceNavigationType: NavigationTimingType | null,
-  videoErrorState: VideoErrorState | null
+  videoErrorState: VideoErrorState | null,
+  chatErrorState: TextRoomPluginError | null
   isChatHandlerAvailable: boolean
   isVideoHandlerAvailable: boolean
   [AttachEvent.SUCCESS]: boolean
