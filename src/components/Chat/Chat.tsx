@@ -272,9 +272,9 @@ export default defineComponent({
     },
 
     addListeners () {
-      this.chatHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], err => this.handleError(err))
-      this.chatHandler?.emitter.on(TEXT_ROOM_PLUGIN_EVENT.DATA, data => this.handleData(data))
-      this.chatHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ONDATAOPEN], data => this.ondataopen(data))
+      this.chatHandler?.emitter.on('janus-error', err => this.handleError(err))
+      this.chatHandler?.emitter.on('janus-ondata', data => this.handleData(data))
+      this.chatHandler?.emitter.on('janus-ondataopen', data => this.ondataopen(data))
     },
 
     reconnect() {
@@ -296,7 +296,7 @@ export default defineComponent({
   },
 
   unmounted () {
-    this.chatHandler?.emitter.removeAllListeners()
+    this.chatHandler?.emitter.all.clear()
   },
 
   render (): VNode {

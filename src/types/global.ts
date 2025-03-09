@@ -1,9 +1,9 @@
-import eventEmitter from 'events'
 import Janus, { JanusJS } from 'janus-gateway'
 import { InjectionKey } from 'vue'
 import { VideoRoomPluginError } from '@/types/janus'
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
+import emitter from '@/services/eventBus'
 
 export type Room = {       
   room : number
@@ -176,7 +176,8 @@ export type Handler = JanusJS.PluginHandle
 /** webrtc plugin init function result */
 export type InitResult <T extends Handler>= {
   handler: T,
-  emitter: eventEmitter.EventEmitter
+  emitter: typeof emitter,
+  janusInstance: Janus
 } | null
 
 /** janus plugins */
@@ -195,13 +196,12 @@ export interface HandlerDescription {
 export type WebRTCHandlerConstructor = {
   webrtcPlugin: typeof Janus,
   handler: JanusJS.PluginHandle, 
-  emitter: eventEmitter.EventEmitter,
+  emitter: typeof emitter,
   options?: HandlerDescription
+  janusInstance: Janus,
 }
 
 /** plugin handlers */
-export const supKey = Symbol('subscriberHandler') as InjectionKey<string>
-export const pubKey = Symbol('publisherHandler') as InjectionKey<string>
 export const videoHandlerKey = Symbol('videoHandler') as InjectionKey <string>
 export const chatKey = Symbol('chatHandler') as InjectionKey<string>
 
@@ -230,3 +230,20 @@ export type VideoHandler <T extends UserRole> = T extends UserRole.WORKER
 export type ConnectionState = 'connected' | 'failed' | 'disconnected' | 'closed'
 export type MediaState = { medium: 'audio' | 'video', receiving: boolean, mid?: number }
 export type SlowLink = { uplink: boolean, lost: number, mid: string }
+export type RemoteTrack = { 
+  track: MediaStreamTrack, 
+  mid: string, 
+  on: boolean,
+  metadata?: unknown
+}
+export type LocalTrack = { 
+  track: MediaStreamTrack, 
+  on: boolean
+}
+
+export type JanusMessageEvent = {
+  msg: JanusJS.Message,
+  jsep?: JanusJS.JSEP
+}
+/** Prefix type need to avoid mixinf events */
+export type Prefix <T extends string, K extends string> = `${T}-${K}`

@@ -10,9 +10,7 @@ import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
 
 import { 
   VIDEO_ROOM_PLUGIN_EVENT, 
-  webRTCEventJanusMap as webRTCEvent, 
-  AttachEvent,
-  VideoRoomPluginError
+  VideoRoomPluginError,
 } from '@/types/janus'
 
 /**
@@ -43,8 +41,9 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     webrtcPlugin,
     handler, 
     emitter,
+    janusInstance
   }: Omit<WebRTCHandlerConstructor, 'options'>) {
-    super({ webrtcPlugin, handler, emitter })
+    super({ webrtcPlugin, handler, emitter, janusInstance })
     this.mediaTrack = null
     this.publisher = null
   }
@@ -62,8 +61,8 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
       if (!result) {
         return null
       }
-      const { handler, emitter } = result
-      const streamHandler = new SubscriberStreamHandler({webrtcPlugin, handler, emitter})
+      const { handler, emitter, janusInstance } = result
+      const streamHandler = new SubscriberStreamHandler({webrtcPlugin, handler, emitter, janusInstance})
       streamHandler.listen()
       return streamHandler
     } catch (err) {
@@ -75,10 +74,10 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
   // attach a event listener on janus events
   protected listen () {
     // Catching Janus on message event
-    this.emitter.on(webRTCEvent[AttachEvent.ONMESSAGE], async ({jsep, msg}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+    this.emitter.on('janus-onmessage', async ({jsep, msg}) => {
       if (msg.error) {
         console.error(msg.error)
-        this.emitter.emit(webRTCEvent[AttachEvent.ERROR], msg.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
+        this.emitter.emit('janus-error', msg.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
         return
       }
 
@@ -96,7 +95,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
         await this.handlePluginEvent(eventType, msg)
       } catch (err) {
         console.error(err)
-        this.emitter.emit(webRTCEvent[AttachEvent.ERROR], err)
+        this.emitter.emit('janus-error', err)
       }
     })
   }
@@ -104,19 +103,19 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
   protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
     switch (eventType) {
       case VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED:
-        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED)
+        this.emitter.emit('video-subscribed', msg)
         break
 
       case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
-        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED)
+        this.emitter.emit('video-destroyed')
         break
       case VIDEO_ROOM_PLUGIN_EVENT.ATTACHED:
-        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.ATTACHED, msg.streams)
+        this.emitter.emit('video-attached', msg.streams)
         break
 
-      case VIDEO_ROOM_PLUGIN_EVENT.EVENT:
+      case VIDEO_ROOM_PLUGIN_EVENT.STARTED:
         if (msg.started) {
-          this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.STARTED, msg.started === 'ok')
+          this.emitter.emit('video-started', msg.started === 'ok')
         }
         break
 
@@ -256,6 +255,22 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
           console.error(error)
           resolve(false)
         }
+      })
+    })
+  }
+
+  isJanusConnected (): boolean {
+    return !!this.janusInstance.isConnected()
+  }
+
+  destroySession (): Promise<boolean> {
+    return new Promise (resolve => {
+      this.janusInstance.destroy({
+        success: () => resolve(true),
+        error: () => resolve(false),
+        cleanupHandles: true,
+        notifyDestroyed: true,
+        unload: true
       })
     })
   }

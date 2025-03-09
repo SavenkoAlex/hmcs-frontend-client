@@ -11,8 +11,6 @@ import {
 import { 
   VIDEO_ROOM_PLUGIN_EVENT, 
   VideoRoomPluginError,
-  webRTCEventJanusMap, 
-  AttachEvent,
   ErrorMessage,
   CustomJanusApiResponse,
 } from '@/types/janus'
@@ -42,13 +40,15 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   roomNumber: number | null
   mediaTrack: MediaStreamTrack | null
   options: HandlerDescription
+
   private constructor ({
     webrtcPlugin,
     handler, 
     emitter,
-    options
+    janusInstance,
+    options,
   }: Required<WebRTCHandlerConstructor>) {
-    super({webrtcPlugin, handler, emitter})
+    super({webrtcPlugin, handler, emitter, janusInstance})
     this.roomNumber = null
     this.options = options
     this.mediaTrack = null
@@ -61,8 +61,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       if (!result) {
         return null
       }
-      const { handler, emitter } = result
-      const streamHandler = new PublisherStreamHandler({webrtcPlugin, handler, emitter, options})
+      const { handler, emitter, janusInstance } = result
+      const streamHandler = new PublisherStreamHandler({webrtcPlugin, handler, emitter, janusInstance, options})
       streamHandler.listen()
       return streamHandler
     } catch (err) {
@@ -75,7 +75,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   protected listen () {
     // Catching Janus on message event
     // the rest of emits MUST be handled on client side at this moment
-    this.emitter.on(webRTCEventJanusMap[AttachEvent.ONMESSAGE], async ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+    this.emitter.on('janus-onmessage', async ({msg, jsep}) => {
       if (msg.error) {
         this.handlePluginError(msg)
         return
@@ -84,7 +84,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       if (jsep) {
         this.handler.handleRemoteJsep({ jsep })
         if (msg?.configured) {
-          this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, true)
+          // this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, true)
+          this.emitter.emit('video-configured', true)
         }
         return
       }
@@ -96,7 +97,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         await this.handlePluginEvent(eventType, msg)
       } catch (err) {
         console.error(err)
-        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], err)
+        this.emitter.emit('janus-error', err)
       }
     })
 
@@ -108,7 +109,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       case VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED:
         const jsep = await this.createOffer()
         if (!jsep) {
-          this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], 'answer is not created')
+          this.emitter.emit('janus-error', 'answer is not created')
           console.error('offer is not created')
           return 
         }
@@ -116,8 +117,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         break
 
       case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
-        this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, false)
-        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED)
+        //this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, false)
+        this.emitter.emit('video-destroyed')
         break
 
       default:
@@ -131,7 +132,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       switch (errorCode) {
 
       default:
-        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], msg?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN, msg)
+        this.emitter.emit('janus-error', msg?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
       }
 
   }
