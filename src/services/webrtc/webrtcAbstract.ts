@@ -214,6 +214,15 @@ export abstract class StreamHandler {
       })
     })
   }
+
+  async reconnect (): Promise <boolean> {
+    return new Promise (resolve => {
+      this.janusInstance.reconnect({
+        success: () => resolve(true),
+        error: () => resolve(false)
+      })
+    })
+  } 
   
   protected abstract listen (): void 
 }

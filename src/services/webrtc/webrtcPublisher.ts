@@ -132,7 +132,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       switch (errorCode) {
 
       default:
-        this.emitter.emit('janus-error', msg?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
+        this.emitter.emit('janus-error', msg?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
       }
 
   }
@@ -146,7 +146,6 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       if (!this.handler) {
         resolve({ 
           success: false, 
-          errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM
         })
         return
       }
@@ -175,7 +174,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
           console.error(err)
           resolve({
             success: false,
-            errorCode: (err as unknown as ErrorMessage)?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN
+            errorCode: (err as unknown as ErrorMessage)?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR
           })
         }
       })
@@ -330,26 +329,27 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       console.error('no media stream track detected')
       return {
         success: false,
-        errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NO_MEDIA
       }
     }
 
+    this.mediaTrack = track
+    
     try {
-      const rooms = await this.getStreams()
-      const exists = rooms.find(room => room.room === this.options.roomId)
+      const exists = await this.isRoomExists()
 
       if (exists) {
+        const result = await this.joinAsPublisher()
         return {
-          success: false,
-          errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_ROOM_ALEAВY_CREATED
+          success: result,
         }
       } 
 
-      this.mediaTrack = track
       const response = await this.createRoom()
 
       if (!response?.success) {
-        return response
+        return {
+          success: !!response?.success
+        }
       }
 
       // async call just request and wait for response
@@ -372,7 +372,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     return await this.destroy()
   }
 
-  async isStreamAvailable (): Promise <boolean> {
+  async isRoomExists (): Promise <boolean> {
     return new Promise(resolve => {
       if (!this.options.roomId || !this.handler) {
         resolve(false)
@@ -398,7 +398,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * @param secret 
    * @returns 
    */
-  async reconnect (track: MediaStreamTrack, secret?: string): Promise <boolean> {
+  async reJoin (track: MediaStreamTrack, secret?: string): Promise <boolean> {
     return new Promise(resolve => {
 
       if (!this.handler || !this.options.roomId) {

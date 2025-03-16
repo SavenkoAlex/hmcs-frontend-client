@@ -87,21 +87,6 @@ export default defineComponent({
         this.initHandlers()
       }
     },
-
-    /*
-    videoErrorState (newValue) {
-      if (!newValue) {
-        return
-      }
-      
-      if (newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM ||
-        newValue.state === CommonVideoPluginError.SERVER_DOWN ||
-        newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN
-      ) {
-        this.initHandlers()
-      }
-    },
-        */
   },
   
   methods: {
@@ -133,14 +118,13 @@ export default defineComponent({
           this.chatHandler = result
           this.setChatSessionId(result.handler.getId())
         }
+
       })
     },
     initPublisher () {
       if (!this.isAuthentificated || !this.userData) {
         return
       }
-
-     
 
       PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
         roomId: this.userData.streamId,
@@ -172,16 +156,14 @@ export default defineComponent({
 
       switch (this.userRole) {
         case UserRole.WORKER: {
-          this.initPublisher()
-          break
+          return this.initPublisher()
         }
         case UserRole.USER: {
-          this.initSubscriber()
-          break
+          return this.initSubscriber()
         }
 
         default:
-          this.initSubscriber()
+          return this.initSubscriber()
       }
     },
 
@@ -206,9 +188,6 @@ export default defineComponent({
 
   mounted () {
     setTimeout(() => {
-      if (this.performanceNavigationType === 'reload') {
-        return
-      }
       this.initHandlers()
     })
   },

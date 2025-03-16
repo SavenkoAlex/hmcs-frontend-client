@@ -23,7 +23,7 @@ import { UserRole, MediaDevice, videoHandlerKey, chatKey, VideoErrorState } from
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import { States } from '@/types/store'
-import { VideoRoomPluginError, } from '@/types/janus'
+import { VideoRoomPluginError, ConnectionState} from '@/types/janus'
 
 /** store */
 import { mapActions, mapGetters } from 'vuex'
@@ -33,6 +33,9 @@ import RoomLayout from '@/layouts/Room/Room'
 
 /** notifier */
 import { useToast } from 'vue-toastification'
+
+/**eventBus */
+import emitter from '@/services/eventBus'
 
 export default defineComponent({
 
@@ -58,7 +61,11 @@ export default defineComponent({
       'isChatHandlerAvailable'
     ]),
     ...mapGetters(States.USER, ['userData']
-    )
+    ),
+
+    isStartStreamButtonDisabled () {
+      return this.isHandlerConnected !== 'connected' || !this.isWebRTCConnected
+    }
   },
 
   setup () {
@@ -83,6 +90,7 @@ export default defineComponent({
     const toast = useToast()
     const isDeviceConfigurationVisible = ref<boolean>(false)
     const isWebRTCConnected = ref<boolean>()
+    const isHandlerConnected = ref<ConnectionState>('disconnected')
 
     return {
       publisherNode,
@@ -100,7 +108,8 @@ export default defineComponent({
       isStreamConfigured,
       toast,
       isDeviceConfigurationVisible,
-      isWebRTCConnected
+      isWebRTCConnected,
+      isHandlerConnected
     }
   },
 
@@ -116,12 +125,19 @@ export default defineComponent({
       this.audioTrack = newValue[0].getAudioTracks()[0]
     },
 
+    publisherHandler (newValue: PublisherStreamHandler | null) {
+      if (!newValue) {
+        return
+      }
+      this.listenToEvents()
+    },
+
     performanceNavigationType (newValue: NavigationTimingType | null) {
       if (newValue === 'reload') {
         this.isLoading = true
 
         setTimeout(() => {
-          this.reconnectStream()
+          // this.reconnectStream()
         }, 2000)
       }
     },
@@ -132,12 +148,6 @@ export default defineComponent({
       }
       this.executeAction(newValue)
     },
-
-    publisherHandler (newValue) {
-      if (newValue) {
-        this.listenToEvents()
-      }
-    }
   },
 
   methods: {
@@ -196,7 +206,7 @@ export default defineComponent({
 
     async startStream (): Promise <void> {
       
-      if (!this.publisherHandler || !this.isWebRTCConnected) {
+      if (!this.publisherHandler || this.isHandlerConnected !== 'connected') {
         this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
         console.error('no webrtc plugin availabele')
         return
@@ -209,11 +219,14 @@ export default defineComponent({
       }
 
       this.isLoading = true
+
+
       const startResult = await this.publisherHandler.connect(this.videoTrack)
 
       if (!startResult.success) {
         this.isLoading = false
-        this.setVideoErrorState(startResult.errorCode ? startResult.errorCode : VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
+        this.setVideoErrorState(startResult.errorCode ? startResult.errorCode : VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
+        this.toast.error(this.$t('services.webrtc.errors.canNotStartStream'))
       }
     },
 
@@ -255,20 +268,35 @@ export default defineComponent({
     },
 
     listenToEvents (): void {
-      this.publisherHandler?.emitter.on('janus-error', err => {
+      emitter.on('janus-error', err => {
+        this.isLoading = false
         this.setVideoErrorState(err)
+        this.handleError(err)
+      })
+
+      emitter.on('janus-connectionState', (state) => {
+        this.isHandlerConnected = state
+        if (state === 'connected') {
+          this.toast.success(this.$t('services.webrtc.success.webRTCIsAvailable'))
+        } else if (state === 'failed') {
+          this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
+        }  else if (state === 'disconnected') {
+          this.toast.info(this.$t('services.webrtc.info.webRTCIisDisconnected'))
+        } else if (state === 'connecting') {
+          return
+        }
         this.isLoading = false
       })
 
-      this.publisherHandler?.emitter.on('video-destroyed', () => {
+      emitter.on('video-destroyed', () => {
         this.isLoading = false
       })
 
-      this.publisherHandler?.emitter.on('video-configured', isConfigured => {
+      emitter.on('video-configured', isConfigured => {
         this.isStreamConfigured = isConfigured
       })
 
-      this.publisherHandler?.emitter.on('janus-webrtcState', (state) => {
+      emitter.on('janus-webrtcState', (state) => {
         this.isWebRTCConnected = state
       })
     },
@@ -281,7 +309,7 @@ export default defineComponent({
         return
       }
 
-      const isRoomExists = await this.publisherHandler.isStreamAvailable()
+      const isRoomExists = await this.publisherHandler.isRoomExists()
       
       if (!isRoomExists || !this.videoTrack) {
         this.toast.info(this.$t('services.webrtc.info.tryToRestartStream'))
@@ -289,7 +317,7 @@ export default defineComponent({
         return
       }
 
-      this.publisherHandler.reconnect(this.videoTrack)
+      this.publisherHandler.reJoin(this.videoTrack)
     },
 
     executeAction (videoErrorState: VideoErrorState): void {
@@ -299,19 +327,33 @@ export default defineComponent({
 
       switch (videoErrorState.state) {
         
-        case VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM:
-          this.toast(this.$t('services.webrtc.info.tryToRestartStream'))
-          return
-
-        case VideoRoomPluginError.ROOM_ALREADY_EXISTS:
-          this.reconnectStream()
-          return 
-
         default:
           this.toast.error(this.$t('services.webrtc.errors.commonStreamError'))
           return
       }
     },
+
+    async getConnectionState (): Promise <void> {
+      if (!this.publisherHandler) {
+        this.isHandlerConnected = 'disconnected'
+        return
+      }
+
+      const connected = this.publisherHandler.isJanusConnected()
+      this.isHandlerConnected = connected ? 'connected' : 'disconnected'
+    },
+
+    async handleError (errCode: unknown): Promise <void> {
+      switch (errCode) {
+        case VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_ALREADY_PUBLISHED:
+          this.reconnectStream()
+          return
+
+        default:
+          this.toast.error(this.$t('services.webrtc.errors.commonStreamError'))
+      }
+
+    }
   },
 
   async mounted () {
@@ -330,10 +372,6 @@ export default defineComponent({
         }
       }))
     })
-  },
-
-  unmounted() {
-    this.publisherHandler?.emitter.all.clear()
   },
 
   render (): VNode {
@@ -357,8 +395,8 @@ export default defineComponent({
         controls: () => <StateBar 
           userRole={UserRole.WORKER}
           onStreamtoggle={() => this.toggleStream()}
-          isStreamActive={this.isStreamConfigured && !this.videoErrorState}
-          isStartStreamDisabled={!this.isWebRTCConnected && !this.videoErrorState}
+          isStreamActive={this.isStreamConfigured}
+          isStartStreamDisabled={this.isStartStreamButtonDisabled}
           onMuteVideo={(muted) => muted ? this.muteVideo() : this.unMuteVideo()}
           onMuteAudio={(muted) => muted ? this.muteAudio() : this.unMuteAudio()}
           onApplydevices={() => this.applyDevices()}

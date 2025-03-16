@@ -90,7 +90,8 @@
       },
       "success": {
         "streamStarted": "Эфир начался, Вы онлайн",
-        "streamStopped": "Эфир закончен"
+        "streamStopped": "Эфир закончен",
+        "webRTCIsAvailable": "Соединение c сервером установлено"
       },
       "info": {
         "tryToRestartStream": "Попробуйте перезапустить эфир"

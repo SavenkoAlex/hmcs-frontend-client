@@ -40,10 +40,7 @@ export const userMixin = {
     }),
 
     logout (role: UserRole) {
-      this.setUser(null)
-      this.setUserProperty({isAuthentificated: false})
-      localStorage.clear()
-      router.replace({name: 'login'})
+      
     }
   }
 }
