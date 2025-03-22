@@ -144,16 +144,6 @@ export default defineComponent({
 
     async initHandlers () {
 
-      /*
-      if (this.chatHandler && this.roomNumber) {
-        if (this.userRole === UserRole.WORKER) {
-          await this.chatHandler.destroyChat(this.roomNumber)
-        } else {
-          await this.chatHandler.leave(this.roomNumber)
-        }
-      }
-        */
-
       switch (this.userRole) {
         case UserRole.WORKER: {
           return this.initPublisher()

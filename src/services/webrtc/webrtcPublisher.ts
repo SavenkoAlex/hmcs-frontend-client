@@ -13,6 +13,7 @@ import {
   VideoRoomPluginError,
   ErrorMessage,
   CustomJanusApiResponse,
+  videoRoomPluginEvent
 } from '@/types/janus'
 
 /**
@@ -37,7 +38,6 @@ export interface WebRTCHandler {
 
 export class PublisherStreamHandler extends StreamHandler implements  WebRTCHandler { 
   
-  roomNumber: number | null
   mediaTrack: MediaStreamTrack | null
   options: HandlerDescription
 
@@ -49,7 +49,6 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     options,
   }: Required<WebRTCHandlerConstructor>) {
     super({webrtcPlugin, handler, emitter, janusInstance})
-    this.roomNumber = null
     this.options = options
     this.mediaTrack = null
   }
@@ -90,7 +89,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         return
       }
 
-      const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
+      let eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
 
       try {
         // track plugin events
@@ -103,7 +102,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
 
   }
 
-  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
+  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT | 'event', msg: JanusJS.Message) {
     switch (eventType) {
 
       case VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED:
@@ -119,6 +118,21 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
         //this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, false)
         this.emitter.emit('video-destroyed')
+        break
+
+      case 'event':
+        let extendetEventType  = null
+        for (const event of Object.values(videoRoomPluginEvent)) {
+          if (msg[event]) {
+            extendetEventType = event
+          }
+        }
+
+        if (!extendetEventType) {
+          console.warn('unhandled message ', eventType, msg)
+          return
+        }
+        this.emitter.emit(`video-${extendetEventType}`)
         break
 
       default:
@@ -273,7 +287,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     })
   }
 
-  private async destroy (): Promise <boolean> {
+  async destroy (): Promise <boolean> {
     return new Promise (resolve => {
       if (!this.handler) {
         resolve(false)
@@ -282,7 +296,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       const message = {
         request: 'destroy',
         room: this.options.roomId,
-        permanent: true
+        permanent: false
       }
 
       this.handler?.send({
@@ -365,11 +379,23 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     }
   }
 
-  async leave (destroy = false): Promise<boolean> {
-    if (!destroy) {
-      return await this.unpublish()
-    }
-    return await this.destroy()
+  async leave (): Promise<boolean> {
+     return new Promise(resolve => {
+      if (!this.options.roomId || !this.handler) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'leave',
+      }
+      
+      this.handler.send({
+        message,
+        success: () => resolve(true),
+        error: () => resolve(false)
+      })
+    })
   }
 
   async isRoomExists (): Promise <boolean> {

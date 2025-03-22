@@ -77,7 +77,7 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     this.emitter.on('janus-onmessage', async ({jsep, msg}) => {
       if (msg.error) {
         console.error(msg.error)
-        this.emitter.emit('janus-error', msg.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
+        this.emitter.emit('janus-error', msg.error_code)
         return
       }
 

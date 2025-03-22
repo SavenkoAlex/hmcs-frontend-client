@@ -12,10 +12,6 @@ import {
   WebRTCHandlerConstructor
 } from '@/types/global'
 
-import { 
-  VideoRoomPluginError, 
-} from '@/types/janus'
-
 type Emitter = typeof emitter
 
 const stateController = new WebRTCStateController()
@@ -30,7 +26,7 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
       error: (err) => {
         //emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
         //stateController.setPluginState(AttachEvent.ERROR, true)
-        emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
+        emitter.emit('janus-error', err)
         console.error(err)
       },
 
@@ -40,7 +36,7 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
         if (!janusInstance) {
           //stateController.setPluginState(AttachEvent.SUCCESS, false)
           //stateController.setPluginState(AttachEvent.ERROR, true)
-          emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
+          emitter.emit('janus-error', 'no janus instance')
         }
 
         janusInstance.attach({

@@ -114,7 +114,7 @@ export class ChatHandler extends StreamHandler {
   protected listen(): void {
     this.emitter.on('janus-onmessage', async ({ msg, jsep }) => {
       if (msg.error) {
-        this.emitter.emit('janus-error', msg.error)
+        this.emitter.emit('janus-error', msg.error_code)
         return
       }
 
@@ -223,7 +223,7 @@ export class ChatHandler extends StreamHandler {
         request: 'create',
         room: streamId,
         transaction: this.transaction,
-        permanent: true
+        permanent: false
       }
 
       this.handler.send({ 
@@ -294,7 +294,7 @@ export class ChatHandler extends StreamHandler {
       const message = {
         textroom: 'destroy',
         room: streamId,
-        permanent: true
+        permanent: false
       }
 
       this.handler.data({

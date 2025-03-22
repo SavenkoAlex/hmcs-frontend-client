@@ -64,7 +64,11 @@ export default defineComponent({
     ),
 
     isStartStreamButtonDisabled () {
-      return this.isHandlerConnected !== 'connected' || !this.isWebRTCConnected
+      if (this.isHandlerConnected === null) {
+        return false
+      }
+
+      return this.isHandlerConnected !== 'connected'
     }
   },
 
@@ -90,7 +94,7 @@ export default defineComponent({
     const toast = useToast()
     const isDeviceConfigurationVisible = ref<boolean>(false)
     const isWebRTCConnected = ref<boolean>()
-    const isHandlerConnected = ref<ConnectionState>('disconnected')
+    const isHandlerConnected = ref<ConnectionState | null>(null)
 
     return {
       publisherNode,
@@ -194,19 +198,16 @@ export default defineComponent({
         this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
         return
       }
-
-      this.isLoading = true
-      const destryed = await this.publisherHandler.leave()
-      this.isLoading = false
-
-      if (!destryed) {
+      const destroyed = await this.publisherHandler.destroy()
+      
+      if (!destroyed) {
         this.toast.error(this.$t('services.webrtc.errors.canNotStopStream'))
       }
     },
 
     async startStream (): Promise <void> {
       
-      if (!this.publisherHandler || this.isHandlerConnected !== 'connected') {
+      if (!this.publisherHandler || (this.isHandlerConnected !== 'connected' && this.isHandlerConnected !== null) ) {
         this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
         console.error('no webrtc plugin availabele')
         return
@@ -269,6 +270,11 @@ export default defineComponent({
 
     listenToEvents (): void {
       emitter.on('janus-error', err => {
+        if (err instanceof DOMException) {
+          console.warn(err)
+          return
+        }
+        
         this.isLoading = false
         this.setVideoErrorState(err)
         this.handleError(err)
@@ -290,6 +296,9 @@ export default defineComponent({
 
       emitter.on('video-destroyed', () => {
         this.isLoading = false
+        this.isStreamConfigured = false
+        this.isHandlerConnected = 'disconnected'
+        this.toast.info(this.$t('services.webrtc.info.reloadToStart'))
       })
 
       emitter.on('video-configured', isConfigured => {
@@ -298,6 +307,15 @@ export default defineComponent({
 
       emitter.on('janus-webrtcState', (state) => {
         this.isWebRTCConnected = state
+      })
+
+      emitter.on('video-unpublished', () => {
+        this.isStreamConfigured = false
+      })
+
+      emitter.on('video-leaving', () => {
+        this.isLoading = true
+        this.destroyRoom()
       })
     },
 

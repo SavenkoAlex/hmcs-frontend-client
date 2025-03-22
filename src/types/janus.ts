@@ -16,6 +16,7 @@ export const enum VIDEO_ROOM_PLUGIN_EVENT  {
   DISPLAY = 'display',
   UNPUBLISHED = 'unpublished',
   LEAVING = 'leaving',
+  LEFT = 'left',
   UPDATED = 'updated',
   KICKED = 'kicked',
   RECORDING_ENABLED_STATE = 'recording_enabled_state',
@@ -31,6 +32,37 @@ export const enum VIDEO_ROOM_PLUGIN_EVENT  {
   RTP_FWD_STOPPED = 'rtp_fwd_stopped',
   RTP_FWD_LIST = 'rtp_fwd_list',
 }
+
+export const videoRoomPluginEvent = {
+  [VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED]: 'joined',
+  [VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED]: 'subscribed',
+  [VIDEO_ROOM_PLUGIN_EVENT.ATTACHED]: 'attached',
+  [VIDEO_ROOM_PLUGIN_EVENT.PUB_LIST]: 'publisher_list',
+  [VIDEO_ROOM_PLUGIN_EVENT.PARTICIPANTS_LIST]: 'participants_list',
+  [VIDEO_ROOM_PLUGIN_EVENT.PUB_PEER_JOINED]: 'publisher_joined',
+  [VIDEO_ROOM_PLUGIN_EVENT.STARTED]: 'started',
+  [VIDEO_ROOM_PLUGIN_EVENT.PAUSED]: 'paused',
+  [VIDEO_ROOM_PLUGIN_EVENT.SWITCHED]: 'switched',
+  [VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED]: 'configured',
+  [VIDEO_ROOM_PLUGIN_EVENT.SLOW_LINK]: 'slowlink',
+  [VIDEO_ROOM_PLUGIN_EVENT.DISPLAY]: 'display',
+  [VIDEO_ROOM_PLUGIN_EVENT.UNPUBLISHED]: 'unpublished',
+  [VIDEO_ROOM_PLUGIN_EVENT.LEAVING]: 'leaving',
+  [VIDEO_ROOM_PLUGIN_EVENT.UPDATED]: 'updated',
+  [VIDEO_ROOM_PLUGIN_EVENT.KICKED]: 'kicked',
+  [VIDEO_ROOM_PLUGIN_EVENT.RECORDING_ENABLED_STATE]: 'recording_enabled_state',
+  [VIDEO_ROOM_PLUGIN_EVENT.TALKING]: 'talking',
+  [VIDEO_ROOM_PLUGIN_EVENT.SC_SUBSTREAM_LAYER]: 'sc_substream_layer',
+  [VIDEO_ROOM_PLUGIN_EVENT.SC_TEMPORAL_LAYERS]: 'sc_temporal_layers',
+  [VIDEO_ROOM_PLUGIN_EVENT.ALLOWED]: 'allowed',
+  [VIDEO_ROOM_PLUGIN_EVENT.EXISTS]: 'exists',
+  [VIDEO_ROOM_PLUGIN_EVENT.ROOMS_LIST]: 'list',
+  [VIDEO_ROOM_PLUGIN_EVENT.CREATED]: 'created',
+  [VIDEO_ROOM_PLUGIN_EVENT.DESTROYED]: 'destroyed',
+  [VIDEO_ROOM_PLUGIN_EVENT.RTP_FWD_STARTED]: 'rtp_fwd_started',
+  [VIDEO_ROOM_PLUGIN_EVENT.RTP_FWD_STOPPED]: 'rtp_fwd_stopped',
+  [VIDEO_ROOM_PLUGIN_EVENT.RTP_FWD_LIST]: 'rtp_fwd_list',
+} as const
 
 /** text room plugin events */
 export const enum TEXT_ROOM_PLUGIN_EVENT {
@@ -242,6 +274,7 @@ export const webRTCEvent: Record <webRTCEvent, JanusEvent> = {
   'video-allowed': VIDEO_ROOM_PLUGIN_EVENT.ALLOWED,
   'video-exists': VIDEO_ROOM_PLUGIN_EVENT.EXISTS,
   'video-list': VIDEO_ROOM_PLUGIN_EVENT.ROOMS_LIST,
+  'video-left': VIDEO_ROOM_PLUGIN_EVENT.LEFT,
   'video-created': VIDEO_ROOM_PLUGIN_EVENT.CREATED,
   'video-destroyed': VIDEO_ROOM_PLUGIN_EVENT.DESTROYED,
   'video-rtp_fwd_started': VIDEO_ROOM_PLUGIN_EVENT.RTP_FWD_STARTED,
@@ -270,6 +303,6 @@ export type CustomJanusApiResponse <T extends any>= {
 export type IceState = 'connected' | 'disconnected' | 'failed' | 'checking' | 'closed'
 
 // connectionstate event value
-export type ConnectionState = 'connected' | 'disconnected' | 'failed' | 'connecting'
+export type ConnectionState = 'connected' | 'disconnected' | 'failed' | 'connecting' 
 
 
