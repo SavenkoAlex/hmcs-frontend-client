@@ -90,10 +90,14 @@
       },
       "success": {
         "streamStarted": "Эфир начался, Вы онлайн",
-        "streamStopped": "Эфир закончен"
+        "streamStopped": "Эфир закончен",
+        "webRTCIsAvailable": "Соединение c сервером установлено"
       },
       "info": {
-        "tryToRestartStream": "Попробуйте перезапустить эфир"
+        "tryToRestartStream": "Попробуйте перезапустить эфир",
+        "webRTCIsDisconnected": "Соединение с сервером разорвано",
+        "reloadToStart": "Что бы снова начать эфир - обновите страницу",
+        "noFeed": "Эфир недоступен "
       }
     },
     "chat": {

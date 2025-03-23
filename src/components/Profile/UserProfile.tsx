@@ -1,13 +1,17 @@
 import {
   defineComponent,
   PropType,
-  VNode
+  VNode,
+  inject
 } from 'vue'
 
 /** types */
-import { User } from '@/types/global'
+import { User, videoHandlerKey, chatKey} from '@/types/global'
 import { UserDataProfile } from '@/components/Profile/types'
 import { States } from '@/types/store'
+import { SubscriberStreamHandler} from '@/services/webrtc/webrtcSubscriber'
+import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
+import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 /** api */
 import userApi from '@/api/user'
@@ -28,14 +32,15 @@ import '@/components/Profile/Profile.scss'
 /** vuex */
 import {mapActions } from 'vuex'
 
-/* mixins */
-import { userMixin } from '@/components/mixins/User'
-
 export default defineComponent({
 
   name: 'UserProfile',
 
-  extends: userMixin,
+  emits: {
+    logout1: (): void => {
+      return
+    }
+  },
 
   components: {
     TextButton,
@@ -70,6 +75,16 @@ export default defineComponent({
     }
   },
   
+  setup () {
+    const videoHandler = inject <PublisherStreamHandler | SubscriberStreamHandler| null> (videoHandlerKey, null)
+    const chatHandler = inject <ChatHandler | null> (chatKey, null)
+
+    return {
+      videoHandler,
+      chatHandler
+    }
+  },
+
   methods: {
     ...mapActions(States.USER, {
       setUser: 'setUser',
@@ -86,6 +101,23 @@ export default defineComponent({
         console.error(err)
         return null
       }
+    },
+
+    destroySession () {
+      if (this.videoHandler) {
+        this.videoHandler.destroySession()
+      }
+      if (this.chatHandler) {
+        this.chatHandler.destroySession()
+      }
+    },
+
+    logout () {
+      this.destroySession()
+      this.setUser(null)
+      this.setUserProperty({isAuthentificated: false})
+      localStorage.clear()
+      this.$router.replace({name: 'login'})
     }
   },
 
@@ -150,7 +182,7 @@ export default defineComponent({
         <TextButton
           mode={'fourth'}
           text={this.$t('common.exit')}
-          onClick={() => this.logout(this.userRole)}
+          onClick={this.logout}
         />
       </div>
      

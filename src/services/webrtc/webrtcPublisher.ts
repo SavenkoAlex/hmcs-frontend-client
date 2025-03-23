@@ -11,10 +11,9 @@ import {
 import { 
   VIDEO_ROOM_PLUGIN_EVENT, 
   VideoRoomPluginError,
-  webRTCEventJanusMap, 
-  AttachEvent,
   ErrorMessage,
   CustomJanusApiResponse,
+  videoRoomPluginEvent
 } from '@/types/janus'
 
 /**
@@ -39,17 +38,17 @@ export interface WebRTCHandler {
 
 export class PublisherStreamHandler extends StreamHandler implements  WebRTCHandler { 
   
-  roomNumber: number | null
   mediaTrack: MediaStreamTrack | null
   options: HandlerDescription
+
   private constructor ({
     webrtcPlugin,
     handler, 
     emitter,
-    options
+    janusInstance,
+    options,
   }: Required<WebRTCHandlerConstructor>) {
-    super({webrtcPlugin, handler, emitter})
-    this.roomNumber = null
+    super({webrtcPlugin, handler, emitter, janusInstance})
     this.options = options
     this.mediaTrack = null
   }
@@ -61,8 +60,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       if (!result) {
         return null
       }
-      const { handler, emitter } = result
-      const streamHandler = new PublisherStreamHandler({webrtcPlugin, handler, emitter, options})
+      const { handler, emitter, janusInstance } = result
+      const streamHandler = new PublisherStreamHandler({webrtcPlugin, handler, emitter, janusInstance, options})
       streamHandler.listen()
       return streamHandler
     } catch (err) {
@@ -75,7 +74,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   protected listen () {
     // Catching Janus on message event
     // the rest of emits MUST be handled on client side at this moment
-    this.emitter.on(webRTCEventJanusMap[AttachEvent.ONMESSAGE], async ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+    this.emitter.on('janus-onmessage', async ({msg, jsep}) => {
       if (msg.error) {
         this.handlePluginError(msg)
         return
@@ -84,31 +83,32 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       if (jsep) {
         this.handler.handleRemoteJsep({ jsep })
         if (msg?.configured) {
-          this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, true)
+          // this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, true)
+          this.emitter.emit('video-configured', true)
         }
         return
       }
 
-      const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
+      let eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
 
       try {
         // track plugin events
         await this.handlePluginEvent(eventType, msg)
       } catch (err) {
         console.error(err)
-        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], err)
+        this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
       }
     })
 
   }
 
-  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
+  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT | 'event', msg: JanusJS.Message) {
     switch (eventType) {
 
       case VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED:
         const jsep = await this.createOffer()
         if (!jsep) {
-          this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], 'answer is not created')
+          this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
           console.error('offer is not created')
           return 
         }
@@ -116,8 +116,23 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         break
 
       case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
-        this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, false)
-        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED)
+        //this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, false)
+        this.emitter.emit('video-destroyed')
+        break
+
+      case 'event':
+        let extendetEventType  = null
+        for (const event of Object.values(videoRoomPluginEvent)) {
+          if (msg[event]) {
+            extendetEventType = event
+          }
+        }
+
+        if (!extendetEventType) {
+          console.warn('unhandled message ', eventType, msg)
+          return
+        }
+        this.emitter.emit(`video-${extendetEventType}`)
         break
 
       default:
@@ -131,7 +146,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       switch (errorCode) {
 
       default:
-        this.emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], msg?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN, msg)
+        this.emitter.emit('janus-error', msg?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
       }
 
   }
@@ -145,7 +160,6 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       if (!this.handler) {
         resolve({ 
           success: false, 
-          errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM
         })
         return
       }
@@ -174,7 +188,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
           console.error(err)
           resolve({
             success: false,
-            errorCode: (err as unknown as ErrorMessage)?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN
+            errorCode: (err as unknown as ErrorMessage)?.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR
           })
         }
       })
@@ -273,7 +287,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     })
   }
 
-  private async destroy (): Promise <boolean> {
+  async destroy (): Promise <boolean> {
     return new Promise (resolve => {
       if (!this.handler) {
         resolve(false)
@@ -282,7 +296,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       const message = {
         request: 'destroy',
         room: this.options.roomId,
-        permanent: true
+        permanent: false
       }
 
       this.handler?.send({
@@ -329,26 +343,27 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       console.error('no media stream track detected')
       return {
         success: false,
-        errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NO_MEDIA
       }
     }
 
+    this.mediaTrack = track
+    
     try {
-      const rooms = await this.getStreams()
-      const exists = rooms.find(room => room.room === this.options.roomId)
+      const exists = await this.isRoomExists()
 
       if (exists) {
+        const result = await this.joinAsPublisher()
         return {
-          success: false,
-          errorCode: VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_ROOM_ALEAВY_CREATED
+          success: result,
         }
       } 
 
-      this.mediaTrack = track
       const response = await this.createRoom()
 
       if (!response?.success) {
-        return response
+        return {
+          success: !!response?.success
+        }
       }
 
       // async call just request and wait for response
@@ -364,14 +379,26 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     }
   }
 
-  async leave (destroy = false): Promise<boolean> {
-    if (!destroy) {
-      return await this.unpublish()
-    }
-    return await this.destroy()
+  async leave (): Promise<boolean> {
+     return new Promise(resolve => {
+      if (!this.options.roomId || !this.handler) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'leave',
+      }
+      
+      this.handler.send({
+        message,
+        success: () => resolve(true),
+        error: () => resolve(false)
+      })
+    })
   }
 
-  async isStreamAvailable (): Promise <boolean> {
+  async isRoomExists (): Promise <boolean> {
     return new Promise(resolve => {
       if (!this.options.roomId || !this.handler) {
         resolve(false)
@@ -397,7 +424,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * @param secret 
    * @returns 
    */
-  async reconnect (track: MediaStreamTrack, secret?: string): Promise <boolean> {
+  async reJoin (track: MediaStreamTrack, secret?: string): Promise <boolean> {
     return new Promise(resolve => {
 
       if (!this.handler || !this.options.roomId) {

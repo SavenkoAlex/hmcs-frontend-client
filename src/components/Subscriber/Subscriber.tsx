@@ -1,7 +1,6 @@
 import {
   defineComponent,
   ref,
-  TransitionGroup,
   Transition,
   VNode,
   inject,
@@ -11,7 +10,6 @@ import {
 /** store */
 import { mapGetters } from 'vuex'
 
-import Janus from 'janus-gateway'
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
@@ -31,7 +29,7 @@ import userApi from '@/api/user'
 /** types */
 import { Data } from '@/components/Subscriber/types'
 import { UserRole, chatKey, videoHandlerKey } from '@/types/global'
-import { webRTCEventJanusMap, AttachEvent, VIDEO_ROOM_PLUGIN_EVENT } from '@/types/janus'
+import { VideoRoomPluginError } from '@/types/janus'
 
 /** layouts */
 import RoomLayout from '@/layouts/Room/Room'
@@ -41,7 +39,12 @@ import bg from '@/assets/images/taro-bg.jpg'
 
 /** notifier */
 import { useToast } from 'vue-toastification'
+
 /* locales */
+
+/** event bus */
+import eventBus from '@/services/eventBus'
+
 import { I18n, useI18n } from 'vue-i18n'
 import { States } from '@/types/store'
 
@@ -92,36 +95,6 @@ export default defineComponent({
       },
       immediate: true
     },
-
-    async mountPoint (newValue: number) {
-      if (!Number.isInteger(newValue)) {
-        return 
-      }
-
-      if (!this.subscriberHandler || !this.publisherId) {
-        this.toast(this.$t('services.webrtc.errors.canNotConnectStream'))
-        return
-      }
-      const isStreamActive = await this.subscriberHandler.isStreamAvailable(newValue)
-      if (!isStreamActive) {
-        return
-      }
-      this.subscriberHandler.connect(newValue)
-    },
-
-    performanceNavigationType (newValue: NavigationTimingType | null) {
-      if (newValue === 'reload') {
-        this.isLoading = true
-
-        setTimeout(() => {
-          if (!Number.isInteger(this.mountPoint) || !this.publisherId) {
-            this.toast(this.$t('services.webrtc.errors.canNotConnectStream'))
-            return
-          }
-          this.subscriberHandler?.connect(this.mountPoint as number)
-        }, 2000)
-      }
-    }
   },
 
   setup () {
@@ -195,15 +168,21 @@ export default defineComponent({
       video.play()
     },
 
-    onError (error: Error) {
-      console.error(error)
-      this.toast(this.t('services.webrtc.errors.canNotConnectStream'))
-      if (!this.isJoined) {
+    onError (error: VideoRoomPluginError | Error) {
+      this.isLoading = false
+
+      if (error instanceof DOMException) {
         return
       }
 
-      this.subscriberHandler?.leave()
-      this.isJoined = false
+      switch (error) {
+        case VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NO_SUCH_FEED:
+          this.toast(this.t('services.webrtc.info.noFeed'))
+          break;
+
+        default: 
+          this.toast(this.t('services.webrtc.errors.canNotConnectStream'))
+      }
     },
 
     onJoined () {
@@ -211,17 +190,9 @@ export default defineComponent({
     },
 
     addListeners () {
-      this.subscriberHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ONREMOTETRACK], data => this.onremotetrack(data))
-      this.subscriberHandler?.emitter.on(webRTCEventJanusMap[AttachEvent.ERROR], error => this.onError(error))
-      this.subscriberHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.STARTED, (started: boolean) => {
-        if (!started) {
-          this.toast(this.t('services.webrtc.errors.canNotConnectStream'))
-        }
-      })
-      this.subscriberHandler?.emitter.on(VIDEO_ROOM_PLUGIN_EVENT.ATTACHED, (streams) => {
-        console.log('streams:', streams)
-      })
-
+      eventBus.on('janus-onremotetrack', data => this.onremotetrack(data))
+      eventBus.on('janus-error', error => this.onError(error))
+      eventBus.on('video-attached', () => this.onJoined())
     }
   },
 
@@ -235,7 +206,9 @@ export default defineComponent({
     }
     if (this.publisher.streamId) {
       this.mountPoint = this.publisher.streamId
+      this.subscriberHandler?.connect(this.publisher.streamId)
     }
+
   },
 
   async unmounted () {

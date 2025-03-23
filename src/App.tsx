@@ -25,14 +25,15 @@ import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import Janus from 'janus-gateway'
 
 /** types */
-import { JanusPlugin, UserRole, supKey, pubKey, chatKey, videoHandlerKey,VideoErrorState, VideoHandler } from '@/types/global'
-import { webRTCEventJanusMap, AttachEvent, VideoRoomPluginError, CommonVideoPluginError } from '@/types/janus'
+import { JanusPlugin, UserRole, chatKey, videoHandlerKey} from '@/types/global'
 import { mapGetters, mapActions } from 'vuex'
 
 /** store */
 import { States } from '@/types/store'
 import { useToast } from 'vue-toastification'
 
+/** eventBus */
+import emitter from '@/services/eventBus'
 
 export default defineComponent({
 
@@ -65,7 +66,7 @@ export default defineComponent({
 
   computed: {
     ...mapGetters(States.USER, [ 'userRole', 'isAuthentificated', 'userData']),
-    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId', 'videoErrorState']),
+    ...mapGetters(States.APP, ['webrtcSessionId', 'chatSessionId', 'videoErrorState', 'performanceNavigationType']),
 
     roomNumber (): number | null {
       if (this.userRole === UserRole.WORKER) {
@@ -77,15 +78,6 @@ export default defineComponent({
   },
 
   watch: {
-    userRole: {
-      handler: function(newValue = UserRole.ANONYMOUS, oldValue) {
-        if (newValue === oldValue) {
-          return
-        }
-        this.initHandlers()
-      },
-      immediate: true
-    },
 
     isAuthentificated: {
       handler: function (newValue = false, oldValue) {
@@ -93,26 +85,8 @@ export default defineComponent({
           return
         }
         this.initHandlers()
-      },
-      immediate: true
-    },
-
-    videoErrorState (newValue) {
-      if (!newValue) {
-        return
-      }
-      
-      if (newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NOT_IN_A_ROOM ||
-        newValue.state === CommonVideoPluginError.SERVER_DOWN ||
-        newValue.state === VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN
-      ) {
-        this.initHandlers()
       }
     },
-
-    chatHandler (newValue) {
-      this.setIsChatHandlerAvailable(!!newValue)
-    }
   },
   
   methods: {
@@ -144,9 +118,9 @@ export default defineComponent({
           this.chatHandler = result
           this.setChatSessionId(result.handler.getId())
         }
+
       })
     },
-
     initPublisher () {
       if (!this.isAuthentificated || !this.userData) {
         return
@@ -169,30 +143,17 @@ export default defineComponent({
     },
 
     async initHandlers () {
-      if (this.videoHandler) {
-        await this.videoHandler.leave()
-      }
-
-      if (this.chatHandler && this.roomNumber) {
-        if (this.userRole === UserRole.WORKER) {
-          await this.chatHandler.destroyChat(this.roomNumber)
-        } else {
-          await this.chatHandler.leave(this.roomNumber)
-        }
-      }
 
       switch (this.userRole) {
         case UserRole.WORKER: {
-          this.initPublisher()
-          break
+          return this.initPublisher()
         }
         case UserRole.USER: {
-          this.initSubscriber()
-          break
+          return this.initSubscriber()
         }
 
         default:
-          this.initSubscriber()
+          return this.initSubscriber()
       }
     },
 
@@ -202,11 +163,23 @@ export default defineComponent({
       })
     },
 
+    destroySession (): Promise<[undefined | boolean, undefined | boolean]> {
+      return Promise.all([
+        this?.videoHandler?.destroySession(),
+        this?.chatHandler?.destroySession()
+      ])
+    }
+  },
+
+  created () {
+    this.performanceObserver = new PerformanceObserver(this.setPerformanceTimingType)
+    this.performanceObserver.observe({ type: 'navigation', buffered: true });
   },
 
   mounted () {
-    this.performanceObserver = new PerformanceObserver(this.setPerformanceTimingType)
-    this.performanceObserver.observe({ type: 'navigation', buffered: true });
+    setTimeout(() => {
+      this.initHandlers()
+    })
   },
 
   render(): VNode {

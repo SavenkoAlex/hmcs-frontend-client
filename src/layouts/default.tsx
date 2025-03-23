@@ -11,6 +11,10 @@ export default defineComponent({
 
   name: 'MainLayout',
 
+  emits: {
+    onlogout (): void {}
+  },
+  
   render (): VNode {
     return <div class="main">
       <header class="main__header"> {this.$slots.header?.()}</header>

@@ -10,9 +10,8 @@ import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
 
 import { 
   VIDEO_ROOM_PLUGIN_EVENT, 
-  webRTCEventJanusMap as webRTCEvent, 
-  AttachEvent,
-  VideoRoomPluginError
+  VideoRoomPluginError,
+  videoRoomPluginEvent
 } from '@/types/janus'
 
 /**
@@ -33,6 +32,8 @@ type Publisher = {
   publisher: boolean
 }
 
+
+
 export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHandler { 
   
   private mediaTrack: MediaStreamTrack | null
@@ -43,8 +44,9 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     webrtcPlugin,
     handler, 
     emitter,
+    janusInstance
   }: Omit<WebRTCHandlerConstructor, 'options'>) {
-    super({ webrtcPlugin, handler, emitter })
+    super({ webrtcPlugin, handler, emitter, janusInstance })
     this.mediaTrack = null
     this.publisher = null
   }
@@ -62,8 +64,8 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
       if (!result) {
         return null
       }
-      const { handler, emitter } = result
-      const streamHandler = new SubscriberStreamHandler({webrtcPlugin, handler, emitter})
+      const { handler, emitter, janusInstance } = result
+      const streamHandler = new SubscriberStreamHandler({webrtcPlugin, handler, emitter, janusInstance})
       streamHandler.listen()
       return streamHandler
     } catch (err) {
@@ -75,49 +77,67 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
   // attach a event listener on janus events
   protected listen () {
     // Catching Janus on message event
-    this.emitter.on(webRTCEvent[AttachEvent.ONMESSAGE], async ({jsep, msg}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+    this.emitter.on('janus-onmessage', async ({jsep, msg}) => {
       if (msg.error) {
         console.error(msg.error)
-        this.emitter.emit(webRTCEvent[AttachEvent.ERROR], msg.error_code || VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN)
-        return
-      }
-
-      if (jsep) {
-        this.handler.createAnswer({
-          jsep,
-          success: (sdp) => this.attach(sdp)
-        })
+        this.emitter.emit('janus-error', msg.error_code)
         return
       }
 
       const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
 
       try {
-        await this.handlePluginEvent(eventType, msg)
+        await this.handlePluginEvent(eventType, msg, jsep)
       } catch (err) {
         console.error(err)
-        this.emitter.emit(webRTCEvent[AttachEvent.ERROR], err)
+        this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
       }
     })
   }
 
-  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
+  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT | 'event', msg: JanusJS.Message, jsep?: JanusJS.JSEP) {
     switch (eventType) {
       case VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED:
-        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED)
+        this.emitter.emit('video-subscribed', msg)
         break
 
       case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
-        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.DESTROYED)
-        break
-      case VIDEO_ROOM_PLUGIN_EVENT.ATTACHED:
-        this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.ATTACHED, msg.streams)
+        this.emitter.emit('video-destroyed')
         break
 
-      case VIDEO_ROOM_PLUGIN_EVENT.EVENT:
-        if (msg.started) {
-          this.emitter.emit(VIDEO_ROOM_PLUGIN_EVENT.STARTED, msg.started === 'ok')
+      case VIDEO_ROOM_PLUGIN_EVENT.ATTACHED:
+        if (!jsep) {
+          this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
+          break
         }
+
+        this.emitter.emit('video-attached', msg.streams)
+
+        this.handler.createAnswer({
+          jsep,
+          success: (sdp) => this.attach(sdp)
+        })
+        break
+
+      case VIDEO_ROOM_PLUGIN_EVENT.STARTED:
+        if (msg.started) {
+          this.emitter.emit('video-started', msg.started === 'ok')
+        }
+        break
+
+      case 'event': 
+        let extendetEventType  = null
+        for (const event of Object.values(videoRoomPluginEvent)) {
+          if (msg[event]) {
+            extendetEventType = event
+          }
+        }
+
+        if (!extendetEventType) {
+          console.warn('unhandled message ', eventType, msg)
+          break
+        }
+        this.emitter.emit(`video-${extendetEventType}`)
         break
 
       default:
@@ -256,6 +276,22 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
           console.error(error)
           resolve(false)
         }
+      })
+    })
+  }
+
+  isJanusConnected (): boolean {
+    return !!this.janusInstance.isConnected()
+  }
+
+  destroySession (): Promise<boolean> {
+    return new Promise (resolve => {
+      this.janusInstance.destroy({
+        success: () => resolve(true),
+        error: () => resolve(false),
+        cleanupHandles: true,
+        notifyDestroyed: true,
+        unload: true
       })
     })
   }

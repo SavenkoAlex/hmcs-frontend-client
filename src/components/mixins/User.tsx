@@ -9,7 +9,7 @@ import {
 
 /** types */
 import { States } from '@/types/store'
-import { UserRole, supKey, pubKey, chatKey} from '@/types/global'
+import { UserRole, chatKey, videoHandlerKey} from '@/types/global'
 
 /** services */
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
@@ -17,9 +17,16 @@ import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 /** router */
+import router from '@/router'
 
 export const userMixin = {
   
+  events: {
+    logout: (): void => {
+      return
+    }
+  },
+
   computed: {
     ...mapGetters(States.USER, {
       userRole: 'userRole'
@@ -33,17 +40,7 @@ export const userMixin = {
     }),
 
     logout (role: UserRole) {
-
-      const pHandler = inject <PublisherStreamHandler | null> (pubKey, null)
-      const sHandler = inject <SubscriberStreamHandler | null> (supKey, null)
-
-      pHandler?.destroyStream()
-      sHandler?.leave()
       
-      this.setUser(null)
-      this.setUserProperty({isAuthentificated: false})
-      localStorage.clear()
-      location.replace('/')
     }
   }
 }
