@@ -11,6 +11,7 @@ import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
 import { 
   VIDEO_ROOM_PLUGIN_EVENT, 
   VideoRoomPluginError,
+  videoRoomPluginEvent
 } from '@/types/janus'
 
 /**
@@ -30,6 +31,8 @@ type Publisher = {
   display: string, 
   publisher: boolean
 }
+
+
 
 export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHandler { 
   
@@ -81,26 +84,18 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
         return
       }
 
-      if (jsep) {
-        this.handler.createAnswer({
-          jsep,
-          success: (sdp) => this.attach(sdp)
-        })
-        return
-      }
-
       const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
 
       try {
-        await this.handlePluginEvent(eventType, msg)
+        await this.handlePluginEvent(eventType, msg, jsep)
       } catch (err) {
         console.error(err)
-        this.emitter.emit('janus-error', err)
+        this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
       }
     })
   }
 
-  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
+  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT | 'event', msg: JanusJS.Message, jsep?: JanusJS.JSEP) {
     switch (eventType) {
       case VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED:
         this.emitter.emit('video-subscribed', msg)
@@ -109,14 +104,40 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
       case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
         this.emitter.emit('video-destroyed')
         break
+
       case VIDEO_ROOM_PLUGIN_EVENT.ATTACHED:
+        if (!jsep) {
+          this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
+          break
+        }
+
         this.emitter.emit('video-attached', msg.streams)
+
+        this.handler.createAnswer({
+          jsep,
+          success: (sdp) => this.attach(sdp)
+        })
         break
 
       case VIDEO_ROOM_PLUGIN_EVENT.STARTED:
         if (msg.started) {
           this.emitter.emit('video-started', msg.started === 'ok')
         }
+        break
+
+      case 'event': 
+        let extendetEventType  = null
+        for (const event of Object.values(videoRoomPluginEvent)) {
+          if (msg[event]) {
+            extendetEventType = event
+          }
+        }
+
+        if (!extendetEventType) {
+          console.warn('unhandled message ', eventType, msg)
+          break
+        }
+        this.emitter.emit(`video-${extendetEventType}`)
         break
 
       default:

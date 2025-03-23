@@ -2,6 +2,7 @@ import mitt from 'mitt'
 import { 
   webRTCEvent,
   IceState,
+  VideoRoomPluginError,
 } from '@/types/janus'
 
 import { 
@@ -9,12 +10,13 @@ import {
   RemoteTrack,
   LocalTrack,
   SlowLink,
-  JanusMessageEvent
+  JanusMessageEvent,
+  Stream
 } from '@/types/global'
 
 interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'janus-success': boolean,
-  'janus-error': unknown,
+  'janus-error': VideoRoomPluginError,
   'janus-destroyed': void,
   'janus-consentDialog': boolean,
   'janus-connectionState': 'connected' | 'failed',
@@ -31,7 +33,7 @@ interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'janus-ondetached': unknown,
   'video-joined': unknown,
   'video-subscribed': unknown,
-  'video-attached': unknown,
+  'video-attached': { room: number, streams: Stream[] },
   'video-publisher_list': unknown,
   'video-participants_list': unknown,
   'video-publisher_joined': unknown,

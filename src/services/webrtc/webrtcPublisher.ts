@@ -96,7 +96,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         await this.handlePluginEvent(eventType, msg)
       } catch (err) {
         console.error(err)
-        this.emitter.emit('janus-error', err)
+        this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
       }
     })
 
@@ -108,7 +108,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       case VIDEO_ROOM_PLUGIN_EVENT.PUB_JOINED:
         const jsep = await this.createOffer()
         if (!jsep) {
-          this.emitter.emit('janus-error', 'answer is not created')
+          this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
           console.error('offer is not created')
           return 
         }

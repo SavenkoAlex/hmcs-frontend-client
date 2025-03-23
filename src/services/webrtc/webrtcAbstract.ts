@@ -11,6 +11,7 @@ import {
   HandlerDescription, 
   WebRTCHandlerConstructor
 } from '@/types/global'
+import { VideoRoomPluginError } from '@/types/janus'
 
 type Emitter = typeof emitter
 
@@ -36,7 +37,7 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
         if (!janusInstance) {
           //stateController.setPluginState(AttachEvent.SUCCESS, false)
           //stateController.setPluginState(AttachEvent.ERROR, true)
-          emitter.emit('janus-error', 'no janus instance')
+          emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
         }
 
         janusInstance.attach({

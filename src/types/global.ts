@@ -5,6 +5,8 @@ import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 import emitter from '@/services/eventBus'
 
+export type MaybeId = string | number | unknown
+
 export type Room = {       
   room : number
   description? :  string
@@ -33,6 +35,27 @@ export type Room = {
   'videoorient_ext': boolean
   'playoutdelay_ext': boolean
   'transport_wide_cc_ext': boolean
+}
+
+/** Stream data  for attached event*/
+export type Stream = {
+  mindex: MaybeId,
+  mid: MaybeId,
+  type: 'audio' | 'video' | 'data',
+  active: boolean,
+  feed_id: MaybeId,
+  feed_mid: MaybeId,
+  feed_display: Maybe <string>,
+  send: boolean,
+  codec: Maybe <string>,
+  'h264-profile': unknown,
+  'vp9-profile': unknown,
+  ready: boolean,
+  simulcast: unknown,
+  svc: unknown,
+  'playout-delay': unknown,
+  sources: Maybe<number>
+  source_ids: string[]
 }
 
 /** Join response data */

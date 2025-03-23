@@ -12,6 +12,7 @@ import { Chat, Data } from '@/components/Chat/types'
 import { ElementScale, UserRole, chatKey } from '@/types/global'
 import { JanusTextMessage } from '@/services/webrtc/webrtcDataExchange'
 import { AttachEvent, TEXT_ROOM_PLUGIN_EVENT, webRTCEventJanusMap } from '@/types/janus'
+
 /** styles */
 import '@/components/Chat/Chat.scss'
 
@@ -32,6 +33,10 @@ import { formatTime } from '@/helpers/helper'
 
 /** notifier */
 import { useToast } from 'vue-toastification'
+
+/** events */
+import emitter from '@/services/eventBus'
+
 
 export default defineComponent({
 
@@ -272,9 +277,14 @@ export default defineComponent({
     },
 
     addListeners () {
+      /**
       this.chatHandler?.emitter.on('janus-error', err => this.handleError(err))
       this.chatHandler?.emitter.on('janus-ondata', data => this.handleData(data))
       this.chatHandler?.emitter.on('janus-ondataopen', data => this.ondataopen(data))
+      */
+      emitter.on('janus-error', err => this.handleError(err))
+      emitter.on('janus-ondata', data => this.handleData(data))
+      emitter.on('janus-ondataopen', data => this.ondataopen(data))
     },
 
     reconnect() {

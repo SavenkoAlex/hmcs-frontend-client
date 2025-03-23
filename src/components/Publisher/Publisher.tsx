@@ -269,7 +269,7 @@ export default defineComponent({
     },
 
     listenToEvents (): void {
-      emitter.on('janus-error', err => {
+      emitter.on('janus-error', (err: VideoRoomPluginError | Error) => {
         if (err instanceof DOMException) {
           console.warn(err)
           return
