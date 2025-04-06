@@ -3,6 +3,8 @@ import {
   webRTCEvent,
   IceState,
   VideoRoomPluginError,
+  TextRoomPluginError,
+  PluginsErrors
 } from '@/types/janus'
 
 import { 
@@ -14,9 +16,13 @@ import {
   Stream
 } from '@/types/global'
 
+import {
+  JanusTextMessage
+} from '@/services/webrtc/webrtcDataExchange'
+
 interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'janus-success': boolean,
-  'janus-error': VideoRoomPluginError,
+  'janus-error': PluginsErrors,
   'janus-destroyed': void,
   'janus-consentDialog': boolean,
   'janus-connectionState': 'connected' | 'failed',
@@ -66,6 +72,7 @@ interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'text-success': unknown,
   'text-datrecivied': unknown,
   'text-error': unknown,
+  'text-message': string | JanusTextMessage,
   'user-destroy-webrtc-session': void
 }
 

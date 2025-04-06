@@ -7,7 +7,7 @@ import { StreamHandler } from '@/services/webrtc/webrtcAbstract'
   WebRTCHandlerConstructor 
 } from '@/types/global'
 
-import { TEXT_ROOM_PLUGIN_EVENT, AttachEvent, webRTCEventJanusMap } from '@/types/janus'
+import { TEXT_ROOM_PLUGIN_EVENT, TextRoomPluginError, TextRoomPluginEvent } from '@/types/janus'
 
 /** message type */
 export const enum MessageType {
@@ -68,7 +68,6 @@ export type JanusTextMessage = {
   transaction?: string
 }
 
-transaction: "oorzya5UTd6J"
 export class ChatHandler extends StreamHandler {
 
   private options?: HandlerDescription
@@ -112,13 +111,14 @@ export class ChatHandler extends StreamHandler {
   }
 
   protected listen(): void {
+
     this.emitter.on('janus-onmessage', async ({ msg, jsep }) => {
       if (msg.error) {
-        this.emitter.emit('janus-error', msg.error_code)
+        this.handlePluginError(msg.error_code)
         return
       }
 
-      if (jsep) {
+      if (jsep && msg.textroom) {
         this.handler.createAnswer({
           jsep,
           tracks: [{type: 'data', capture: false}],
@@ -130,52 +130,116 @@ export class ChatHandler extends StreamHandler {
             this.handler.send({ 
               message, 
               jsep, 
-              error: err => this.emitter.emit('janus-error', err)
+              error: err => {
+                console.error(err)
+                this.handlePluginError({
+                  error_code: TextRoomPluginError.JANUS_TEXTROOM_ERROR_UNKNOWN_ERROR
+                })
+              }
             })
           },
-          error: (err) => this.emitter.emit('janus-error', err)
+          error: err => {
+            console.error(err)
+            this.handlePluginError({
+              error_code: TextRoomPluginError.JANUS_TEXTROOM_ERROR_UNKNOWN_ERROR
+            })
+          }
         })
         return
       }
 
       const msgType: TEXT_ROOM_PLUGIN_EVENT = msg.textroom
 
+      if (!msgType) {
+        return
+      }
+
       try {
         await this.handlePluginEvent(msgType, msg)
       } catch (err) {
-        this.emitter.emit('janus-error', err)
+        this.handlePluginError(err)
       }
     })
 
     this.emitter.on('janus-ondata', data => {
       try {
         const parsed = typeof data === 'string' ? JSON.parse(data) : data
-        if (parsed?.error) {
-
-          this.stateController.setChatErrorState(parsed.error_code)
-          return
-        }
-        /** data recieved */
-        this.emitter.emit('text-datarecivied', parsed)
+        const msgType: TEXT_ROOM_PLUGIN_EVENT = parsed.textroom
+        this.handlePluginEvent(msgType, parsed)
       } catch (err) {
-        this.emitter.emit('janus-error', err)
+        this.handlePluginError(err)
       }
-      
     })
   }
 
-  protected async handlePluginEvent (eventType: TEXT_ROOM_PLUGIN_EVENT, msg: JanusJS.Message) {
+  protected async handlePluginEvent (eventType: TEXT_ROOM_PLUGIN_EVENT | 'event', msg: JanusJS.Message) {
     switch (eventType) {
 
-      case TEXT_ROOM_PLUGIN_EVENT.JOINED:
-        this.emitter.emit('text-joined')
+      case TEXT_ROOM_PLUGIN_EVENT.JOIN:
+        this.emitter.emit('text-join')
         break;
 
       case TEXT_ROOM_PLUGIN_EVENT.SUCCESS:
-        console.log('room created', msg)
+        this.emitter.emit('text-success', msg)
+        break
+
+      case TEXT_ROOM_PLUGIN_EVENT.MESSAGE:
+        this.emitter.emit('text-message', { 
+          from: msg.from, 
+          text: msg.text,
+          date: msg.date,
+          room: msg.room,
+          textroom: msg.textroom
+        })
+        break
+
+      case TEXT_ROOM_PLUGIN_EVENT.DESTROYED:
+        this.emitter.emit('text-destroyed')
+        break
+      
+      case TEXT_ROOM_PLUGIN_EVENT.KICKED:
+        this.emitter.emit('text-kicked')
+        break
+      
+      case TEXT_ROOM_PLUGIN_EVENT.EDITED:
+        this.emitter.emit('text-edited')
+        break
+      
+      case TEXT_ROOM_PLUGIN_EVENT.LEAVE:
+        this.emitter.emit('text-leave')
+        break
+
+      case 'event':
+        let extendetEventType  = null
+        for (const event of Object.values(TextRoomPluginEvent)) {
+          if (msg[event]) {
+            extendetEventType = event
+          }
+        }
+
+        if (!extendetEventType) {
+          console.warn('unhandled message ', eventType, msg)
+          return
+        }
+        this.emitter.emit(`text-${extendetEventType}`)
+        break
 
       default:
         console.warn('unhandled message ', eventType, msg)
+    }
+  }
+
+  protected handlePluginError (msg: JanusJS.Message | unknown) {
+    let errorCode = TextRoomPluginError.JANUS_TEXTROOM_ERROR_UNKNOWN_ERROR
+
+    if ('error_code' in (msg as JanusJS.Message)) {
+      errorCode = (msg as JanusJS.Message).error_code
+    }
+
+    switch (errorCode) {
+
+      default:
+        this.emitter.emit('janus-error', errorCode)
     }
   }
 
@@ -246,10 +310,12 @@ export class ChatHandler extends StreamHandler {
         textroom: 'message',
         transaction: this.transaction,
         room: streamId,
+        ack: true,
         text
       }
 
       let stringified 
+
       try {
         stringified = JSON.stringify(message) 
       } catch (err) {
@@ -260,7 +326,10 @@ export class ChatHandler extends StreamHandler {
 
       this.handler.data({
         text: stringified,
-        success: () => resolve(true),
+        success: (data) => {
+          console.log(data); 
+          resolve(true)
+        },
         error: (err) => { console.error(err); resolve(false) }
       })
     })

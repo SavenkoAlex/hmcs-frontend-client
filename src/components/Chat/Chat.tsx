@@ -11,7 +11,6 @@ import {
 import { Chat, Data } from '@/components/Chat/types'
 import { ElementScale, UserRole, chatKey } from '@/types/global'
 import { JanusTextMessage } from '@/services/webrtc/webrtcDataExchange'
-import { AttachEvent, TEXT_ROOM_PLUGIN_EVENT, webRTCEventJanusMap } from '@/types/janus'
 
 /** styles */
 import '@/components/Chat/Chat.scss'
@@ -82,6 +81,7 @@ export default defineComponent({
     isReadyToConnect (): boolean {
       return !!(this.isStreamAvailable && this.chatHandler)
     },
+
     currentChatName (): string {
       return `${this.$t('components.chat.defaultChatName')} ${this.chatName}`
     }
@@ -104,17 +104,21 @@ export default defineComponent({
       }
     },
 
-    chatName (newValue: string) {
-      if (!newValue) {
-        return
-      }
+    chatName: {
+      handler: function (newValue: string) {
 
-      this.currentChat = `${newValue}`
-      this.chatLinks[newValue] = {
-        id: `${newValue}`,
-        name: `${this.currentChatName}`,
-        messages: []
-      }
+        if (!newValue) {
+          return
+        }
+
+        this.currentChat = `${newValue}`
+        this.chatLinks[newValue] = {
+          id: `${newValue}`,
+          name: `${this.currentChatName}`,
+          messages: []
+        }
+      },
+      immediate: true
     }
   },
 
@@ -167,7 +171,7 @@ export default defineComponent({
       this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
     },
 
-    handleData (data: string): void {
+    handleData (data: string | JanusTextMessage): void {
       try {
         const dataParsed: JanusTextMessage = typeof data === 'string' ? JSON.parse(data) : data
 
@@ -277,13 +281,8 @@ export default defineComponent({
     },
 
     addListeners () {
-      /**
-      this.chatHandler?.emitter.on('janus-error', err => this.handleError(err))
-      this.chatHandler?.emitter.on('janus-ondata', data => this.handleData(data))
-      this.chatHandler?.emitter.on('janus-ondataopen', data => this.ondataopen(data))
-      */
       emitter.on('janus-error', err => this.handleError(err))
-      emitter.on('janus-ondata', data => this.handleData(data))
+      emitter.on('text-message', msg => this.handleData(msg))
       emitter.on('janus-ondataopen', data => this.ondataopen(data))
     },
 

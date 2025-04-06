@@ -80,7 +80,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         return
       }
 
-      if (jsep) {
+      if (jsep && msg.videoroom) {
         this.handler.handleRemoteJsep({ jsep })
         if (msg?.configured) {
           // this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, true)

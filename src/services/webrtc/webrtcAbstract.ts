@@ -53,7 +53,8 @@ const webRTCInstance = <T extends Handler> (pluginName: JanusPlugin = JanusPlugi
           error: (error) => {
             //stateController.setPluginState(AttachEvent.ERROR, true)
             //emitter.emit(webRTCEventJanusMap[AttachEvent.ERROR], error)
-            emitter.emit('janus-error', error)
+            console.error(error)
+            emitter.emit('janus-error', 499)
           },
 
           consentDialog: (on) => {

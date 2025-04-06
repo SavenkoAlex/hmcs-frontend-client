@@ -71,10 +71,20 @@ export const enum TEXT_ROOM_PLUGIN_EVENT {
   EDITED = 'edited',
   DESTROYED = 'destroyed',
   KICKED = 'kicked',
-  JOINED = 'joined',
+  JOIN = 'join',
   SUCCESS = 'success',
-  DATA = 'datarecivied'
+  LEAVE = 'leave',
+  MESSAGE = 'message'
 }
+
+export const  TextRoomPluginEvent = {
+  [TEXT_ROOM_PLUGIN_EVENT.EDITED]: 'edited',
+  [TEXT_ROOM_PLUGIN_EVENT.DESTROYED]: 'destroyed',
+  [TEXT_ROOM_PLUGIN_EVENT.KICKED]: 'kicked',
+  [TEXT_ROOM_PLUGIN_EVENT.JOIN]: 'join',
+  [TEXT_ROOM_PLUGIN_EVENT.SUCCESS]: 'success',
+  [TEXT_ROOM_PLUGIN_EVENT.MESSAGE]: 'message'
+} as const
 
 /** janus attach events */
 export type JanusAttchCb =
@@ -186,6 +196,8 @@ export const enum VideoRoomPluginError {
   JANUS_VIDEOROOM_ERROR_INVALID_FEED = 438,
 }
 
+export type PluginsErrors = VideoRoomPluginError | TextRoomPluginError
+
 export const enum CommonVideoPluginError {
   SERVER_DOWN = 200
 }
@@ -266,9 +278,10 @@ export const webRTCEvent: Record <webRTCEvent, JanusEvent> = {
   'text-edited': TEXT_ROOM_PLUGIN_EVENT.EDITED,
   'text-destroyed': TEXT_ROOM_PLUGIN_EVENT.DESTROYED,
   'text-kicked': TEXT_ROOM_PLUGIN_EVENT.KICKED,
-  'text-joined': TEXT_ROOM_PLUGIN_EVENT.JOINED,
+  'text-join': TEXT_ROOM_PLUGIN_EVENT.JOIN,
   'text-success': TEXT_ROOM_PLUGIN_EVENT.SUCCESS,
-  'text-datarecivied': TEXT_ROOM_PLUGIN_EVENT.DATA
+  'text-message': TEXT_ROOM_PLUGIN_EVENT.MESSAGE,
+  'text-leave': TEXT_ROOM_PLUGIN_EVENT.LEAVE
 }
 
 export type ErrorMessage = {

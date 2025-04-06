@@ -21,9 +21,8 @@ import DeviceConfigurationModal from '@/components/DeviceController/DeviceConfig
 /** types */
 import { UserRole, MediaDevice, videoHandlerKey, chatKey, VideoErrorState } from '@/types/global'
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
-import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import { States } from '@/types/store'
-import { VideoRoomPluginError, ConnectionState} from '@/types/janus'
+import { VideoRoomPluginError, ConnectionState } from '@/types/janus'
 
 /** store */
 import { mapActions, mapGetters } from 'vuex'
@@ -88,7 +87,6 @@ export default defineComponent({
     const audioTrack = ref <MediaStreamTrack | null> ()
     const crypto = inject<Crypto>('crypto')
     const publisherHandler = inject <PublisherStreamHandler | null> (videoHandlerKey, null)
-    const chatHandler = inject <ChatHandler | null> (chatKey, null)
     const isStreamConfigured = ref<boolean> (false)
     const isLoading = ref<boolean>(false)
     const toast = useToast()
@@ -107,7 +105,6 @@ export default defineComponent({
       audioTrack,
       crypto,
       publisherHandler,
-      chatHandler,
       isLoading,
       isStreamConfigured,
       toast,
@@ -269,8 +266,8 @@ export default defineComponent({
     },
 
     listenToEvents (): void {
-      emitter.on('janus-error', (err: VideoRoomPluginError | Error) => {
-        if (err instanceof DOMException) {
+      emitter.on('janus-error', (err) => {
+        if ((err as any) instanceof DOMException) {
           console.warn(err)
           return
         }
