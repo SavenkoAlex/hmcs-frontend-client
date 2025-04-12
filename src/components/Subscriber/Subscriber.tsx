@@ -152,10 +152,6 @@ export default defineComponent({
     onremotetrack (descripption: {on: boolean, track: MediaStreamTrack}) {
       const { track } = descripption
       this.remoteStream = new MediaStream([track])
-      if (this.remoteStream && this.remoteVideoNode) {
-        //Janus.attachMediaStream(this.remoteVideoNode, this.remoteStream)
-        this.isJoined = true
-      }
       this.isLoading = false
     },
 

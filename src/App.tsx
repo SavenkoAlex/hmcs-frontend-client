@@ -32,9 +32,6 @@ import { mapGetters, mapActions } from 'vuex'
 import { States } from '@/types/store'
 import { useToast } from 'vue-toastification'
 
-/** eventBus */
-import emitter from '@/services/eventBus'
-
 export default defineComponent({
 
   name: 'App',
