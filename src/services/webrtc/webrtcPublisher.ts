@@ -200,19 +200,23 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * @param options stream sys data
    * @returns true or false depending on request is sended (but does not mean join successfully)
    */
-  private joinAsPublisher (): Promise <boolean> {
+  private joinAsPublisher (secret?: string): Promise <boolean> {
     return new Promise (resolve => {
       if (!this.handler) {
         resolve(false)
         return
       }
 
-      const message = {
+      const message: {request: 'join'} & {[key: string]: any} = {
         request: 'join',
         ptype: 'publisher',
         room: this.options.roomId,
         id: this.options.roomId,
         display: this.options.displayName
+      }
+
+      if (secret) {
+        message['pin'] = secret
       }
 
       this.handler?.send({
@@ -332,6 +336,31 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     })
   }
 
+  private async makePrivateRoom (secret: string, isPrivate: boolean): Promise <false | string> {
+    return new Promise (resolve => {
+      if (!this.handler) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'edit',
+        room: this.options.roomId,
+        new_pin: secret,
+        new_require_pvtid: isPrivate
+      }
+
+      this.handler?.send({
+        message,
+        success: () => resolve(secret),
+        error: (err) => {
+          console.error(err)
+          resolve(false)
+        }
+      })
+    })
+  }
+
   /**
    * starts publishing stream
    * @param options 
@@ -432,6 +461,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         return
       }
 
+      return this.joinAsPublisher(secret)
+      /*
       this.mediaTrack = track
       this.kick(this.options.roomId, secret)
         .then(result => result)
@@ -443,6 +474,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         .then(result => {
           resolve(!!result)
         })
+      */
     })
   } 
   
@@ -507,7 +539,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     })
   }
 
-  getStreams (): Promise <Room[]> {
+  async getStreams (): Promise <Room[]> {
 
     return new Promise(resolve => {
       if (!this.handler) {
@@ -533,5 +565,13 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         }
       })
     })
+  }
+
+  async createPrivateSession (isPrivate = false): Promise <ReturnType<typeof this.makePrivateRoom>> {
+    const secret = crypto.randomUUID()
+    if (!secret) {
+      return false
+    }
+    return this.makePrivateRoom(secret, isPrivate)
   }
 }

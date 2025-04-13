@@ -8,7 +8,7 @@ import {
 import '@/components/Streams/Streams.scss'
 
 /** types */
-import { videoHandlerKey } from '@/types/global'
+import { subscriberHandlerKey } from '@/types/global'
 import { StreamsData } from '@/components/Streams/types'
 
 /** api */
@@ -45,7 +45,7 @@ export default defineComponent({
   },
 
   setup () {
-    const pluginHandler = inject<SubscriberStreamHandler | null> (videoHandlerKey, null)
+    const pluginHandler = inject<SubscriberStreamHandler | null> (subscriberHandlerKey, null)
     const toast = useToast()
 
     return {

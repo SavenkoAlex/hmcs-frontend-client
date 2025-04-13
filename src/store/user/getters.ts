@@ -1,5 +1,5 @@
-import { UserState } from '@/types/store'
-import { User, UserRole, Maybe } from '@/types/global'
+import { amount, UserState } from '@/types/store'
+import { User, UserRole, Maybe, UserAccount } from '@/types/global'
 
 export const getters = {
   
@@ -51,5 +51,15 @@ export const getters = {
       console.error(err)
       return null
     }
+  },
+
+  userAmount: function (state: UserState): UserAccount['amount'] {
+    const amount = Number.parseInt(state.amount, 10)
+
+    if (!amount) {
+      return 0
+    }
+    
+    return amount
   }
 }

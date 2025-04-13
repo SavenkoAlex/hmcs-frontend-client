@@ -6,11 +6,9 @@ import {
 } from 'vue'
 
 /** types */
-import { User, videoHandlerKey, chatKey} from '@/types/global'
+import { User, chatKey} from '@/types/global'
 import { UserDataProfile } from '@/components/Profile/types'
 import { States } from '@/types/store'
-import { SubscriberStreamHandler} from '@/services/webrtc/webrtcSubscriber'
-import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 
 /** api */
@@ -31,6 +29,9 @@ import '@/components/Profile/Profile.scss'
 
 /** vuex */
 import {mapActions } from 'vuex'
+
+/** event bus */
+import eventBus from '@/services/eventBus'
 
 export default defineComponent({
 
@@ -76,11 +77,9 @@ export default defineComponent({
   },
   
   setup () {
-    const videoHandler = inject <PublisherStreamHandler | SubscriberStreamHandler| null> (videoHandlerKey, null)
     const chatHandler = inject <ChatHandler | null> (chatKey, null)
 
     return {
-      videoHandler,
       chatHandler
     }
   },
@@ -103,17 +102,8 @@ export default defineComponent({
       }
     },
 
-    destroySession () {
-      if (this.videoHandler) {
-        this.videoHandler.destroySession()
-      }
-      if (this.chatHandler) {
-        this.chatHandler.destroySession()
-      }
-    },
-
     logout () {
-      this.destroySession()
+      eventBus.emit('destroy-session')
       this.setUser(null)
       this.setUserProperty({isAuthentificated: false})
       localStorage.clear()

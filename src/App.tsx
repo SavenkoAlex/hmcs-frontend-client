@@ -25,12 +25,15 @@ import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import Janus from 'janus-gateway'
 
 /** types */
-import { JanusPlugin, UserRole, chatKey, videoHandlerKey} from '@/types/global'
+import { JanusPlugin, UserRole, chatKey, subscriberHandlerKey, publisherHandlerKey} from '@/types/global'
 import { mapGetters, mapActions } from 'vuex'
 
 /** store */
 import { States } from '@/types/store'
 import { useToast } from 'vue-toastification'
+
+/** event bus */
+import eventBus from '@/services/eventBus'
 
 export default defineComponent({
 
@@ -44,9 +47,11 @@ export default defineComponent({
 
   setup () {
     const chatHandler = ref <ChatHandler | null> (null)
-    const videoHandler = ref <SubscriberStreamHandler | PublisherStreamHandler | null> (null)
+    const subscriberHandler = ref <SubscriberStreamHandler | null> (null)
+    const publisherHandler = ref <PublisherStreamHandler | null> (null)
 
-    provide<typeof videoHandler> (videoHandlerKey, videoHandler)
+    provide<typeof subscriberHandler> (subscriberHandlerKey, subscriberHandler)
+    provide<typeof publisherHandler> (publisherHandlerKey, publisherHandler)
     provide<typeof chatHandler> (chatKey, chatHandler)
 
     const performanceObserver = ref <PerformanceObserver>()
@@ -55,7 +60,8 @@ export default defineComponent({
 
     return {
       chatHandler,
-      videoHandler,
+      publisherHandler,
+      subscriberHandler,
       toast,
       performanceObserver
     }
@@ -69,8 +75,7 @@ export default defineComponent({
       if (this.userRole === UserRole.WORKER) {
         return this.userData?.streamId || null
       }
-
-      return this.$route.params.id ? Number(this.$route.params.id) : null
+      return null
     }
   },
 
@@ -96,17 +101,20 @@ export default defineComponent({
       'setIsChatHandlerAvailable'
     ]),
 
-    initSubscriber () {
-      SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
-        if (result) {
-          this.videoHandler = result
-          this.setWebrtcSessionId(result.handler.getId())
-        } else {
-          this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
-        }
-      })
+    async initSubscriber () {
+      /*
+      const subHandler = await SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN)
 
-      if (!this.isAuthentificated) {
+      if (!subHandler) {
+        this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
+        return
+      }
+      this.subscriberHandler = subHandler
+      */
+     
+      await this.addSubscriber()
+
+      if (!this.isAuthentificated || !this.subscriberHandler) {
         return
       }
 
@@ -118,7 +126,8 @@ export default defineComponent({
 
       })
     },
-    initPublisher () {
+    async initPublisher () {
+      /*
       if (!this.isAuthentificated || !this.userData) {
         return
       }
@@ -127,9 +136,16 @@ export default defineComponent({
         roomId: this.userData.streamId,
         displayName: this.userData.username
       }).then(result => {
-        this.videoHandler = result
+        this.publisherHandler = result
         this.setWebrtcSessionId(result?.handler.getId())
       })
+      */
+
+      await this.addPublisher()
+
+      if (!this.publisherHandler) {
+        return
+      }
 
       ChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN).then(result => {
         if (result) {
@@ -137,6 +153,45 @@ export default defineComponent({
           this.setChatSessionId(result.handler.getId())
         }
       })
+    },
+
+    /** in case subscriber starts publishing */
+    async addPublisher (to?: number): Promise <void> {
+      console.log('adding a publisher...')
+      const roomNumber = to || this.roomNumber
+      if (!this.isAuthentificated || !this.userData || !Number.isFinite(roomNumber)) {
+        return
+      }
+
+      if (this.publisherHandler) {
+        await this.publisherHandler.destroySession()
+      }
+
+      const handler = await PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
+        roomId: roomNumber as number,
+        displayName: this.userData.username
+      })
+
+      if (!handler) {
+        return
+      }
+
+      this.publisherHandler = handler
+    },
+
+    async addSubscriber (): Promise <void> {
+      console.log('adding a subscriber...')
+      if (this.subscriberHandler) {
+        await this.subscriberHandler.destroySession()
+      }
+
+      const handler = await SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN)
+
+      if (!handler) {
+        return
+      }
+
+      this.subscriberHandler = handler
     },
 
     async initHandlers () {
@@ -160,11 +215,18 @@ export default defineComponent({
       })
     },
 
-    destroySession (): Promise<[undefined | boolean, undefined | boolean]> {
+    destroySession (): Promise<[undefined | boolean, undefined | boolean, undefined | boolean]> {
       return Promise.all([
-        this?.videoHandler?.destroySession(),
+        this?.subscriberHandler?.destroySession(),
+        this?.publisherHandler?.destroySession(),
         this?.chatHandler?.destroySession()
       ])
+    },
+
+    listen () {
+      eventBus.on('destroy-session', this.destroySession) 
+      eventBus.on('add-publisher', (value?: number) => this.addPublisher(value))
+      eventBus.on('add-subscriber', this.addSubscriber)
     }
   },
 
@@ -174,6 +236,7 @@ export default defineComponent({
   },
 
   mounted () {
+    this.listen()
     setTimeout(() => {
       this.initHandlers()
     })

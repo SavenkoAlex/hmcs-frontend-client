@@ -19,7 +19,7 @@ import Loader from '@/components/general/Loader/Loader'
 import DeviceConfigurationModal from '@/components/DeviceController/DeviceConfigurationModal'
 
 /** types */
-import { UserRole, MediaDevice, videoHandlerKey, chatKey, VideoErrorState } from '@/types/global'
+import { UserRole, MediaDevice, publisherHandlerKey, chatKey, VideoErrorState } from '@/types/global'
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 import { States } from '@/types/store'
 import { VideoRoomPluginError, ConnectionState } from '@/types/janus'
@@ -86,13 +86,15 @@ export default defineComponent({
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
     const crypto = inject<Crypto>('crypto')
-    const publisherHandler = inject <PublisherStreamHandler | null> (videoHandlerKey, null)
+    const publisherHandler = inject <PublisherStreamHandler | null> (publisherHandlerKey, null)
     const isStreamConfigured = ref<boolean> (false)
     const isLoading = ref<boolean>(false)
     const toast = useToast()
     const isDeviceConfigurationVisible = ref<boolean>(false)
     const isWebRTCConnected = ref<boolean>()
     const isHandlerConnected = ref<ConnectionState | null>(null)
+    const secret = ref<string | null>(null)
+    const isReadyToPrivate = ref<boolean>(false)
 
     return {
       publisherNode,
@@ -110,7 +112,9 @@ export default defineComponent({
       toast,
       isDeviceConfigurationVisible,
       isWebRTCConnected,
-      isHandlerConnected
+      isHandlerConnected,
+      secret,
+      isReadyToPrivate
     }
   },
 
@@ -218,14 +222,24 @@ export default defineComponent({
 
       this.isLoading = true
 
-
       const startResult = await this.publisherHandler.connect(this.videoTrack)
 
       if (!startResult.success) {
         this.isLoading = false
         this.setVideoErrorState(startResult.errorCode ? startResult.errorCode : VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
         this.toast.error(this.$t('services.webrtc.errors.canNotStartStream'))
+        return
       }
+
+      /*
+      setTimeout(async () => {
+        const secret = await this.makeRoomPrivate()
+        if (secret) {
+          this.secret = secret
+          this.reconnectStream()
+        }
+      }, 7000)
+      */
     },
 
     getNewPublisherId (): number | null {
@@ -273,8 +287,8 @@ export default defineComponent({
         }
         
         this.isLoading = false
-        this.setVideoErrorState(err)
-        this.handleError(err)
+        // this.setVideoErrorState(err)
+        // this.handleError(err)
       })
 
       emitter.on('janus-connectionState', (state) => {
@@ -314,6 +328,10 @@ export default defineComponent({
         this.isLoading = true
         this.destroyRoom()
       })
+
+      emitter.on('video-edited', () => {
+        this.isReadyToPrivate = !this.isReadyToPrivate
+      })
     },
 
     async reconnectStream (): Promise <void> {
@@ -332,7 +350,7 @@ export default defineComponent({
         return
       }
 
-      this.publisherHandler.reJoin(this.videoTrack)
+      this.publisherHandler.reJoin(this.videoTrack, this.secret || undefined)
     },
 
     executeAction (videoErrorState: VideoErrorState): void {
@@ -368,6 +386,21 @@ export default defineComponent({
           this.toast.error(this.$t('services.webrtc.errors.commonStreamError'))
       }
 
+    },
+
+    async makeRoomPrivate (): Promise <void | string> {
+      if (!this.publisherHandler) {
+        return
+      }
+
+      const secret = await this.publisherHandler.createPrivateSession(!this.isReadyToPrivate)
+
+      if (!secret) {
+        this.toast.error(this.$t('services.webrtc.errors.canNotStartPrivate'))
+        return
+      }
+
+      return secret
     }
   },
 
@@ -420,6 +453,8 @@ export default defineComponent({
         chat: () => <div class='publisher-stream__chat'>
           { 
             <Chat
+              isReadyToPrivate={this.isReadyToPrivate}
+              secret={this.secret}
               room={this.userData.streamId}
               chatName={this.userData.username || 'no-name'}
               isStreamAvailable={this.isStreamConfigured}

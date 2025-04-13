@@ -161,14 +161,14 @@ export type UserAccount = {
   amount: number
 }
 
-
-export const storeUserKeyMap: Record <keyof User, string> = {
+export const storeUserKeyMap: Record <keyof User & keyof UserAccount, string> = {
   login: 'nl',
   username: 'eu',
   role: 'er',
   id: 'di',
   avatar: 'av',
-  streamId: 'si'
+  streamId: 'si',
+  amount: 'ma'
 }
 
 /** session storage key */
@@ -225,7 +225,8 @@ export type WebRTCHandlerConstructor = {
 }
 
 /** plugin handlers */
-export const videoHandlerKey = Symbol('videoHandler') as InjectionKey <string>
+export const subscriberHandlerKey = Symbol('subscriberHandler') as InjectionKey <string>
+export const publisherHandlerKey = Symbol('publisherHandler') as InjectionKey <string>
 export const chatKey = Symbol('chatHandler') as InjectionKey<string>
 
 /** outputs type */

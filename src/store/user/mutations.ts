@@ -1,7 +1,6 @@
 import { UserMutationTypes } from '@/store/user/mutation-types'
 import { UserState } from '@/types/store'
-import { User } from '@/types/global'
-import { Payload } from 'vuex'
+import { User, UserAccount } from '@/types/global'
 
 export const mutations = {
   [UserMutationTypes.SET_USER]: (state: UserState, payload: string | null) => {
@@ -12,5 +11,9 @@ export const mutations = {
     for (const key in payload) {
       state[key] = payload[key]
     }
+  }, 
+
+  [UserMutationTypes.SET_USER_AMOUNT]: (state: UserState, payload: UserAccount['amount']) => {
+    state.amount = payload
   }
 }

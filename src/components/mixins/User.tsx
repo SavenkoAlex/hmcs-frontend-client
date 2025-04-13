@@ -3,21 +3,11 @@ import {
   mapGetters
 } from 'vuex'
 
-import {
-  inject
-} from 'vue'
-
 /** types */
 import { States } from '@/types/store'
-import { UserRole, chatKey, videoHandlerKey} from '@/types/global'
-
-/** services */
-import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
-import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
-import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
+import { UserRole } from '@/types/global'
 
 /** router */
-import router from '@/router'
 
 export const userMixin = {
   

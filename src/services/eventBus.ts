@@ -2,8 +2,6 @@ import mitt from 'mitt'
 import { 
   webRTCEvent,
   IceState,
-  VideoRoomPluginError,
-  TextRoomPluginError,
   PluginsErrors
 } from '@/types/janus'
 
@@ -13,7 +11,8 @@ import {
   LocalTrack,
   SlowLink,
   JanusMessageEvent,
-  Stream
+  Stream,
+  Maybe
 } from '@/types/global'
 
 import {
@@ -65,6 +64,7 @@ interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'video-rtp_fwd_started': unknown,
   'video-rtp_fwd_stopped': unknown,
   'video-rtp_fwd_list': unknown,
+  'video-edited': unknown,
   'text-edited': unknown,
   'text-destroyed': unknown,
   'text-kicked': unknown,
@@ -74,6 +74,9 @@ interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'text-error': unknown,
   'text-message': string | JanusTextMessage,
   'user-destroy-webrtc-session': void
+  'add-publisher': number | undefined,
+  'add-subscriber': void,
+  'destroy-session': void
 }
 
 const emitter = mitt <{[key in keyof Events]: Events[key]}>()

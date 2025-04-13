@@ -14,12 +14,29 @@ video {
       width: 100%;
     }
 
-    &__publisher-media {
+    &__media {
       display: flex;
-      justify-content: center;
       width: 100%;
-      border: 1px solid transparent;
-      overflow: hidden;
+
+      &_large {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        border: 1px solid transparent;
+        overflow: hidden;
+      }
+
+      &_small {
+        position: absolute;
+        top: 10vh;
+        right: 0;
+        max-width: 45%;
+        height: auto;
+      }
+
+      &_disabled {
+        display: none
+      }
     }
 
     &__publisher-avatar {

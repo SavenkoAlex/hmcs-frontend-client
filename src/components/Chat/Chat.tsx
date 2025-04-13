@@ -64,6 +64,16 @@ export default defineComponent({
     isStreamAvailable: {
       type: Boolean as PropType <boolean>,
       default: false
+    },
+
+    isReadyToPrivate: {
+      type: Boolean as PropType <boolean>,
+      default: false
+    },
+
+    secret: {
+      type: String as PropType <string | null>,
+      default: null
     }
   },
 
@@ -119,6 +129,12 @@ export default defineComponent({
         }
       },
       immediate: true
+    },
+
+    secret (newValue: string) {
+      if (newValue) {
+        this.sendSecret()
+      }
     }
   },
 
@@ -288,7 +304,15 @@ export default defineComponent({
 
     reconnect() {
       console.log('here we are trying to recoonect')
-    }
+    },
+
+    async sendSecret (): Promise <boolean> {
+      if (!this.chatHandler || !this.secret) {
+        return false
+      }
+      const result = await this.chatHandler.sendMessage(this.secret, this.chatRoom)
+      return result
+    } 
   },
 
   mounted() {

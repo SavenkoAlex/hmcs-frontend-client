@@ -232,6 +232,30 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     })
   }
 
+  join (to: number): Promise <boolean> {
+    return new Promise (resolve => {
+      if (!this.handler || !to) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'join',
+        ptype: 'publisher',
+        room: to
+      }
+
+      this.handler?.send({
+        message,
+        success: () => resolve(true),
+        error: (err) => {
+          console.error(err)
+          resolve(false)
+        }
+      })
+    })
+  }
+  
   unsubscribe (from: number): Promise <boolean> {
     return new Promise (resolve => {
       if (!this.handler || !from) {

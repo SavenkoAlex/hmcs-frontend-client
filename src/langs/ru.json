@@ -13,7 +13,10 @@
       "password": "пароль",
       "register": "Регистрация",
       "success": "успешно",
-      "error": "ошибка входа"
+      "error": "ошибка входа",
+      "errors": {
+        "login": "Ошибка входа, проврьте корректность данных"
+      }
     },
 
     "registerForm": {
@@ -86,7 +89,8 @@
         "canNotStopStream": "Не возможно остановить эфир",
         "userVideoIsNotAvailable": "Видео пользователя недоступно",
         "commonStreamError": "Произошла ошибка при передаче видео, попробуйте обновить страницу",
-        "canNotConnectStream": "Не удалось подключиться к эфиру"
+        "canNotConnectStream": "Не удалось подключиться к эфиру",
+        "canNotStartPrivate": "Не удалось начать приватгновый эфир"
       },
       "success": {
         "streamStarted": "Эфир начался, Вы онлайн",

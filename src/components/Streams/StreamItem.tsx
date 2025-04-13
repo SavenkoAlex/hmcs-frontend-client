@@ -54,7 +54,8 @@ export default defineComponent({
   methods: {
     onJoin() {
       this.$router.push({ name: 'publisher', params: { 
-        id: this.stream.id, 
+        id: this.stream.streamId,
+        
       }})
     }
   },

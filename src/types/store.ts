@@ -8,7 +8,7 @@ export const chatSessionId =  import.meta.env.VITE_CHAT_SESSION_ID || 'sch'
 
 export interface UserState {
   accessToken: Maybe<string>,
-  amount: number,
+  amount: string,
   isAuthentificated: boolean,
   userData: string | null
 }
