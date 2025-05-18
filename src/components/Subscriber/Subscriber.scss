@@ -5,6 +5,14 @@ video {
 }
 
 @media (max-width: 767px) {
+  .publisher__avatar {
+    width: 100%;
+
+    &_disabled {
+      display: none;
+    }
+  }
+
   .subscriber {
     display: flex;
     flex-direction: column;
@@ -27,9 +35,6 @@ video {
       }
 
       &_small {
-        position: absolute;
-        top: 10vh;
-        right: 0;
         max-width: 45%;
         height: auto;
       }
@@ -39,9 +44,7 @@ video {
       }
     }
 
-    &__publisher-avatar {
-      width: 100%;
-    }
+    
   }
 }
 

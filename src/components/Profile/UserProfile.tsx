@@ -38,7 +38,7 @@ export default defineComponent({
   name: 'UserProfile',
 
   emits: {
-    logout1: (): void => {
+    logout: (): void => {
       return
     }
   },
@@ -103,7 +103,6 @@ export default defineComponent({
     },
 
     logout () {
-      eventBus.emit('destroy-session')
       this.setUser(null)
       this.setUserProperty({isAuthentificated: false})
       localStorage.clear()

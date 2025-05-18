@@ -33,6 +33,7 @@ export const enum VIDEO_ROOM_PLUGIN_EVENT  {
   RTP_FWD_STARTED = 'rtp_fwd_started',
   RTP_FWD_STOPPED = 'rtp_fwd_stopped',
   RTP_FWD_LIST = 'rtp_fwd_list',
+  PUBLISHERS = 'publishers'
 }
 
 export const videoRoomPluginEvent = {
@@ -64,6 +65,7 @@ export const videoRoomPluginEvent = {
   [VIDEO_ROOM_PLUGIN_EVENT.RTP_FWD_STARTED]: 'rtp_fwd_started',
   [VIDEO_ROOM_PLUGIN_EVENT.RTP_FWD_STOPPED]: 'rtp_fwd_stopped',
   [VIDEO_ROOM_PLUGIN_EVENT.RTP_FWD_LIST]: 'rtp_fwd_list',
+  'publishers': 'publishers'
 } as const
 
 /** text room plugin events */
@@ -275,6 +277,7 @@ export const webRTCEvent: Record <webRTCEvent, JanusEvent> = {
   'video-rtp_fwd_started': VIDEO_ROOM_PLUGIN_EVENT.RTP_FWD_STARTED,
   'video-rtp_fwd_stopped': VIDEO_ROOM_PLUGIN_EVENT.RTP_FWD_STOPPED,
   'video-rtp_fwd_list': VIDEO_ROOM_PLUGIN_EVENT.RTP_FWD_LIST,
+  'video-publishers': VIDEO_ROOM_PLUGIN_EVENT.PUBLISHERS,
   'text-edited': TEXT_ROOM_PLUGIN_EVENT.EDITED,
   'text-destroyed': TEXT_ROOM_PLUGIN_EVENT.DESTROYED,
   'text-kicked': TEXT_ROOM_PLUGIN_EVENT.KICKED,
@@ -301,4 +304,36 @@ export type IceState = 'connected' | 'disconnected' | 'failed' | 'checking' | 'c
 // connectionstate event value
 export type ConnectionState = 'connected' | 'disconnected' | 'failed' | 'connecting' 
 
+/** leaving event data */
+export type LeavMessage = {
+  leaving: number,
+  display: string,
+  room: number
+}
+
+export type StreamDescription = {
+  type: 'audio' | 'video' | 'data',
+  mindx: number
+  mid: string | number,
+  disabled: boolean,
+  codec: string,
+  description: string,
+  moderated:  boolean,
+  simulcast: boolean,
+  svc: boolean,
+  talking : boolean
+}
+export type PublisherDescription = {
+  id: number,
+  display: string,
+  metadata: unknown
+  dummy: boolean
+  streams : StreamDescription[],
+  talking : boolean
+}
+
+export type PublishersMessage = {
+  room: number,
+  publishers : PublisherDescription[]
+}
 

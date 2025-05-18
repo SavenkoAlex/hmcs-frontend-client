@@ -1,12 +1,4 @@
-.publisher-stream {
-
-  &__publisher-video {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+.publisher {
 
   @media (max-width: 767px) {
     display: flex;
@@ -14,6 +6,12 @@
     justify-content: center;
     width: 100%;
     height: 100%;
+
+    &__media {
+      width: 100%;
+      height: 100%;
+    }
+
 
     &__client-video {
       max-width: 100%;

@@ -32,9 +32,6 @@ import { mapGetters, mapActions } from 'vuex'
 import { States } from '@/types/store'
 import { useToast } from 'vue-toastification'
 
-/** event bus */
-import eventBus from '@/services/eventBus'
-
 export default defineComponent({
 
   name: 'App',
@@ -89,6 +86,28 @@ export default defineComponent({
         this.initHandlers()
       }
     },
+
+    'subscriberHandler.handlerInstance': {
+      handler: function (newValue) {
+
+        if (newValue?.id) {
+          this.listenToSubscriber()
+        }
+      },
+
+      immediate: true
+    },
+
+    'publisherHandler.handlerInstance': {
+      handler: function (newValue) {
+
+        if (newValue?.id) {
+          this.listenToPublisher()
+        }
+      },
+
+      immediate: true
+    }
   },
   
   methods: {
@@ -102,44 +121,16 @@ export default defineComponent({
     ]),
 
     async initSubscriber () {
-      /*
-      const subHandler = await SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN)
-
-      if (!subHandler) {
-        this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
-        return
-      }
-      this.subscriberHandler = subHandler
-      */
-     
       await this.addSubscriber()
 
       if (!this.isAuthentificated || !this.subscriberHandler) {
         return
       }
 
-      ChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN).then(result => {
-        if (result) {
-          this.chatHandler = result
-          this.setChatSessionId(result.handler.getId())
-        }
-
-      })
+      await this.addChatHandler()
     },
-    async initPublisher () {
-      /*
-      if (!this.isAuthentificated || !this.userData) {
-        return
-      }
 
-      PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
-        roomId: this.userData.streamId,
-        displayName: this.userData.username
-      }).then(result => {
-        this.publisherHandler = result
-        this.setWebrtcSessionId(result?.handler.getId())
-      })
-      */
+    async initPublisher () {
 
       await this.addPublisher()
 
@@ -147,12 +138,13 @@ export default defineComponent({
         return
       }
 
-      ChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN).then(result => {
-        if (result) {
-          this.chatHandler = result
-          this.setChatSessionId(result.handler.getId())
-        }
-      })
+      await this.addSubscriber()
+
+      if (!this.subscriberHandler) {
+        return
+      }
+
+      await this.addChatHandler()
     },
 
     /** in case subscriber starts publishing */
@@ -167,10 +159,12 @@ export default defineComponent({
         await this.publisherHandler.destroySession()
       }
 
-      const handler = await PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
+      const handler = PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
         roomId: roomNumber as number,
         displayName: this.userData.username
       })
+
+      await handler?.handle()
 
       if (!handler) {
         return
@@ -185,13 +179,26 @@ export default defineComponent({
         await this.subscriberHandler.destroySession()
       }
 
-      const handler = await SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN)
+      const handler = SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN)
 
       if (!handler) {
         return
       }
 
       this.subscriberHandler = handler
+      this.subscriberHandler.handle()
+    },
+
+    async addChatHandler () {
+      console.log('adding a chathandler...')
+      //TODO: destroy session
+
+      const handler = ChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN)
+      if (!handler) {
+        return
+      }
+      this.chatHandler = handler
+      this.chatHandler?.handle()
     },
 
     async initHandlers () {
@@ -215,18 +222,22 @@ export default defineComponent({
       })
     },
 
-    destroySession (): Promise<[undefined | boolean, undefined | boolean, undefined | boolean]> {
+    destroySession (): Promise<[boolean | undefined,  boolean | undefined, boolean | undefined]> {
       return Promise.all([
-        this?.subscriberHandler?.destroySession(),
-        this?.publisherHandler?.destroySession(),
-        this?.chatHandler?.destroySession()
+        this.subscriberHandler?.destroySession(),
+        this.publisherHandler?.destroySession(),
+        this.chatHandler?.destroySession()
       ])
     },
 
-    listen () {
-      eventBus.on('destroy-session', this.destroySession) 
-      eventBus.on('add-publisher', (value?: number) => this.addPublisher(value))
-      eventBus.on('add-subscriber', this.addSubscriber)
+    listenToSubscriber () {
+      this.subscriberHandler?.emitter.on('destroy-session', this.destroySession) 
+      this.subscriberHandler?.emitter.on('add-publisher', (value?: number) => this.addPublisher(value))
+    },
+
+    listenToPublisher () {
+      this.publisherHandler?.emitter.on('destroy-session', this.destroySession) 
+      this.publisherHandler?.emitter.on('add-subscriber', this.addSubscriber)
     }
   },
 
@@ -236,7 +247,6 @@ export default defineComponent({
   },
 
   mounted () {
-    this.listen()
     setTimeout(() => {
       this.initHandlers()
     })

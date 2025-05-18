@@ -297,9 +297,9 @@ export default defineComponent({
     },
 
     addListeners () {
-      emitter.on('janus-error', err => this.handleError(err))
-      emitter.on('text-message', msg => this.handleData(msg))
-      emitter.on('janus-ondataopen', data => this.ondataopen(data))
+      this.chatHandler?.emitter?.on('janus-error', err => this.handleError(err))
+      this.chatHandler?.emitter?.on('text-message', msg => this.handleData(msg))
+      this.chatHandler?.emitter.on('janus-ondataopen', data => this.ondataopen(data))
     },
 
     reconnect() {

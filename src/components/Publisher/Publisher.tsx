@@ -19,10 +19,16 @@ import Loader from '@/components/general/Loader/Loader'
 import DeviceConfigurationModal from '@/components/DeviceController/DeviceConfigurationModal'
 
 /** types */
-import { UserRole, MediaDevice, publisherHandlerKey, chatKey, VideoErrorState } from '@/types/global'
+import { UserRole, MediaDevice, publisherHandlerKey, VideoErrorState, subscriberHandlerKey } from '@/types/global'
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 import { States } from '@/types/store'
-import { VideoRoomPluginError, ConnectionState } from '@/types/janus'
+import { 
+  VideoRoomPluginError, 
+  ConnectionState, 
+  LeavMessage, 
+  PublisherDescription, 
+  PublishersMessage 
+} from '@/types/janus'
 
 /** store */
 import { mapActions, mapGetters } from 'vuex'
@@ -34,7 +40,7 @@ import RoomLayout from '@/layouts/Room/Room'
 import { useToast } from 'vue-toastification'
 
 /**eventBus */
-import emitter from '@/services/eventBus'
+import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 
 export default defineComponent({
 
@@ -68,7 +74,15 @@ export default defineComponent({
       }
 
       return this.isHandlerConnected !== 'connected'
-    }
+    },
+
+    localMediaClass (): string {
+      return 'publisher__media_large'
+    },
+
+    remoteMediaClass (): string {
+      return this.clientStream ? 'publisher__media_small' : 'publisher__media_disabled' 
+    } 
   },
 
   setup () {
@@ -87,6 +101,7 @@ export default defineComponent({
     const audioTrack = ref <MediaStreamTrack | null> ()
     const crypto = inject<Crypto>('crypto')
     const publisherHandler = inject <PublisherStreamHandler | null> (publisherHandlerKey, null)
+    const subscriberHandler = inject <SubscriberStreamHandler | null> (subscriberHandlerKey, null)
     const isStreamConfigured = ref<boolean> (false)
     const isLoading = ref<boolean>(false)
     const toast = useToast()
@@ -95,6 +110,7 @@ export default defineComponent({
     const isHandlerConnected = ref<ConnectionState | null>(null)
     const secret = ref<string | null>(null)
     const isReadyToPrivate = ref<boolean>(false)
+    const publishers = ref <Record <number, PublisherDescription>> ({})
 
     return {
       publisherNode,
@@ -114,7 +130,9 @@ export default defineComponent({
       isWebRTCConnected,
       isHandlerConnected,
       secret,
-      isReadyToPrivate
+      isReadyToPrivate,
+      subscriberHandler,
+      publishers
     }
   },
 
@@ -130,21 +148,33 @@ export default defineComponent({
       this.audioTrack = newValue[0].getAudioTracks()[0]
     },
 
-    publisherHandler (newValue: PublisherStreamHandler | null) {
-      if (!newValue) {
-        return
-      }
-      this.listenToEvents()
+    'publisherHandler.isHandlerEstbilished': {
+      handler: function (newValue: PublisherStreamHandler | null) {
+        if (!newValue) {
+          return
+        }
+        this.listenToEvents()
+      },
+      immediate: true
+    },
+
+    'subscriberHandler.isHandlerEstbilished': {
+      handler: function (newValue: SubscriberStreamHandler | null) {
+        if (!newValue) {
+          return
+        }
+
+        if (!this.userData?.streamId) {
+          return
+        }
+
+        this.listenToSubscriber()
+      },
+      immediate: true
     },
 
     performanceNavigationType (newValue: NavigationTimingType | null) {
-      if (newValue === 'reload') {
-        this.isLoading = true
-
-        setTimeout(() => {
-          // this.reconnectStream()
-        }, 2000)
-      }
+      //TODO: do something
     },
 
     videoErrorState (newValue) {
@@ -162,11 +192,11 @@ export default defineComponent({
       'setVideoErrorState',
     ]),
 
-    getUserMedia (): Promise <void> {
+    async getUserMedia (): Promise <void> {
       return Promise.all(this.constraints.map((item: MediaStreamConstraints) => {
         return navigator.mediaDevices.getUserMedia(item)
       })).then((streams: MediaStream[]) => {
-        this.publisherStream = [...streams]
+        this.publisherStream = streams
       })
     },
 
@@ -230,16 +260,6 @@ export default defineComponent({
         this.toast.error(this.$t('services.webrtc.errors.canNotStartStream'))
         return
       }
-
-      /*
-      setTimeout(async () => {
-        const secret = await this.makeRoomPrivate()
-        if (secret) {
-          this.secret = secret
-          this.reconnectStream()
-        }
-      }, 7000)
-      */
     },
 
     getNewPublisherId (): number | null {
@@ -279,8 +299,14 @@ export default defineComponent({
       this.publisherStream?.forEach(stream => stream.getAudioTracks().forEach(track => track.enabled = true))
     },
 
+    acceptStreams (publishers: {id: number}[]): void {
+      for (const publisher of publishers) {
+        this.subscriberHandler?.connect(this.userData?.streamId, publisher.id)
+      }
+    },
+
     listenToEvents (): void {
-      emitter.on('janus-error', (err) => {
+      this.publisherHandler?.emitter.on('janus-error', (err) => {
         if ((err as any) instanceof DOMException) {
           console.warn(err)
           return
@@ -291,7 +317,7 @@ export default defineComponent({
         // this.handleError(err)
       })
 
-      emitter.on('janus-connectionState', (state) => {
+      this.publisherHandler?.emitter.on('janus-connectionState', (state) => {
         this.isHandlerConnected = state
         if (state === 'connected') {
           this.toast.success(this.$t('services.webrtc.success.webRTCIsAvailable'))
@@ -305,32 +331,69 @@ export default defineComponent({
         this.isLoading = false
       })
 
-      emitter.on('video-destroyed', () => {
+      this.publisherHandler?.emitter.on('video-destroyed', () => {
         this.isLoading = false
         this.isStreamConfigured = false
         this.isHandlerConnected = 'disconnected'
         this.toast.info(this.$t('services.webrtc.info.reloadToStart'))
       })
 
-      emitter.on('video-configured', isConfigured => {
+      this.publisherHandler?.emitter.on('video-configured', isConfigured => {
         this.isStreamConfigured = isConfigured
       })
 
-      emitter.on('janus-webrtcState', (state) => {
+      this.publisherHandler?.emitter.on('janus-webrtcState', (state) => {
         this.isWebRTCConnected = state
       })
 
-      emitter.on('video-unpublished', () => {
-        this.isStreamConfigured = false
+      this.publisherHandler?.emitter.on('video-unpublished', () => {
+        console.log('someone left')
       })
 
-      emitter.on('video-leaving', () => {
+      this.publisherHandler?.emitter.on('video-leaving', (msg: LeavMessage) => {
+
+        const who = msg?.display || 'unknown user'
+        const whoId = msg?.leaving
+
+        if (whoId !== this.userData?.streamId) {
+          this.toast.info(who + ' ' + this.$t('services.webrtc.info.hasLeft'))
+          return
+        }
+        
         this.isLoading = true
         this.destroyRoom()
       })
 
-      emitter.on('video-edited', () => {
+      this.publisherHandler?.emitter.on('video-edited', () => {
         this.isReadyToPrivate = !this.isReadyToPrivate
+      })
+
+      this.publisherHandler?.emitter.on('janus-onremotetrack', ({ track, mid, on, metadata }) => {
+        this.clientStream = new MediaStream([track])
+      })
+      
+
+      this.publisherHandler?.emitter.on('janus-success', () => {
+       this.isLoading = false 
+      })
+
+      this.publisherHandler?.emitter.on('video-publishers', (msg) => {
+        const newPublishers = []
+        for (const publisher of msg?.publishers) {
+          if (this.publishers[publisher.id]) {
+            continue
+          }
+
+          newPublishers.push({ id: publisher?.id, display: publisher?.display })
+        }
+        console.log(newPublishers)
+        this.acceptStreams(newPublishers)
+      })
+    },
+
+    listenToSubscriber (): void {
+      this.subscriberHandler?.emitter.on('janus-onremotetrack', ({ track, mid, on, metadata }) => {
+        this.clientStream = new MediaStream([track])
       })
     },
 
@@ -366,15 +429,14 @@ export default defineComponent({
       }
     },
 
-    async getConnectionState (): Promise <void> {
-      if (!this.publisherHandler) {
-        this.isHandlerConnected = 'disconnected'
-        return
-      }
-
-      const connected = this.publisherHandler.isJanusConnected()
-      this.isHandlerConnected = connected ? 'connected' : 'disconnected'
-    },
+/**
+ * Handles errors based on the provided error code.
+ * If the error code indicates that the stream is already published,
+ * it attempts to reconnect the stream. For other error codes,
+ * it displays a common stream error message.
+ * 
+ * @param errCode - The error code to handle.
+ */
 
     async handleError (errCode: unknown): Promise <void> {
       switch (errCode) {
@@ -385,7 +447,6 @@ export default defineComponent({
         default:
           this.toast.error(this.$t('services.webrtc.errors.commonStreamError'))
       }
-
     },
 
     async makeRoomPrivate (): Promise <void | string> {
@@ -425,7 +486,8 @@ export default defineComponent({
   render (): VNode {
     return <RoomLayout>
       {{
-        media: () => <div class="publisher-stream__publisher-video">
+        media: () => <div class="publisher__media">
+          <div class={this.localMediaClass}>
             <TransitionGroup>
               {
                 this.publisherStream.map((stream: MediaStream, index: number) => {
@@ -439,6 +501,15 @@ export default defineComponent({
                 })
               }
             </TransitionGroup>
+            </div>
+            <div class={this.remoteMediaClass}>
+              <BaseVideo
+                srcObject={this.clientStream} 
+                autoplay
+                playsinline
+                pictureInPictureMode
+              /> 
+            </div>
           </div>,
         controls: () => <StateBar 
           userRole={UserRole.WORKER}
@@ -450,7 +521,7 @@ export default defineComponent({
           onApplydevices={() => this.applyDevices()}
           onShowdevicesconfiguration={() => this.isDeviceConfigurationVisible = true}
         />,
-        chat: () => <div class='publisher-stream__chat'>
+        chat: () => <div class='publisher__chat'>
           { 
             <Chat
               isReadyToPrivate={this.isReadyToPrivate}

@@ -198,9 +198,8 @@ export type Handler = JanusJS.PluginHandle
 
 /** webrtc plugin init function result */
 export type InitResult <T extends Handler>= {
-  handler: T,
-  emitter: typeof emitter,
-  janusInstance: Janus
+  emitter: ReturnType <typeof emitter>,
+  handler: () => Promise<{janusHandler: T, janusInstance: Janus} | null>
 } | null
 
 /** janus plugins */
@@ -217,11 +216,9 @@ export interface HandlerDescription {
 }
 
 export type WebRTCHandlerConstructor = {
-  webrtcPlugin: typeof Janus,
-  handler: JanusJS.PluginHandle, 
-  emitter: typeof emitter,
-  options?: HandlerDescription
-  janusInstance: Janus,
+  handler: () => Promise <{ janusHandler: JanusJS.PluginHandle, janusInstance: Janus }| null>, 
+  emitter: ReturnType<typeof emitter>,
+  options: HandlerDescription
 }
 
 /** plugin handlers */
@@ -271,3 +268,5 @@ export type JanusMessageEvent = {
 }
 /** Prefix type need to avoid mixinf events */
 export type Prefix <T extends string, K extends string> = `${T}-${K}`
+
+export type HandlerType = 'pub' | 'sub' 

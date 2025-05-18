@@ -1,5 +1,7 @@
 import { User, UserAccount } from '@/types/global'
 
 export type Data = {
-  isLoading: boolean
+  isLoading: boolean,
+  needToReconnectStream: boolean
+  needToReconnectChat: boolean
 }

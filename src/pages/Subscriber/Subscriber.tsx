@@ -22,10 +22,6 @@ export default defineComponent ({
     Subscriber
   },
 
-  computed: {
-    ...mapGetters(States.USER, ['getUser'])
-  },
-
   render (): VNode {
     return <Subscriber/>
   }

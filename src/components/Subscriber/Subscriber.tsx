@@ -24,9 +24,6 @@ import StateBar from '@/components/StateBar/StateBar'
 import ImageMask from '@/components/general/ImageMask/ImageMask'
 import Loader from '@/components/general/Loader/Loader' 
 
-/** api */
-import userApi from '@/api/user'
-
 /** types */
 import { Data } from '@/components/Subscriber/types'
 import { UserRole, chatKey, subscriberHandlerKey, publisherHandlerKey } from '@/types/global'
@@ -42,10 +39,6 @@ import bg from '@/assets/images/taro-bg.jpg'
 import { useToast } from 'vue-toastification'
 
 /* locales */
-
-/** event bus */
-import eventBus from '@/services/eventBus'
-
 import { I18n, useI18n } from 'vue-i18n'
 import { States } from '@/types/store'
 
@@ -64,20 +57,6 @@ export default defineComponent({
   computed: {
     ...mapGetters(States.USER, ['userData', 'userAmount']),
     ...mapGetters(States.APP, ['performanceNavigationType']),
-
-    /*
-    publisherId () {
-      const publisherId: string | undefined = Array.isArray(this.$route.params?.id) 
-        ? this.$route.params.id[0]
-        : this.$route.params.id as string
-
-      if (!publisherId) {
-        return null
-      }
-
-      return publisherId
-    },
-    */
 
     remoteStreamId (): number | null {
       const streamId: string | undefined = Array.isArray(this.$route.params?.id) 
@@ -103,6 +82,9 @@ export default defineComponent({
     },
 
     publisherMediaClass (): string {
+      if (!this.remoteStream) {
+        return 'subscriber__media_disabled'
+      }
       return this.isMediaLocationChanged
         ? 'subscriber__media_small'
         : 'subscriber__media_large'
@@ -116,26 +98,91 @@ export default defineComponent({
       return this.isMediaLocationChanged
         ? 'subscriber__media_large'
         : 'subscriber__media_small'
+    },
+
+    publisherAvatarClass (): string {
+      if (this.remoteStream) {
+        return 'publisher__avatar_disabled'
+      }
+      return 'publisher__avatar'
     }
   },
 
   watch: {
     subscriberHandler: {
-      handler (newValue) {
-        if (!newValue) {
+      handler: function (newValue) {
+        if (!newValue || !newValue?.handlerInstance?.id) {
           return
         }
+
+        if (this.needToReconnectStream) {
+          newValue.connect(this.remoteStreamId)
+          this.needToReconnectStream = false
+        }
+
         this.addListeners()
       },
       immediate: true
+    },
+
+    remoteStreamId: {
+      handler: function (newValue, oldValue) {
+        if (newValue === oldValue) {
+          return
+        }
+        this.needToReconnectStream = true
+        this.needToReconnectChat = true
+      },
+      immediate: true
+    },
+
+
+    chatPluginHandler: {
+      handler (newValue: ChatHandler | null) {
+        if (!newValue) {
+          return
+        }
+
+        if (this.needToReconnectChat && this.remoteStreamId) {
+          newValue.register('me', this.remoteStreamId)
+          this.needToReconnectChat = false
+        }
+      },
+      immediate: true
+    },
+
+    publisherHandler: {
+      handler (newValue) {
+        if (!newValue || !this.videoTrack) {
+          return
+        }
+        this.listenToPublisher()
+        this.publisherHandler?.connect(this.videoTrack, this.userData?.streamId)
+      },
+    },
+
+    subscriberStream (newValue : MediaStream | MediaStream[] |null) {
+      if (!newValue) {
+        this.videoTrack = null
+        this.audioTrack = null
+        return
+      }
+
+      if (Array.isArray(newValue)) {
+        this.videoTrack = newValue[0].getVideoTracks()[0]
+        this.audioTrack = newValue[0].getAudioTracks()[0]
+        return
+      }
+
+      this.videoTrack = newValue.getVideoTracks()[0]
+      this.audioTrack = newValue.getAudioTracks()[0]
     },
   },
 
   setup () {
 
     const remoteStream = ref <MediaStream> ()
-    const remoteVideoNode = useTemplateRef <HTMLMediaElement> ('remote-video')
-    const localVideoNode = useTemplateRef <HTMLMediaElement> ('local-video')
+    const subscriberStream = ref <MediaStream> ()
 
     const constraints = {
       audio: false,
@@ -148,7 +195,6 @@ export default defineComponent({
     const publisherHandler = inject <PublisherStreamHandler | null> (publisherHandlerKey, null)
     const videoTrack = ref <MediaStreamTrack | null>()
     const audioTrack = ref <MediaStreamTrack | null> ()
-    const subscriberStream = ref <MediaStream | null> (null)
     const toast = useToast()
     const isJoined = ref <boolean> (false)
     const { t } = useI18n()
@@ -156,7 +202,6 @@ export default defineComponent({
 
     return {
       remoteStream,
-      remoteVideoNode,
       constraints,
       chatPluginHandler,
       videoTrack,
@@ -170,13 +215,14 @@ export default defineComponent({
       isJoined,
       t,
       isMediaLocationChanged,
-      localVideoNode
     }
   },
 
   data (): Data {
     return {
-      isLoading: false
+      isLoading: false,
+      needToReconnectStream: false,
+      needToReconnectChat: false
     }
   },
 
@@ -196,8 +242,8 @@ export default defineComponent({
     },
 
     collapseVideo (event: Event) {
-      const video = event.target as HTMLVideoElement
-      video.play()
+      //const video = event.target as HTMLVideoElement
+      //video.play()
     },
 
     onError (error: PluginsErrors | Error) {
@@ -222,15 +268,29 @@ export default defineComponent({
     },
 
     addListeners () {
-      eventBus.on('janus-onremotetrack', data => this.onremotetrack(data))
-      eventBus.on('janus-error', error => this.onError(error))
-      eventBus.on('video-attached', () => this.onJoined())
+      this.subscriberHandler?.emitter.on('janus-onremotetrack', data => this.onremotetrack(data))
+      this.subscriberHandler?.emitter.on('janus-error', error => this.onError(error))
+      this.subscriberHandler?.emitter.on('video-attached', () => this.onJoined())
+    },
+
+    listenToPublisher () {
+      this.publisherHandler?.emitter?.on('video-configured', async () => {
+        console.log('subscriber - configured')
+        this.publisherHandler?.createStream()
+      })
+
+      this.publisherHandler?.emitter?.on('video-publisher_joined', () => {
+        this.publisherHandler?.createStream()
+      })
     },
 
     async getUserMedia (): Promise <void> {
-      navigator.mediaDevices.getUserMedia(this.constraints).then((stream: MediaStream) => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(this.constraints)
         this.subscriberStream = stream
-      })
+      } catch (err) {
+        console.error(err)
+      }
     },
 
     async onRequestPublish (): Promise <void> {
@@ -242,7 +302,10 @@ export default defineComponent({
       if (!mountPoint) {
         return
       }
-      await this.getUserMedia()
+
+      if (!this.subscriberStream) {
+        await this.getUserMedia()
+      }
 
       if (!this.subscriberStream) {
         return
@@ -260,11 +323,12 @@ export default defineComponent({
           })
         }
       })
-      eventBus.emit('add-publisher', mountPoint)
+      
+      this.subscriberHandler?.emitter?.emit('add-publisher', mountPoint)
     }
   },
 
-  async mounted () {
+  mounted () {
     if (this.remoteStreamId) {
       this.subscriberHandler?.connect(this.remoteStreamId)
     }
@@ -280,34 +344,31 @@ export default defineComponent({
       {{
         media: () => <div class="subscriber__media">
           <div class={this.publisherMediaClass}>
-            { this.remoteStream 
-            
-              ? <Transition>
-                <BaseVideo
-                  srcObject={this.remoteStream}
-                  autoplay
-                  playsinline
-                  ref={'remote-video'}
+            <Transition>
+              <BaseVideo
+                srcObject={this.remoteStream}
+                autoplay
+                playsinline
+              />
+            </Transition>
+            <Transition name='offline'>
+              <div class={this.publisherAvatarClass}>
+                <ImageMask
+                  image={bg}
+                  text={'offline'}
                 />
-                </Transition>
-              : <Transition name='offline'>
-                  <div class={'subscriber__publisher-avatar'}>
-                    <ImageMask
-                      image={bg}
-                      text={'offline'}
-                    />
-                  </div>
-                </Transition>
-            }
+              </div>
+            </Transition>
           </div>
           <div class={this.subscriberMediaClass}>
             { 
-              this.subscriberStream && <Transition>
+              <Transition>
                 <BaseVideo
                   srcObject={this.subscriberStream}
                   autoplay
                   playsinline
-                  ref={'local-video'}
+                  pictureInPictureMode
+                  onDbclick={this.collapseVideo}
                 />
               </Transition>
             }

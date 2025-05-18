@@ -2,7 +2,9 @@ import mitt from 'mitt'
 import { 
   webRTCEvent,
   IceState,
-  PluginsErrors
+  PluginsErrors,
+  LeavMessage,
+  PublishersMessage
 } from '@/types/janus'
 
 import { 
@@ -12,14 +14,13 @@ import {
   SlowLink,
   JanusMessageEvent,
   Stream,
-  Maybe
 } from '@/types/global'
 
 import {
   JanusTextMessage
 } from '@/services/webrtc/webrtcDataExchange'
 
-interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
+export interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'janus-success': boolean,
   'janus-error': PluginsErrors,
   'janus-destroyed': void,
@@ -49,7 +50,7 @@ interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'video-slowlink': unknown,
   'video-display': unknown,
   'video-unpublished': unknown,
-  'video-leaving': unknown,
+  'video-leaving': LeavMessage,
   'video-updated': unknown,
   'video-kicked': unknown,
   'video-recording_enabled_state': unknown,
@@ -61,10 +62,12 @@ interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'video-rooms_list': unknown,
   'video-created': unknown,
   'video-destroyed': unknown,
+  'video-peer-joined': unknown,
   'video-rtp_fwd_started': unknown,
   'video-rtp_fwd_stopped': unknown,
   'video-rtp_fwd_list': unknown,
   'video-edited': unknown,
+  'video-publishers': PublishersMessage,
   'text-edited': unknown,
   'text-destroyed': unknown,
   'text-kicked': unknown,
@@ -79,6 +82,8 @@ interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'destroy-session': void
 }
 
-const emitter = mitt <{[key in keyof Events]: Events[key]}>()
+const emitter = () => {
+  return mitt <{[key in keyof Events]: Events[key]}>()
+}
 
 export default emitter

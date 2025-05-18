@@ -1,5 +1,5 @@
 import Janus, { JanusJS } from 'janus-gateway'
-import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
+import { StreamHandler, Emitter } from  '@/services/webrtc/webrtcAbstract'
 
 import { 
   JanusPlugin,   
@@ -40,34 +40,50 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   
   mediaTrack: MediaStreamTrack | null
   options: HandlerDescription
+  private handlerInstance: JanusJS.PluginHandle | null
+  private janusInstance: Janus | null
+  isHandlerEstbilished = false
 
   private constructor ({
-    webrtcPlugin,
     handler, 
     emitter,
-    janusInstance,
     options,
   }: Required<WebRTCHandlerConstructor>) {
-    super({webrtcPlugin, handler, emitter, janusInstance})
+    super({ handler, emitter })
     this.options = options
     this.mediaTrack = null
+    this.handlerInstance = null
+    this.isHandlerEstbilished = false
+    this.janusInstance = null
   }
 
   // Static constructor
-  static async init (webrtcPlugin: typeof Janus, pluginName: JanusPlugin, options: HandlerDescription) {
+  static init (webrtcPlugin: typeof Janus, pluginName: JanusPlugin, options: HandlerDescription) {
     try {
-      const result = await super.init(webrtcPlugin, pluginName)
+      const result = super.init(webrtcPlugin, pluginName, options)
+
       if (!result) {
         return null
       }
-      const { handler, emitter, janusInstance } = result
-      const streamHandler = new PublisherStreamHandler({webrtcPlugin, handler, emitter, janusInstance, options})
+
+      const { emitter, handler } = result
+      const streamHandler = new PublisherStreamHandler({handler, emitter, options})
       streamHandler.listen()
       return streamHandler
     } catch (err) {
       console.error(err)
       return null
     }
+  }
+
+  async handle () {
+    const janusHandlers = await this.handler()
+    if (!janusHandlers?.janusHandler|| !janusHandlers?.janusInstance) {
+      return
+    }
+    this.handlerInstance = janusHandlers.janusHandler
+    this.janusInstance = janusHandlers.janusInstance
+    this.isHandlerEstbilished = true
   }
 
   // attach a event listener on janus events
@@ -81,7 +97,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       }
 
       if (jsep && msg.videoroom) {
-        this.handler.handleRemoteJsep({ jsep })
+        this.handlerInstance?.handleRemoteJsep({ jsep })
         if (msg?.configured) {
           // this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, true)
           this.emitter.emit('video-configured', true)
@@ -114,17 +130,24 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         }
         await this.publish(jsep)
         break
+      
+      case VIDEO_ROOM_PLUGIN_EVENT.PUB_PEER_JOINED:
+        this.emitter.emit('video-peer-joined')
+        break
 
       case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
         //this.stateController.setVideoMauntPointState(VIDEO_ROOM_PLUGIN_EVENT.CONFIGURED, false)
         this.emitter.emit('video-destroyed')
+        console.log('video peer')
         break
 
       case 'event':
         let extendetEventType  = null
+        let extendetEventValue = null
         for (const event of Object.values(videoRoomPluginEvent)) {
           if (msg[event]) {
             extendetEventType = event
+            extendetEventValue = msg[event] || null
           }
         }
 
@@ -132,7 +155,8 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
           console.warn('unhandled message ', eventType, msg)
           return
         }
-        this.emitter.emit(`video-${extendetEventType}`)
+        this.emitter.emit(`video-${extendetEventType}`, msg)
+        console.log(`video-${extendetEventType} emitted`)
         break
 
       default:
@@ -171,7 +195,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         permanent: false
       }
 
-      this.handler?.send({
+      this.handlerInstance?.send({
         message,
         success: (response) => {
           if (response?.room) {
@@ -200,7 +224,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * @param options stream sys data
    * @returns true or false depending on request is sended (but does not mean join successfully)
    */
-  private joinAsPublisher (secret?: string): Promise <boolean> {
+  private joinAsPublisher (id? : number, secret?: string): Promise <boolean> {
     return new Promise (resolve => {
       if (!this.handler) {
         resolve(false)
@@ -211,15 +235,15 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         request: 'join',
         ptype: 'publisher',
         room: this.options.roomId,
-        id: this.options.roomId,
-        display: this.options.displayName
+        display: this.options.displayName,
+        id: id || this.options.roomId
       }
 
       if (secret) {
         message['pin'] = secret
       }
 
-      this.handler?.send({
+      this.handlerInstance?.send({
         message,
         success: () => {
           resolve(true)
@@ -257,7 +281,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         }]
       }
 
-      this.handler?.send({
+      this.handlerInstance?.send({
         message,
         jsep,
         success: () =>  resolve(true),
@@ -280,7 +304,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         request: 'unpublish',
       }
 
-      this.handler?.send({
+      this.handlerInstance?.send({
         message,
         success: () =>  resolve(true),
         error: (err) => { 
@@ -293,7 +317,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
 
   async destroy (): Promise <boolean> {
     return new Promise (resolve => {
-      if (!this.handler) {
+      if (!this.handlerInstance) {
         resolve(false)
       }
 
@@ -303,7 +327,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         permanent: false
       }
 
-      this.handler?.send({
+      this.handlerInstance?.send({
         message,
         success: () => resolve(true),
         error: () => resolve(false)
@@ -319,7 +343,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         return
       }
 
-      this.handler?.createOffer({
+      this.handlerInstance?.createOffer({
         tracks: [{
           type: 'video',
           capture: this.mediaTrack
@@ -350,7 +374,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         new_require_pvtid: isPrivate
       }
 
-      this.handler?.send({
+      this.handlerInstance?.send({
         message,
         success: () => resolve(secret),
         error: (err) => {
@@ -366,7 +390,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
    * @param options 
    * @returns 
    */
-  async connect (track: MediaStreamTrack): Promise <CustomJanusApiResponse <number>> {
+  async connect (track: MediaStreamTrack, id? : number): Promise <CustomJanusApiResponse <number>> {
 
     if (!track) {
       console.error('no media stream track detected')
@@ -376,12 +400,12 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
     }
 
     this.mediaTrack = track
-    
+
     try {
       const exists = await this.isRoomExists()
 
       if (exists) {
-        const result = await this.joinAsPublisher()
+        const result = await this.joinAsPublisher(id)
         return {
           success: result,
         }
@@ -396,7 +420,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       }
 
       // async call just request and wait for response
-      const result = await this.joinAsPublisher()
+      const result = await this.joinAsPublisher(id)
       return {
         success: result
       }
@@ -419,7 +443,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         request: 'leave',
       }
       
-      this.handler.send({
+      this.handlerInstance?.send({
         message,
         success: () => resolve(true),
         error: () => resolve(false)
@@ -439,7 +463,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         room: this.options.roomId
       }
       
-      this.handler.send({
+      this.handlerInstance?.send({
         message,
         success: (data) => resolve(!!data?.exists),
         error: () => resolve(false)
@@ -461,8 +485,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         return
       }
 
-      return this.joinAsPublisher(secret)
-      /*
+      // return this.joinAsPublisher(secret)
       this.mediaTrack = track
       this.kick(this.options.roomId, secret)
         .then(result => result)
@@ -474,7 +497,6 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         .then(result => {
           resolve(!!result)
         })
-      */
     })
   } 
   
@@ -503,7 +525,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       const error = () => resolve(false)
 
       if (secret) {
-        this.handler.send({
+        this.handlerInstance?.send({
           message: { ...message, ...{ secret } },
           success,
           error
@@ -511,7 +533,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         return
       }
 
-      this.handler.send({
+      this.handlerInstance?.send({
         message,
         success,
         error
@@ -531,7 +553,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         room: this.options.roomId
       }
 
-      this.handler.send({
+      this.handlerInstance?.send({
         message,
         success: (data) => resolve(data),
         error: () => resolve([])
@@ -542,7 +564,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
   async getStreams (): Promise <Room[]> {
 
     return new Promise(resolve => {
-      if (!this.handler) {
+      if (!this.handlerInstance) {
         return []
       }
 
@@ -550,7 +572,7 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         request: 'list',
       }
 
-      this.handler?.send({
+      this.handlerInstance?.send({
         message,
         success: (res) => {
           if (res?.list && Array.isArray(res.list)) {
@@ -573,5 +595,30 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       return false
     }
     return this.makePrivateRoom(secret, isPrivate)
+  }
+
+  async reconnect (track: MediaStreamTrack, secret?: string):  Promise<boolean> {
+    return false
+  }
+
+  async destroySession (): Promise <boolean> {
+    return new Promise ((resolve, reject) => {
+      this.janusInstance?.destroy({
+        cleanupHandles: true,
+        notifyDestroyed: true,
+        success: () => resolve(true),
+        error: () => resolve(false)
+      })
+    })
+  }
+
+  async createStream () {
+    const jsep = await this.createOffer()
+    if (!jsep) {
+      this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
+      console.error('offer is not created')
+      return 
+    }
+    await this.publish(jsep)
   }
 }
