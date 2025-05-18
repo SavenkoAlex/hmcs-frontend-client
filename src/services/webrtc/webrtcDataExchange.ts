@@ -70,44 +70,50 @@ export type JanusTextMessage = {
 
 export class ChatHandler extends StreamHandler {
 
-  private options?: HandlerDescription
   transaction: string
   transactions: Record <string, unknown>
+  private handlerInstance: JanusJS.PluginHandle | null
+  private janusInstance: Janus  | null
+  isHandlerEstbilished: boolean
 
   private constructor({
-    webrtcPlugin,
     handler,
     emitter,
-    options,
-    janusInstance
-  }: WebRTCHandlerConstructor) {
-    super({webrtcPlugin, handler, emitter, janusInstance})
+  }: Omit<WebRTCHandlerConstructor, 'options'>) {
+    super({ handler, emitter })
     this.transaction = Janus.randomString(12)
     this.transactions = {}
-    if (options) {
-      this.options = options
-    }
+    this.handlerInstance = null
+    this.isHandlerEstbilished = false
+    this.janusInstance = null
   }
 
-  static async init (webrtcPlugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription) {
-    const result = await super.init(webrtcPlugin, pluginName)
+  static init (webrtcPlugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription) {
+    const result = super.init(webrtcPlugin, pluginName)
 
     if (!result) {
       return null
     }
     
-    const { handler, emitter, janusInstance } = result
+    const { handler, emitter } = result
 
     const chatHandler = new ChatHandler({
-      webrtcPlugin,
       handler,
-      emitter,
-      options: options || undefined,
-      janusInstance
+      emitter
     })
 
     chatHandler.listen()
     return chatHandler
+  }
+
+  async handle () {
+    const janusHandlers = await this.handler()
+    if (!janusHandlers?.janusHandler|| !janusHandlers?.janusInstance) {
+      return
+    }
+    this.handlerInstance = janusHandlers.janusHandler
+    this.janusInstance = janusHandlers.janusInstance
+    this.isHandlerEstbilished = true
   }
 
   protected listen(): void {
@@ -119,7 +125,7 @@ export class ChatHandler extends StreamHandler {
       }
 
       if (jsep && msg.textroom) {
-        this.handler.createAnswer({
+        this.handlerInstance?.createAnswer({
           jsep,
           tracks: [{type: 'data', capture: false}],
           success: (jsep: JanusJS.JSEP) => {
@@ -127,7 +133,7 @@ export class ChatHandler extends StreamHandler {
               request: 'ack',
             }
 
-            this.handler.send({ 
+            this.handlerInstance?.send({ 
               message, 
               jsep, 
               error: err => {
@@ -268,7 +274,7 @@ export class ChatHandler extends StreamHandler {
         }
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: JSON.stringify(register),
         success: () => resolve(true),
         error: (err) => { console.error(err); resolve(false) }
@@ -290,7 +296,7 @@ export class ChatHandler extends StreamHandler {
         permanent: false
       }
 
-      this.handler.send({ 
+      this.handlerInstance?.send({ 
         message,
         error: (err) => resolve(false),
         success: (data) => resolve(true)
@@ -324,7 +330,7 @@ export class ChatHandler extends StreamHandler {
         return
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: stringified,
         success: (data) => {
           console.log(data); 
@@ -349,7 +355,7 @@ export class ChatHandler extends StreamHandler {
         text
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: JSON.stringify(message),
         error: (err) => { console.error(err); resolve(false) },
         success: () => resolve(true)
@@ -366,7 +372,7 @@ export class ChatHandler extends StreamHandler {
         permanent: false
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: JSON.stringify(message),
         error: (err => { console.error(err); resolve(false) }),
         success: () => resolve(true)
@@ -382,7 +388,7 @@ export class ChatHandler extends StreamHandler {
         room: streamId
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: JSON.stringify(message),
         error: (err) => { console.error(err); resolve(false)},
         success: () => resolve(true)
@@ -402,7 +408,7 @@ export class ChatHandler extends StreamHandler {
         transaction: this.transaction
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: JSON.stringify(message),
         success: () => resolve(true),
         error: err => { console.error(err); resolve(false) }
@@ -423,10 +429,21 @@ export class ChatHandler extends StreamHandler {
         transaction: this.transaction
       }
 
-      this.handler.send({
+      this.handlerInstance?.send({
         message,
         success: (data) => resolve(!!(data as {exists: boolean})?.exists),
         error: (err) => resolve(false)
+      })
+    })
+  }
+
+  destroySession (): Promise <boolean> {
+    return new Promise (resolve => {
+      this.janusInstance?.destroy({
+        cleanupHandles: true,
+        notifyDestroyed: true,
+        success: () => resolve(true),
+        error: () => resolve(false)
       })
     })
   }

@@ -22,11 +22,15 @@ import { States } from '@/types/store'
 
 /** api */
 import { authentificate } from '@/api/login'
+import accountApi from '@/api/account'
 
 /** store */
 import { mapActions, mapGetters } from 'vuex'
 import { UserRole } from '@/types/global'
 import { RouterLink } from 'vue-router'
+
+/** notifier */
+import { useToast } from 'vue-toastification'
 
 export default defineComponent({
 
@@ -48,6 +52,14 @@ export default defineComponent({
     }
   },
 
+  setup () {
+    const toast = useToast()
+
+    return {
+      toast
+    }
+  },
+
   computed:  {
     ...mapGetters({
       userRole: 'user/userRole'
@@ -55,25 +67,51 @@ export default defineComponent({
   },
 
   methods: {
-    ...mapActions(States.USER, ['setUserProperty', 'setUser']),
+    ...mapActions(States.USER, ['setUserProperty', 'setUser', 'setAmount']),
+
+    async getAccountBill (userId: string): Promise <boolean> {
+      if (!userId) {
+        return false
+      }
+      const response = await  accountApi.getAccount(userId)
+
+      if (!response || !Number.isFinite(response.amount)) {
+        this.toast.error(this.$t('pages.loginForm.errors.login'))
+        return false
+      }
+
+      this.setAmount(response.amount)
+      return true
+    },
 
     async authorize () {
       const response = await authentificate(this.login, this.password)
 
       if (!response) {
         this.setUserProperty({isAuthentificated: false})
+        this.toast.error(this.$t('pages.loginForm.errors.login'))
         return
       }
 
-      const { user } = response
+      const { user, accessToken } = response
 
-      if (!user || !user.id || !user.login || !user.role || !user.role || !user.username) {
+      if (!user || !user.id || !user.login || !user.role || !user.role || !user.username || !accessToken) {
+        this.toast.error(this.$t('pages.loginForm.errors.login'))
+        return
+      }
+
+      localStorage.setItem('accessToken', accessToken)
+
+      const isAmountSet = await this.getAccountBill(user.id)
+
+      if (!isAmountSet) {
+        this.toast.error(this.$t('pages.loginForm.errors.login'))
+        // TODO: clear access localstorage
         return
       }
 
       this.setUserProperty({ isAuthentificated: true})
       this.setUser(user)
-      
     },
 
     async loginAndRedirect () {

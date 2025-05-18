@@ -11,7 +11,6 @@ export type Data = {
   userId: string | null,
   live: boolean,
   isStreaming: boolean,
-  isRequestActive: boolean,
   user: null | User,
   account: null | UserAccount,
   isCameraMuted: boolean,

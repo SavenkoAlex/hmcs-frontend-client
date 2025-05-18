@@ -7,7 +7,7 @@ import {
   amount 
 } from '@/types/store'
 import { UserMutationTypes } from '@/store/user/mutation-types'
-import { User } from '@/types/global'
+import { User, UserAccount} from '@/types/global'
 import { encryptStorage } from '@/services/secureStoorage'
 
 type UserActionContext = ActionContext <UserState, State>
@@ -30,14 +30,20 @@ export const actions = {
         case 'userData':
           encryptStorage.setItem(userData, value)
           break
-        case 'amount':
-          encryptStorage.setItem(amount, value)
-          break
         default:
           return
       }
     }
 
     context.commit(UserMutationTypes.SET_USER_PROPERTY, payload)
+  },
+
+  setAmount: <T extends UserAccount['amount']> (context: UserActionContext, payload: T) => {
+    try {
+      encryptStorage.setItem(amount, payload.toString())
+      context.commit(UserMutationTypes.SET_USER_AMOUNT, payload)
+    } catch (err) {
+      console.error('!!! ERROR SETTING AMOUNT', err)
+    }
   }
 }

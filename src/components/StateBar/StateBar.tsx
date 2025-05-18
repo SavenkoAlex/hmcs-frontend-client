@@ -34,6 +34,11 @@ import HidePanelController from '@/components/HidePanelController/HidePanelContr
 import AddCallIcon from '@/assets/images/small/video_call_16dp.svg'
 import PayIcon from '@/assets/images/small/send_money_16dp.svg'
 
+/** store */ 
+
+/** event bus */
+import eventBus from '@/services/eventBus'
+
 export default defineComponent({
 
   name: 'StateBar',
@@ -68,14 +73,21 @@ export default defineComponent({
     }
   },
 
-  emits: [
-    'streamtoggle',
-    'muteAudio',
-    'muteVideo',
-    'updateDevices',
-    'applydevices',
-    'showdevicesconfiguration',
-  ],
+  emits: {
+    streamtoggle: () => true,
+    muteAudio: (value: boolean ) => {
+      return typeof value === 'boolean'
+    },
+    muteVideo: (value: boolean ) => {
+      return typeof value === 'boolean'
+    },
+    updateDevices: () => true,
+    applydevices: () => true,
+    showdevicesconfiguration: () => true,
+    publish: (value: boolean) => {
+      return typeof value === 'boolean'
+    }
+  },
 
   computed: {
 
@@ -111,6 +123,10 @@ export default defineComponent({
       return this.isControlHidden
         ? 'state-bar__control_hidden'
         : 'state-bar__control'
+    },
+
+    isRequestActive (): boolean {
+      return this.amount > 0 && this.userRole === UserRole.USER
     }
   },
 
@@ -120,7 +136,6 @@ export default defineComponent({
       userId: null,
       live: false,
       isStreaming: true,
-      isRequestActive: false,
       user: null,
       account: null,
       isCameraMuted: false,
@@ -152,7 +167,7 @@ export default defineComponent({
 
     collapsePanel(isHidden: boolean): void {
       this.isControlHidden = isHidden
-    },
+    }
   },
 
   render (): VNode {
@@ -167,6 +182,7 @@ export default defineComponent({
         <IconButton
           mode={'tertiary'}
           disabled={!this.isRequestActive}
+          onClick={() => this.$emit('publish', true)}
         >
           <AddCallIcon/>
         </IconButton>

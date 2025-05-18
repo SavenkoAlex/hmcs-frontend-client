@@ -8,7 +8,7 @@ import {
 import '@/components/Streams/Streams.scss'
 
 /** types */
-import { videoHandlerKey } from '@/types/global'
+import { subscriberHandlerKey } from '@/types/global'
 import { StreamsData } from '@/components/Streams/types'
 
 /** api */
@@ -33,9 +33,9 @@ export default defineComponent({
   },
 
   watch: {
-    pluginHandler: {
+    'pluginHandler.handlerInstance': {
       handler: function (newValue) {
-        if (!newValue) {
+        if (!newValue || !newValue?.id) {
           return
         }
         this.getOnlineUsers()
@@ -45,7 +45,7 @@ export default defineComponent({
   },
 
   setup () {
-    const pluginHandler = inject<SubscriberStreamHandler | null> (videoHandlerKey, null)
+    const pluginHandler = inject<SubscriberStreamHandler | null> (subscriberHandlerKey, null)
     const toast = useToast()
 
     return {
@@ -65,12 +65,8 @@ export default defineComponent({
 
   methods: {
     async getRooms (): Promise <void> {
-      if (!this.pluginHandler) {
-        this.rooms = {}
-        return
-      }
 
-      const rooms = await this.pluginHandler.getStreams()
+      const rooms = await this.pluginHandler?.getStreams()
       
       if (!rooms || !rooms.length) {
         this.rooms =  {}

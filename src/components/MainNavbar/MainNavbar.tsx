@@ -1,9 +1,6 @@
 import {
   defineComponent,
   VNode,
-  ref,
-  computed,
-  provide
 } from 'vue'
 
 /** Style */

@@ -161,14 +161,14 @@ export type UserAccount = {
   amount: number
 }
 
-
-export const storeUserKeyMap: Record <keyof User, string> = {
+export const storeUserKeyMap: Record <keyof User & keyof UserAccount, string> = {
   login: 'nl',
   username: 'eu',
   role: 'er',
   id: 'di',
   avatar: 'av',
-  streamId: 'si'
+  streamId: 'si',
+  amount: 'ma'
 }
 
 /** session storage key */
@@ -198,9 +198,8 @@ export type Handler = JanusJS.PluginHandle
 
 /** webrtc plugin init function result */
 export type InitResult <T extends Handler>= {
-  handler: T,
-  emitter: typeof emitter,
-  janusInstance: Janus
+  emitter: ReturnType <typeof emitter>,
+  handler: () => Promise<{janusHandler: T, janusInstance: Janus} | null>
 } | null
 
 /** janus plugins */
@@ -217,15 +216,14 @@ export interface HandlerDescription {
 }
 
 export type WebRTCHandlerConstructor = {
-  webrtcPlugin: typeof Janus,
-  handler: JanusJS.PluginHandle, 
-  emitter: typeof emitter,
-  options?: HandlerDescription
-  janusInstance: Janus,
+  handler: () => Promise <{ janusHandler: JanusJS.PluginHandle, janusInstance: Janus }| null>, 
+  emitter: ReturnType<typeof emitter>,
+  options: HandlerDescription
 }
 
 /** plugin handlers */
-export const videoHandlerKey = Symbol('videoHandler') as InjectionKey <string>
+export const subscriberHandlerKey = Symbol('subscriberHandler') as InjectionKey <string>
+export const publisherHandlerKey = Symbol('publisherHandler') as InjectionKey <string>
 export const chatKey = Symbol('chatHandler') as InjectionKey<string>
 
 /** outputs type */
@@ -270,3 +268,5 @@ export type JanusMessageEvent = {
 }
 /** Prefix type need to avoid mixinf events */
 export type Prefix <T extends string, K extends string> = `${T}-${K}`
+
+export type HandlerType = 'pub' | 'sub' 

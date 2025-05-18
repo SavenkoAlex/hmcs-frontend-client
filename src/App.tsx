@@ -25,7 +25,7 @@ import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import Janus from 'janus-gateway'
 
 /** types */
-import { JanusPlugin, UserRole, chatKey, videoHandlerKey} from '@/types/global'
+import { JanusPlugin, UserRole, chatKey, subscriberHandlerKey, publisherHandlerKey} from '@/types/global'
 import { mapGetters, mapActions } from 'vuex'
 
 /** store */
@@ -44,9 +44,11 @@ export default defineComponent({
 
   setup () {
     const chatHandler = ref <ChatHandler | null> (null)
-    const videoHandler = ref <SubscriberStreamHandler | PublisherStreamHandler | null> (null)
+    const subscriberHandler = ref <SubscriberStreamHandler | null> (null)
+    const publisherHandler = ref <PublisherStreamHandler | null> (null)
 
-    provide<typeof videoHandler> (videoHandlerKey, videoHandler)
+    provide<typeof subscriberHandler> (subscriberHandlerKey, subscriberHandler)
+    provide<typeof publisherHandler> (publisherHandlerKey, publisherHandler)
     provide<typeof chatHandler> (chatKey, chatHandler)
 
     const performanceObserver = ref <PerformanceObserver>()
@@ -55,7 +57,8 @@ export default defineComponent({
 
     return {
       chatHandler,
-      videoHandler,
+      publisherHandler,
+      subscriberHandler,
       toast,
       performanceObserver
     }
@@ -69,8 +72,7 @@ export default defineComponent({
       if (this.userRole === UserRole.WORKER) {
         return this.userData?.streamId || null
       }
-
-      return this.$route.params.id ? Number(this.$route.params.id) : null
+      return null
     }
   },
 
@@ -84,6 +86,28 @@ export default defineComponent({
         this.initHandlers()
       }
     },
+
+    'subscriberHandler.handlerInstance': {
+      handler: function (newValue) {
+
+        if (newValue?.id) {
+          this.listenToSubscriber()
+        }
+      },
+
+      immediate: true
+    },
+
+    'publisherHandler.handlerInstance': {
+      handler: function (newValue) {
+
+        if (newValue?.id) {
+          this.listenToPublisher()
+        }
+      },
+
+      immediate: true
+    }
   },
   
   methods: {
@@ -96,47 +120,85 @@ export default defineComponent({
       'setIsChatHandlerAvailable'
     ]),
 
-    initSubscriber () {
-      SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN).then(result => {
-        if (result) {
-          this.videoHandler = result
-          this.setWebrtcSessionId(result.handler.getId())
-        } else {
-          this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
-        }
-      })
+    async initSubscriber () {
+      await this.addSubscriber()
 
-      if (!this.isAuthentificated) {
+      if (!this.isAuthentificated || !this.subscriberHandler) {
         return
       }
 
-      ChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN).then(result => {
-        if (result) {
-          this.chatHandler = result
-          this.setChatSessionId(result.handler.getId())
-        }
-
-      })
+      await this.addChatHandler()
     },
-    initPublisher () {
-      if (!this.isAuthentificated || !this.userData) {
+
+    async initPublisher () {
+
+      await this.addPublisher()
+
+      if (!this.publisherHandler) {
         return
       }
 
-      PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
-        roomId: this.userData.streamId,
+      await this.addSubscriber()
+
+      if (!this.subscriberHandler) {
+        return
+      }
+
+      await this.addChatHandler()
+    },
+
+    /** in case subscriber starts publishing */
+    async addPublisher (to?: number): Promise <void> {
+      console.log('adding a publisher...')
+      const roomNumber = to || this.roomNumber
+      if (!this.isAuthentificated || !this.userData || !Number.isFinite(roomNumber)) {
+        return
+      }
+
+      if (this.publisherHandler) {
+        await this.publisherHandler.destroySession()
+      }
+
+      const handler = PublisherStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN, {
+        roomId: roomNumber as number,
         displayName: this.userData.username
-      }).then(result => {
-        this.videoHandler = result
-        this.setWebrtcSessionId(result?.handler.getId())
       })
 
-      ChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN).then(result => {
-        if (result) {
-          this.chatHandler = result
-          this.setChatSessionId(result.handler.getId())
-        }
-      })
+      await handler?.handle()
+
+      if (!handler) {
+        return
+      }
+
+      this.publisherHandler = handler
+    },
+
+    async addSubscriber (): Promise <void> {
+      console.log('adding a subscriber...')
+      if (this.subscriberHandler) {
+        await this.subscriberHandler.destroySession()
+      }
+
+      const handler = SubscriberStreamHandler.init(Janus, JanusPlugin.VITE_WEBRTC_PLUGIN)
+
+      if (!handler) {
+        return
+      }
+
+      this.subscriberHandler = handler
+      this.subscriberHandler.handle()
+    },
+
+    async addChatHandler () {
+      console.log('adding a chathandler...')
+      //TODO: destroy session
+
+      const handler = ChatHandler.init(Janus, JanusPlugin.VITE_TEXT_PLUGIN)
+      if (!handler) {
+        return
+      }
+      this.chatHandler = handler
+      this.chatHandler?.handle()
     },
 
     async initHandlers () {
@@ -160,11 +222,22 @@ export default defineComponent({
       })
     },
 
-    destroySession (): Promise<[undefined | boolean, undefined | boolean]> {
+    destroySession (): Promise<[boolean | undefined,  boolean | undefined, boolean | undefined]> {
       return Promise.all([
-        this?.videoHandler?.destroySession(),
-        this?.chatHandler?.destroySession()
+        this.subscriberHandler?.destroySession(),
+        this.publisherHandler?.destroySession(),
+        this.chatHandler?.destroySession()
       ])
+    },
+
+    listenToSubscriber () {
+      this.subscriberHandler?.emitter.on('destroy-session', this.destroySession) 
+      this.subscriberHandler?.emitter.on('add-publisher', (value?: number) => this.addPublisher(value))
+    },
+
+    listenToPublisher () {
+      this.publisherHandler?.emitter.on('destroy-session', this.destroySession) 
+      this.publisherHandler?.emitter.on('add-subscriber', this.addSubscriber)
     }
   },
 
