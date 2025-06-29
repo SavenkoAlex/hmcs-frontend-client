@@ -1,6 +1,9 @@
 @media screen {
 
   .input-label {
+    font-family: 'Inter-V', sans-serif;
+    font-variation-settings: 'wght' 300, 'slnt' -4;
+    font-feature-settings: 'cv08', 'cv05';
 
     color: inherit;
     margin: 2px 0;

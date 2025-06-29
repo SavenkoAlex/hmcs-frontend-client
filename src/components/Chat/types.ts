@@ -13,4 +13,7 @@ export type Message = {
 
 export type Data = {
   observer: MutationObserver | null
+  needToHandleMessages: boolean
 }
+
+export const QueueMaxSize = 1000

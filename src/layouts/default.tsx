@@ -5,7 +5,7 @@ import {
 } from 'vue'
 
 /** Style */
-import './default.scss'
+import '@/layouts/default.scss'
 
 export default defineComponent({
 

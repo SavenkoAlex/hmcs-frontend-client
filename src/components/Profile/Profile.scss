@@ -2,23 +2,54 @@
   display: flex;
   flex-direction: column;
   justify-content: start;
-  align-items: center;
-  gap: 1rem;
   width: 100%;
-  padding: 1rem;
   height: 100%;
+
+  &__title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__content {
+    width: 100%;
+    height: 100%;
+    display: inline-flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+
+  &__footer {
+    width: 100%;
+    display: inline-flex;
+    flex: 0 0 2rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
 
   &__logout {
     width: 100%;
     display: inline-flex;
     flex: 0 1 auto;
   }
+  &__header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__amount {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
 
   &__avatar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
+    display: inline-flex;
+    align-self: flex-end;
 
     &_img {
       object-fit: fill;
@@ -29,19 +60,20 @@
 
   &__form {
     width: 100%;
-    display: inline-flex;
+    display: flex;
     flex: 1 0 50%;
     
     &_body {
       width: 100%;
-      display: inline-flex;
+      display: flex;
       flex-direction: column;
-      flex: 1 0 50%;
+      justify-content: flex-start;
+      gap: .5rem;
     }
 
     &_footer {
       width: 100%;
-      display: inline-flex;
+      display: flex;
       flex: 0 1 auto;
     }
   }

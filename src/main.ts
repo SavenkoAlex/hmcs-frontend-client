@@ -8,6 +8,10 @@ import ruLocale from '@/langs/ru.json'
 import enLocale from '@/langs/en.json'
 import Toast, { PluginOptions, POSITION } from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
+import PrimeVue from 'primevue/config'
+import { Ripple } from 'primevue'
+import Aura from '@primeuix/themes/aura'
+import { MyPreset } from '@/assets/styles/myPreset'
 
 const i18n = createI18n({
   locale: 'ru-RU',
@@ -34,5 +38,14 @@ createApp(App)
   .use(vueCookies)
   .use(i18n)
   .use(store)
+  .use(PrimeVue, {
+    ripple: true,
+    theme: {
+      preset: MyPreset
+    }
+  })
+  .directive('ripple', Ripple)
   .provide <Crypto> ('crypto', globalThis.crypto)
   .mount('#app')
+
+  

@@ -4,11 +4,12 @@ import {
   PropType,
   ref,
   Transition,
-  inject
+  inject,
+  nextTick
 } from 'vue'
 
 /** types */
-import { Chat, Data } from '@/components/Chat/types'
+import { Chat, Data, QueueMaxSize } from '@/components/Chat/types'
 import { ElementScale, UserRole, chatKey } from '@/types/global'
 import { JanusTextMessage } from '@/services/webrtc/webrtcDataExchange'
 
@@ -20,6 +21,7 @@ import Label from '@/components/general/Label/Label'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
 import Send from '@/assets/images/small/send_24dp.svg'
+import { Card, Tabs, TabList, Tab, TabPanels, TabPanel } from 'primevue'
 
 /** services */
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
@@ -33,9 +35,9 @@ import { formatTime } from '@/helpers/helper'
 /** notifier */
 import { useToast } from 'vue-toastification'
 
-/** events */
-import emitter from '@/services/eventBus'
-
+/** chat service */
+import { MessageHandler, MessageType, UserMessage } from '@/services/MessageHandler/MessageHandler'
+import { $dt } from '@primeuix/themes'
 
 export default defineComponent({
 
@@ -44,7 +46,25 @@ export default defineComponent({
   components: {
     Label,
     TextInput,
-    IconButton
+    IconButton,
+    Card,
+    Tabs,
+    TabList,
+    Tab,
+    TabPanels,
+    TabPanel
+  },
+
+  emits: {
+    'join-request': function(message: JanusTextMessage) {
+      return message
+    },
+    'request-allowed': function(message: JanusTextMessage) {
+      return message
+    },
+    'request-declined': function(message: JanusTextMessage) { 
+      return message 
+    } 
   },
 
   props: {
@@ -80,12 +100,8 @@ export default defineComponent({
   computed: {
     ...mapGetters('user', ['userData', 'userRole', 'isAuthentificated']),
 
-    chatRoom (): number {
-      return (this.room + 1) * 1000
-    },
-
     isChatDisabled (): boolean {
-      return !this.isStreamAvailable || !this.isRoomExists || !this.isAuthentificated
+      return !this.isStreamAvailable || !this.isRoomExists || !this.isAuthentificated || !this.room
     },
 
     isReadyToConnect (): boolean {
@@ -112,6 +128,15 @@ export default defineComponent({
       if (newValue) {
         this.join()
       }
+    },
+
+    'messageQueue.length': {
+      handler: function (newValue) {
+        if (newValue > QueueMaxSize) {
+          this.messageQueue.shift()
+          return
+        }
+      },
     },
 
     chatName: {
@@ -146,6 +171,7 @@ export default defineComponent({
     const inputMessage = ref <string> ('')
     const chatMessages = ref<HTMLBaseElement>()
     const toast = useToast()
+    const messageQueue = ref<Promise<void>[]>([])
 
     return {
       chatHandler,
@@ -154,13 +180,15 @@ export default defineComponent({
       isRoomExists,
       inputMessage,
       chatMessages,
-      toast
+      toast,
+      messageQueue
     }
   },
 
   data (): Data {
     return {
-      observer: null 
+      observer: null,
+      needToHandleMessages: false
     }
   },
 
@@ -179,7 +207,13 @@ export default defineComponent({
         return false
       }
 
-      const result = await this.chatHandler.sendMessage(text, this.chatRoom)
+      const message = MessageHandler.packMessage(MessageType.SIMPLEMESSAGE, text)
+
+      if (!message || !this.room) {
+        return false
+      }
+
+      const result = await this.chatHandler.sendMessage(message, this.room)
       return result
     },
 
@@ -187,21 +221,61 @@ export default defineComponent({
       this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
     },
 
-    handleData (data: string | JanusTextMessage): void {
-      try {
-        const dataParsed: JanusTextMessage = typeof data === 'string' ? JSON.parse(data) : data
+    handleData (data: JanusTextMessage): void {
+      this.messageQueue.push(this.handleMessageItem(data))
+    },
+    
+    handleMessageItem (message: JanusTextMessage): Promise<void> {
+      return nextTick(() => {
 
-        if (dataParsed.textroom === 'message' && this.currentChat) {
-          this.chatLinks[this.currentChat].messages.push({
-            id: dataParsed.from,
-            sender: dataParsed.from,
-            text: dataParsed.text || '',
-            date: dataParsed.date || ''
-          })
+        if (!message?.text || message?.textroom !== 'message' || !this.currentChat) {
+          return
         }
-      } catch (err) {
-        console.error(err)
+
+        const text = this.parseMessage(message)
+
+        if (!text) {
+          return
+        }
+        
+        this.chatLinks[this.currentChat].messages.push({
+          id: message.from,
+          sender: message.from,
+          text: text || '',
+          date: message.date || ''
+        })
+
+        this.messageQueue.shift()
+      })
+    },
+
+    parseMessage (message: JanusTextMessage): string | undefined {
+      if (!message?.text) {
         return
+      }
+
+      const text = MessageHandler.unPackMessage(message.text)
+      const type = text?.type
+      message = { ...message, ...{ text: text?.text || '' } }
+
+      switch (type) {
+        case MessageType.JOINREQUEST:
+          this.$emit('join-request', message)
+          return
+
+        case MessageType.REQUESTALLOWED:
+          this.$emit('request-allowed', message)
+          return
+
+        case MessageType.REQUESTDECLINED:
+          this.$emit('request-declined', message)
+          return
+
+        case MessageType.SIMPLEMESSAGE:
+          return message.text
+
+        default:
+          return
       }
     },
 
@@ -247,7 +321,7 @@ export default defineComponent({
       } 
       
       if (!this.isRoomExists) {
-        this.isRoomExists = await this.chatHandler.createRoom(this.chatRoom)
+        this.isRoomExists = await this.chatHandler.createRoom(this.room)
       }
 
       if (this.isRoomExists) {
@@ -261,7 +335,7 @@ export default defineComponent({
         return
       }
 
-      const exists = await this.chatHandler?.exists(this.chatRoom)
+      const exists = await this.chatHandler?.exists(this.room)
       this.isRoomExists = exists
 
       if (this.isRoomExists && (this.userRole === UserRole.USER || this.userRole === UserRole.WORKER)) {
@@ -281,7 +355,7 @@ export default defineComponent({
         return false
       }
 
-      const result = await this.chatHandler.register(this.userData?.username || 'noname', this.chatRoom)
+      const result = await this.chatHandler.register(this.userData?.username || 'noname', this.room)
 
       if (!result) {
         this.toast(this.$t('services.chat.errors.canNotConnectChat'))
@@ -293,7 +367,7 @@ export default defineComponent({
       if (!this.chatHandler) {
         return
       }
-      this.chatHandler.destroyChat(this.chatRoom)
+      this.chatHandler.destroyChat(this.room)
     },
 
     addListeners () {
@@ -310,7 +384,7 @@ export default defineComponent({
       if (!this.chatHandler || !this.secret) {
         return false
       }
-      const result = await this.chatHandler.sendMessage(this.secret, this.chatRoom)
+      const result = await this.chatHandler.sendMessage(this.secret, this.room)
       return result
     } 
   },
@@ -333,6 +407,87 @@ export default defineComponent({
   },
 
   render (): VNode {
+    const cardContent = <div class='chatMenu'>
+      <Tabs 
+        value={this.chatName} 
+        scrollable
+        pt={{
+          tabpanels: {
+            style: {
+              border: '1px solid red',
+              color: 'blue'
+            }
+          },
+          root: {
+            style: {
+              height: '100%'
+            },
+            tabpanels: {
+              style: {
+                border: '1px solid red',
+                color: 'blue'
+              }
+            }
+          },
+          
+        }}
+        dt={{
+          tabpanel: {
+            background: `${$dt('slate.200').variable}`
+          }
+        }}
+      >
+        <TabList>
+          {
+            this.chatLinks && Object.keys(this.chatLinks).map((chatId) => <Tab 
+                key={this.chatLinks[chatId].name} 
+                value={this.chatLinks[chatId].id}
+              >
+                { this.chatLinks[chatId].name }
+              </Tab>
+            )
+          }
+        </TabList>
+        <TabPanels>
+          {
+            this.chatLinks && Object.keys(this.chatLinks).map(chatId => <TabPanel 
+              key={this.chatLinks[chatId].name} 
+              value={this.chatLinks[chatId].id}
+            >
+              <p> asdasd </p>
+            </TabPanel>)
+          }
+        </TabPanels>
+      </Tabs>
+    </div>
+
+    
+    return <div class='chat'>
+      <Card
+        dt={{
+          body: {
+            padding: '.15rem'
+          }
+        }}
+        pt={{
+          root: {
+            style: {
+              height: '100%'
+            }
+          },
+          body: {
+            style: {
+              height: '100%'
+            }
+          }
+        }}
+      >
+       {{
+        title: () => cardContent,
+       }} 
+      </Card>
+    </div>
+    /*
     return <div class='chat'>
 
       <div class='chat__list'>
@@ -397,5 +552,6 @@ export default defineComponent({
         </div>
       </div>       
     </div>
+    */
   }
 })

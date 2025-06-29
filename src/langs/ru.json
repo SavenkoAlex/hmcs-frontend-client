@@ -67,6 +67,10 @@
     "repeatPassword":"повторите пароль",
     "save": "сохранить"
   },
+  "amount": {
+    "balance": "баланс",
+    "increase": "пополнить"
+  },
   "components": {
     "deviceController": {
       "devicesNotFound": "устройства не найдены",

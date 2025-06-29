@@ -27,7 +27,10 @@
   }
   
   &__input {
-    margin-top: 12px
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    margin-top: 1rem;
   }
 
   &__submit-button {
@@ -35,7 +38,7 @@
   }
 
   &__footer {
-    margin-top: 24px;
+    margin-bottom: 2rem;
     width: 100%;
   }
 }

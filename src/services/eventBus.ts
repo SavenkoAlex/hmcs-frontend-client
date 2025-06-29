@@ -75,7 +75,7 @@ export interface Events extends Record <keyof typeof webRTCEvent, unknown>  {
   'text-success': unknown,
   'text-datrecivied': unknown,
   'text-error': unknown,
-  'text-message': string | JanusTextMessage,
+  'text-message': JanusTextMessage,
   'user-destroy-webrtc-session': void
   'add-publisher': number | undefined,
   'add-subscriber': void,

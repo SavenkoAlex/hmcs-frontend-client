@@ -1,5 +1,7 @@
 import { User } from '@/types/global'
 
 export type UserDataProfile = {
-  userData: User | null
+  userData: User | null,
+  repeatPassword: string,
+  newPassword: string
 }
