@@ -13,8 +13,7 @@ export const MyPreset = definePreset(Aura, {
     button: {
       root: {
         sm: {
-          paddingX: '1rem',
-          paddingY: '.5rem'
+          
         }
       }
     }

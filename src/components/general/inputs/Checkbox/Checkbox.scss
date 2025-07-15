@@ -1,3 +1,5 @@
+@use 'src/assets/styles/colors.scss' as colors;
+
 @media screen {
   .input-checkbox-container {
     display: flex;
@@ -9,11 +11,9 @@
       input {
         min-height: 20px;
         min-width: 20px;
-        background-color: $primary-5;
+        background-color: colors.$primary-5;
         border-radius: 50%;
       }
     }
   }
-
-  
 }

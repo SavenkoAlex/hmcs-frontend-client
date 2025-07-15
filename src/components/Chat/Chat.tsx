@@ -3,7 +3,6 @@ import {
   VNode,
   PropType,
   ref,
-  Transition,
   inject,
   nextTick
 } from 'vue'
@@ -20,8 +19,18 @@ import '@/components/Chat/Chat.scss'
 import Label from '@/components/general/Label/Label'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
-import Send from '@/assets/images/small/send_24dp.svg'
-import { Card, Tabs, TabList, Tab, TabPanels, TabPanel } from 'primevue'
+import { 
+  Card, 
+  Tabs, 
+  TabList, 
+  Tab, 
+  TabPanels, 
+  TabPanel, 
+  InputText, 
+  Button, 
+  InputGroupAddon, 
+  InputGroup
+} from 'primevue'
 
 /** services */
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
@@ -39,6 +48,9 @@ import { useToast } from 'vue-toastification'
 import { MessageHandler, MessageType, UserMessage } from '@/services/MessageHandler/MessageHandler'
 import { $dt } from '@primeuix/themes'
 
+/** icons */
+import { PrimeIcons } from '@primevue/core/api'
+
 export default defineComponent({
 
   name: 'Chat',
@@ -52,7 +64,9 @@ export default defineComponent({
     TabList,
     Tab,
     TabPanels,
-    TabPanel
+    TabPanel,
+    InputText,
+    Button
   },
 
   emits: {
@@ -150,7 +164,12 @@ export default defineComponent({
         this.chatLinks[newValue] = {
           id: `${newValue}`,
           name: `${this.currentChatName}`,
-          messages: []
+          messages: [{  
+            id: '1',
+            sender: 'me',
+            text: `${this.$t('components.chat.welcomeMessage')}`,
+            date: 'now'
+          }]
         }
       },
       immediate: true
@@ -407,85 +426,67 @@ export default defineComponent({
   },
 
   render (): VNode {
-    const cardContent = <div class='chatMenu'>
+
+    
+    return <div class='chat'>
       <Tabs 
         value={this.chatName} 
         scrollable
         pt={{
-          tabpanels: {
-            style: {
-              border: '1px solid red',
-              color: 'blue'
-            }
-          },
           root: {
-            style: {
-              height: '100%'
-            },
-            tabpanels: {
-              style: {
-                border: '1px solid red',
-                color: 'blue'
-              }
-            }
-          },
-          
+            class: 'chat__tabs'
+          }
         }}
         dt={{
           tabpanel: {
-            background: `${$dt('slate.200').variable}`
+            padding: 0
           }
         }}
       >
-        <TabList>
-          {
-            this.chatLinks && Object.keys(this.chatLinks).map((chatId) => <Tab 
+        <div class='chat__list'>
+          <TabList>
+            {
+              this.chatLinks && Object.keys(this.chatLinks).map((chatId) => <Tab 
                 key={this.chatLinks[chatId].name} 
                 value={this.chatLinks[chatId].id}
               >
-                { this.chatLinks[chatId].name }
-              </Tab>
-            )
-          }
-        </TabList>
-        <TabPanels>
-          {
-            this.chatLinks && Object.keys(this.chatLinks).map(chatId => <TabPanel 
-              key={this.chatLinks[chatId].name} 
-              value={this.chatLinks[chatId].id}
-            >
-              <p> asdasd </p>
-            </TabPanel>)
-          }
-        </TabPanels>
-      </Tabs>
-    </div>
+                  { this.chatLinks[chatId].name }
+              </Tab>)
+            }
+          </TabList>
+        </div>
+        
+        <div class='chat__content'>
+          <TabPanels>
+            {
+              this.chatLinks && Object.keys(this.chatLinks).map(chatId => <TabPanel 
+                key={this.chatLinks[chatId].name} 
+                value={this.chatLinks[chatId].id}
+              >
+                <div class='chat__messages'>
 
-    
-    return <div class='chat'>
-      <Card
-        dt={{
-          body: {
-            padding: '.15rem'
-          }
-        }}
-        pt={{
-          root: {
-            style: {
-              height: '100%'
+                </div>
+              </TabPanel>)
             }
-          },
-          body: {
-            style: {
-              height: '100%'
-            }
-          }
-        }}
-      >
-       {{
-        title: () => cardContent,
-       }} 
-      </Card>
+          </TabPanels>
+        </div>
+        <div class='chat__submit'>
+          <div class='chat__input'>
+            <InputGroup>
+              <InputText
+                placeholder='Сообщение'
+                disabled={this.isChatDisabled}
+                modelValue={this.inputMessage}
+                //@ts-ignore
+                onUpdate:modelValue={(data: string) => this.inputMessage = data}
+              />
+              <InputGroupAddon>
+                <Button icon={'pi pi-times'} severity={'secondary'} />
+              </InputGroupAddon>
+            </InputGroup>
+          </div>
+        </div> 
+      </Tabs>
     </div>
     /*
     return <div class='chat'>

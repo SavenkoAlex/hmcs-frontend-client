@@ -1,9 +1,9 @@
 /*reset.css*/
-/* RESETS */
-@import 'colors.scss';
-@import 'mixins.scss';
-@import 'typography.scss';
-@import 'toast.scss';
+
+@use 'colors.scss';
+@use 'mixins.scss';
+@use 'typography.scss';
+@use 'toast.scss';
 
 //@import 'grid.scss';
 

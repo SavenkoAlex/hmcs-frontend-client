@@ -10,7 +10,6 @@ import Toast, { PluginOptions, POSITION } from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
 import PrimeVue from 'primevue/config'
 import { Ripple } from 'primevue'
-import Aura from '@primeuix/themes/aura'
 import { MyPreset } from '@/assets/styles/myPreset'
 
 const i18n = createI18n({

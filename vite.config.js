@@ -7,7 +7,7 @@ import commonjs from '@rollup/plugin-commonjs'
 import fs from 'fs'
 import { fileURLToPath } from 'node:url'
 
-const path = require('path')
+import path from 'path'
 const externalId = fileURLToPath(new URL('node_modules/janus-gateway/dist/janus.es.js', import.meta.url))
 
 // https://vitejs.dev/config/
@@ -60,7 +60,10 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `@import "@/assets/styles/reset.scss";`
+        additionalData: `@use "@/assets/styles/reset.scss";`
+      },
+      styl: {
+        additionalData: `@use "primeicons/primeicons.css";`
       }
     }
   },

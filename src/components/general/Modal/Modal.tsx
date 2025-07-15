@@ -9,7 +9,6 @@ import {
 
 /** style */
 import '@/components/general/Modal/Modal.scss'
-import { isVisible } from 'element-plus/es/utils'
 
 export default defineComponent({
 
