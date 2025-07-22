@@ -481,7 +481,7 @@ export default defineComponent({
                 onUpdate:modelValue={(data: string) => this.inputMessage = data}
               />
               <InputGroupAddon>
-                <Button icon={'pi pi-times'} severity={'secondary'} />
+                <Button icon={PrimeIcons.SEND} severity={'secondary'} />
               </InputGroupAddon>
             </InputGroup>
           </div>
