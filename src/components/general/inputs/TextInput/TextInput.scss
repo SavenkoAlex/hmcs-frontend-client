@@ -6,9 +6,9 @@
   width: 100%;
 
   input {
-    @include text-input(colors.$primary-2, colors.$primary-3);
     font-size: medium;
     transition: box-shadow .2s;
+    @include text-input(colors.$primary-2, colors.$primary-3);
 
     &:focus {
       box-shadow: 
@@ -20,10 +20,10 @@
 
   &_error {
     input {
-      @include text-input(colors.$primary-10, colors.$primary-3);
       font-size: medium;
       box-shadow: inset 0 0 4px -1px colors.$primary-10;
       transition: box-shadow .2s;
+      @include text-input(colors.$primary-10, colors.$primary-3);
     }      
   }
 }

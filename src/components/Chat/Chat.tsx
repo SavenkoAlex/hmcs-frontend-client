@@ -1,35 +1,35 @@
-import { 
+import {
   defineComponent,
-  VNode,
+  inject,
+  nextTick,
   PropType,
   ref,
-  inject,
-  nextTick
+  VNode
 } from 'vue'
 
 /** types */
 import { Chat, Data, QueueMaxSize } from '@/components/Chat/types'
-import { ElementScale, UserRole, chatKey } from '@/types/global'
 import { JanusTextMessage } from '@/services/webrtc/webrtcDataExchange'
+import { chatKey, ElementScale, UserRole } from '@/types/global'
 
 /** styles */
 import '@/components/Chat/Chat.scss'
 
 /** components */
+import IconButton from '@/components/general/Buttons/IconButton/IconButton'
 import Label from '@/components/general/Label/Label'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
-import IconButton from '@/components/general/Buttons/IconButton/IconButton'
-import { 
-  Card, 
-  Tabs, 
-  TabList, 
-  Tab, 
-  TabPanels, 
-  TabPanel, 
-  InputText, 
-  Button, 
-  InputGroupAddon, 
-  InputGroup
+import {
+  Button,
+  Card,
+  InputGroup,
+  InputGroupAddon,
+  InputText,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs
 } from 'primevue'
 
 /** services */
@@ -46,10 +46,10 @@ import { useToast } from 'vue-toastification'
 
 /** chat service */
 import { MessageHandler, MessageType, UserMessage } from '@/services/MessageHandler/MessageHandler'
-import { $dt } from '@primeuix/themes'
 
 /** icons */
-import { PrimeIcons } from '@primevue/core/api'
+import { mdiSendCircleOutline } from '@mdi/js'
+import SvgIcon from '@jamescoyle/vue-icon'
 
 export default defineComponent({
 
@@ -66,7 +66,8 @@ export default defineComponent({
     TabPanels,
     TabPanel,
     InputText,
-    Button
+    Button,
+    SvgIcon
   },
 
   emits: {
@@ -191,6 +192,7 @@ export default defineComponent({
     const chatMessages = ref<HTMLBaseElement>()
     const toast = useToast()
     const messageQueue = ref<Promise<void>[]>([])
+    const sendIconPath = mdiSendCircleOutline
 
     return {
       chatHandler,
@@ -200,7 +202,8 @@ export default defineComponent({
       inputMessage,
       chatMessages,
       toast,
-      messageQueue
+      messageQueue,
+      sendIconPath
     }
   },
 
@@ -481,7 +484,11 @@ export default defineComponent({
                 onUpdate:modelValue={(data: string) => this.inputMessage = data}
               />
               <InputGroupAddon>
-                <Button icon={PrimeIcons.SEND} severity={'secondary'} />
+                <Button severity={'secondary'}>
+                  {{
+                    icon: () => <SvgIcon type={'mdi'} path={this.sendIconPath} />
+                  }}
+                </Button>
               </InputGroupAddon>
             </InputGroup>
           </div>

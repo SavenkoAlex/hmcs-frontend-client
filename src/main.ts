@@ -12,7 +12,6 @@ import PrimeVue from 'primevue/config'
 import { Ripple } from 'primevue'
 import { MyPreset } from '@/assets/styles/myPreset'
 
-
 const i18n = createI18n({
   locale: 'ru-RU',
   messages: {

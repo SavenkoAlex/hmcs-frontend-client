@@ -27,7 +27,7 @@
       "@/*": ["src/*"],
       "@backend/*": ["../backend/src/*"],
       "@store/*": ["src/store/*"],
-      "@svg/*": ["assets/icons/*"]
+      "@svg/*": ["assets/icons/*"],
     },
     "lib": [
       "esnext",
@@ -41,10 +41,7 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.tsx",
-    "assets/icons/*.svg"
-  ],
-  "exclude": [
-    "node_modules"
+    "assets/icons/*.svg",
   ],
   "isolatedModules": true,
 }
