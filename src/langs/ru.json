@@ -79,7 +79,8 @@
       "mics": "Микрофоны"
     },
     "chat": {
-      "defaultChatName": "общий чат с"
+      "defaultChatName": "общий чат с",
+      "welcomeMessage": "Добро пожаловать в чат"
     },
     "streams": {
       "streamsListEmpty": "стримы не найдены, попробуйте позже"

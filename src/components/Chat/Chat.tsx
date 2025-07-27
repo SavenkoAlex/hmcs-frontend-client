@@ -29,7 +29,8 @@ import {
   TabList,
   TabPanel,
   TabPanels,
-  Tabs
+  Tabs,
+  Message
 } from 'primevue'
 
 /** services */
@@ -50,6 +51,7 @@ import { MessageHandler, MessageType, UserMessage } from '@/services/MessageHand
 /** icons */
 import { mdiSendCircleOutline } from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon'
+import { mode } from 'crypto-js'
 
 export default defineComponent({
 
@@ -169,7 +171,7 @@ export default defineComponent({
             id: '1',
             sender: 'me',
             text: `${this.$t('components.chat.welcomeMessage')}`,
-            date: 'now'
+            date: Date.now().toString()
           }]
         }
       },
@@ -466,7 +468,31 @@ export default defineComponent({
                 key={this.chatLinks[chatId].name} 
                 value={this.chatLinks[chatId].id}
               >
-                <div class='chat__messages'>
+                <div 
+                  class='chat__messages' ref='chatMessages'
+                >
+                  {
+                    this.currentChat && this.chatLinks[this.currentChat].messages.map(message => <div 
+                      class='chat__message'
+                      user-data={this.getUserAttr(message.sender)}
+                    >
+                      <div class='chat__message_nick' user-data={ this.getUserAttr(message.sender) }>
+                        <Label
+                          text={message.sender}
+                          scale={ElementScale.LARGE}
+                        />
+                      </div>
+                      <div class='chat__message_text'>
+                        <p class='chat__message_paragraph'> { message.text || ''} </p>
+                      </div>
+                      <div class='chat__message_time'>
+                        <Label
+                          text={ this.getMessageTime(message.date) }
+                        />
+                      </div> 
+                    </div>
+                    )
+                  }
 
                 </div>
               </TabPanel>)
@@ -481,10 +507,12 @@ export default defineComponent({
                 disabled={this.isChatDisabled}
                 modelValue={this.inputMessage}
                 //@ts-ignore
-                onUpdate:modelValue={(data: string) => this.inputMessage = data}
+                onUpdate:modelValue={value => this.inputMessage = value}
               />
               <InputGroupAddon>
-                <Button severity={'secondary'}>
+                <Button severity={'secondary'}
+                  onClick={() => this.addMessage()} 
+                >
                   {{
                     icon: () => <SvgIcon type={'mdi'} path={this.sendIconPath} />
                   }}
