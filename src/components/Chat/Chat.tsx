@@ -30,7 +30,8 @@ import {
   TabPanel,
   TabPanels,
   Tabs,
-  Message
+  Message,
+  Divider
 } from 'primevue'
 
 /** services */
@@ -476,20 +477,21 @@ export default defineComponent({
                       class='chat__message'
                       user-data={this.getUserAttr(message.sender)}
                     >
-                      <div class='chat__message_nick' user-data={ this.getUserAttr(message.sender) }>
-                        <Label
-                          text={message.sender}
-                          scale={ElementScale.LARGE}
-                        />
-                      </div>
-                      <div class='chat__message_text'>
-                        <p class='chat__message_paragraph'> { message.text || ''} </p>
-                      </div>
-                      <div class='chat__message_time'>
-                        <Label
-                          text={ this.getMessageTime(message.date) }
-                        />
-                      </div> 
+                      <Message severity='secondary'
+                        pt={{
+                          text: {
+                            class: 'message'
+                          }
+                        }}
+                      >
+                        {{
+                          default: () => <div class='message'>
+                            <span class='message__nick'>{ message.sender }</span>
+                            <p class='message__text'> { message.text } </p>
+                            <span class='message__time'>{ message.date }</span>
+                          </div>
+                        }}
+                      </Message>
                     </div>
                     )
                   }
