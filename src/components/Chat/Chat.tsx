@@ -172,7 +172,7 @@ export default defineComponent({
             id: '1',
             sender: 'me',
             text: `${this.$t('components.chat.welcomeMessage')}`,
-            date: Date.now().toString()
+            date: this.getMessageTime()
           }]
         }
       },
@@ -267,7 +267,7 @@ export default defineComponent({
           id: message.from,
           sender: message.from,
           text: text || '',
-          date: message.date || ''
+          date: this.getMessageTime(message.date)
         })
 
         this.messageQueue.shift()
@@ -312,7 +312,7 @@ export default defineComponent({
     observeChat (mutationRecords: MutationRecord[]) {
       mutationRecords.forEach(mutation => {
         if (mutation.type === 'childList') {
-          this.chatMessages?.scroll({
+           this.chatMessages?.scroll({
             top: 1000,
             behavior: 'smooth'
           })
@@ -325,7 +325,11 @@ export default defineComponent({
       return this.userData?.username === sender ? 'me' : 'guest'
     },
 
-    getMessageTime (date: string) {
+    getMessageTime (date?: string) {
+      if (!date) {
+        date = new Date().toString()
+      }
+
       const dateInstance = new Date(date)
 
       if (!dateInstance) {
@@ -335,7 +339,7 @@ export default defineComponent({
       const hours = formatTime(dateInstance.getHours())
       const minutes = formatTime(dateInstance.getMinutes())
       const seconds = formatTime(dateInstance.getSeconds())
-      return `${hours}.${minutes}.${seconds}`
+      return `${hours}:${minutes}:${seconds}`
     },
 
     /** create room and join */
@@ -456,7 +460,7 @@ export default defineComponent({
                 key={this.chatLinks[chatId].name} 
                 value={this.chatLinks[chatId].id}
               >
-                  { this.chatLinks[chatId].name }
+                { this.chatLinks[chatId].name }
               </Tab>)
             }
           </TabList>
@@ -470,14 +474,14 @@ export default defineComponent({
                 value={this.chatLinks[chatId].id}
               >
                 <div 
-                  class='chat__messages' ref='chatMessages'
+                  class='chat__messages' ref={'chatMessages'}
                 >
                   {
                     this.currentChat && this.chatLinks[this.currentChat].messages.map(message => <div 
                       class='chat__message'
                       user-data={this.getUserAttr(message.sender)}
                     >
-                      <Message severity='secondary'
+                      <Message severity='secondary' 
                         pt={{
                           text: {
                             class: 'message'
@@ -525,71 +529,5 @@ export default defineComponent({
         </div> 
       </Tabs>
     </div>
-    /*
-    return <div class='chat'>
-
-      <div class='chat__list'>
-        {
-          this.chatLinks && Object.keys(this.chatLinks).map((chatId) => {
-            const chat = this.chatLinks[chatId]
-            return <Transition>
-              <div
-                class={chat.id === this.currentChat ? 'chat__item chat__item_current' : 'chat__item'}
-                onClick={() => this.currentChat = chat.id}
-              > 
-                <span>{this.chatLinks[chatId].name}</span>
-            </div>
-            </Transition>
-          })
-        }
-      </div>
-      <div class='chat__content' ref='chatMessages'>
-        {
-          this.currentChat && this.chatLinks[this.currentChat].messages.map((message) => {
-            return <div 
-                class='chat__message'
-                user-data={this.getUserAttr(message.sender)}
-              >
-                <div class='chat__message_nick' user-data={ this.getUserAttr(message.sender) }>
-                  <Label
-                    text={message.sender}
-                    scale={ElementScale.LARGE}
-                  />
-                </div>
-                <div class='chat__message_text'>
-                  <p class='chat__message_paragraph'> { message.text || ''} </p>
-                </div>
-                <div class='chat__message_time'>
-                  <Label
-                    text={ this.getMessageTime(message.date) }
-                    scale={ElementScale.SMALL} 
-                  />
-                </div> 
-              </div>
-            })
-        }
-      </div>
-      <div class='chat__submit'>
-        <div class='chat__input'>
-          <TextInput
-            placeholder='Сообщение'
-            onEnter={() => this.addMessage()}
-            disabled={this.isChatDisabled}
-            modelValue={this.inputMessage}
-            onUpdate:modelValue={(data: string) => this.inputMessage = data}
-          >
-          </TextInput>
-        </div>
-        <div class='chat__button'>
-          <IconButton
-            mode={'primary'}
-            onClick={() => this.addMessage()}
-          >
-            <Send/>
-          </IconButton>
-        </div>
-      </div>       
-    </div>
-    */
   }
 })
