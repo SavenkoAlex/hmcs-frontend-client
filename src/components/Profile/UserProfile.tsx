@@ -2,7 +2,8 @@ import {
   defineComponent,
   PropType,
   VNode,
-  inject
+  inject,
+  h
 } from 'vue'
 
 /** types */
@@ -20,11 +21,12 @@ import userApi from '@/api/user'
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
 import Label from '@/components/general/Label/Label'
-import Form from '@/components/general/Form/Form'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
 import { Card, Button, Avatar, InputText }  from 'primevue'
 
 /** icons */
+import { mdiPlus } from '@mdi/js';
+import SvgIcon from '@jamescoyle/vue-icon'
 
 /** styles */
 import '@/components/Profile/Profile.scss'
@@ -75,11 +77,6 @@ export default defineComponent({
       const representation = this.userData.avatar
 
       return `data:image/jpg;base64,${representation}`
-    },
-
-    amount (): string {
-      const text = this.userAmount + ' ' + this.$t('amount.increase')
-      return text
     }
   },
 
@@ -94,7 +91,8 @@ export default defineComponent({
         avatar: ''
       },
       repeatPassword: '',
-      newPassword: ''
+      newPassword: '',
+      plusIconPath: mdiPlus
     }
   },
   
@@ -160,19 +158,15 @@ export default defineComponent({
     />
 
     const cardSubtitle = <Button
-      label={this.amount}
-      link
-      variant='text'
-      size='small' 
-      dt={{
-        sm: {
-          padding: {
-            x: 0,
-            y: 0
-          }
-        },
-      }}
-    />
+      label={this.userAmount.toString()}
+      size='small'
+      variant='outlined' 
+      raised
+    >   
+      {{
+        icon: () => h(SvgIcon, { path: this.plusIconPath, type: 'mdi', size: '1rem'})
+      }} 
+    </Button>
 
     const cardContent = <div class='user-profile__content'>
 
@@ -252,6 +246,11 @@ export default defineComponent({
               height: '100%',
             }
           },
+          body: {
+            style: {
+              height: '100%'
+            }
+          }
         }}
       >
         {{
@@ -262,70 +261,5 @@ export default defineComponent({
         }}
       </Card>
     </div>
-    /*
-    return <div class='user-profile'>
-      <div class='user-profile__header'>
-        <div class='user-profile__amount'>
-          <Label
-            text={this.amount}
-          />
-          <TextButton
-            text={this.$t('amount.increase')}
-          />
-
-        </div>
-        <div class='user-profile__avatar'>
-          {
-            this.avatarSrc
-              ? <img src={this.avatarSrc} class='user-profile__avatar_img'/>
-              : <DefaultAvatar/>
-          }
-        </div>
-      </div>
-      <div class='user-profile__form'>
-        <Form>
-          {{
-            default: () => <div class='user-profile__form_body'>
-              <TextInput
-                label={{
-                  text: this.$t('common.username')
-                }}
-                modelValue={this.userData?.username || ''}
-              />
-              <TextInput
-                label={{
-                  text: this.$t('common.login')
-                }}
-                modelValue={this.userData?.login || ''}
-              />
-              <TextInput
-                label={{
-                  text: this.$t('common.password')
-                }}
-                type={'password'}
-                modelValue={this.newPassword}
-              />
-              <TextInput
-                label={{
-                  text: this.$t('common.repeatPassword')
-                }}
-                type={'password'}
-                modelValue={this.repeatPassword}
-              />
-            </div>,
-            footer: () => <div class='user-profile__form_footer'>
-              <TextButton
-                text={this.$t('common.save')}
-              />
-            </div>
-          }}
-        </Form>
-
-      </div>
-      <div class='user-profile__logout'>
-      </div>
-     
-    </div>
-    */
   }
 })
