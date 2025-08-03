@@ -1,5 +1,6 @@
 import Janus, { JanusJS } from 'janus-gateway'
 import { StreamHandler } from '@/services/webrtc/webrtcAbstract'
+import { UserMessage } from '@/services/MessageHandler/MessageHandler'
 
  import { 
   JanusPlugin,   
@@ -59,8 +60,8 @@ export type JanustMessage = {
 
 /** janus text message  */
 export type JanusTextMessage = {
-  date?: string //"2024-07-14T14:44:18-0400"
-  from: string
+  date?: string,
+  from: string,
   room: number,
   text?: string,
   exists?: boolean,

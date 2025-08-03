@@ -1,33 +1,41 @@
+@use '../../assets/styles/colors.scss' as colors;
+
 .chat {
   width: 100%;
   overflow: hidden;
 
   @media (max-width: 767px) {
     height: 100%;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border: solid 4px $primary-3;
-    border-radius: 24px;
-    margin: 0 2px;
+    margin: 0 .2rem;
+  }
+
+  &__tabs {
+    height: 100%;
   }
 
   &__list {
+    display: inline-flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+  }
+
+  &__messages {
+    background-color: var(--p-slate-300);
     width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    padding: .5rem 1rem;
+    overflow-y: scroll;
   }
 
   &__content {
+    height: 100%;
     width: 100%;
-    background-color: $primary-2;
-    display: flex;
+    background-color: colors.$primary-2;
+    display: inline-flex;
     flex-direction: column;
     flex: 1 0 1rem;
     gap: .3rem;
-    overflow-y: scroll;
     overflow-x: hidden;
   }
 
@@ -35,16 +43,19 @@
     width: 100%;
     display: inline-flex;
     justify-content: center;
+    flex: 0 0 auto;
     align-items: center;
-    padding: .4rem;
-    gap: .5rem;
-    background-color: $primary-3;
-    border-radius: 16px;
+    padding: 0 .4rem;
+    gap: .2rem;
+    border-radius: 1rem;
   }
 
   &__input {
-    display: inline-flex;
-    flex: 1 0 80%;
+    width: 100%;
+
+    input {
+      width: 100%;
+    }
   }
 
   &__item {
@@ -55,7 +66,7 @@
     &_current {
       padding-bottom: .5rem;
       transition: .2s ease-in;
-      box-shadow: 0 8px 6px -6px $primary-7;
+      box-shadow: 0 8px 6px -6px colors.$primary-7;
     }
   }
 
@@ -63,45 +74,59 @@
     display: flex;
     flex-direction: column;
     gap: .2rem;
-    padding: .5rem 1rem;
-    max-width: 90%;
-
-    &_time {
-      color: $primary-7; 
-    }
-
-    &_text {
-      display: flex;
-    }
-
-     @media (max-width: 767px) {
-
-      &_paragraph {
-        max-width: 80vw;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-    }
+    padding: .5rem;
   }
 
   &__message[user-data="me"] {
     align-items: flex-end;
     align-self: flex-end;
-    background-color: $primary-4;
     margin-right: 1rem;
-    border-radius: 14px 14px 0 14px;
+    border-radius: 1rem 1rem 0 1rem;
   }
 
   &__message[user-data="guest"] {
     align-items: flex-start;
     align-self: flex-start;
-    background-color: $primary-3;
-    margin-left: 1rem;
-    border-radius: 14px 14px 14px 0;
+    border-radius: 1rem 1rem 1rem 0;
   }
   
   .chat__message_nick[user-data="me"] {
     display: none;
+  }
+}
+
+[role='presentation'] {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+[role='tabpanel'] {
+  display: flex;
+  flex: 1 0 5rem;
+  overflow: hidden;
+}
+
+.message {
+
+  display: flex;
+  flex-direction: column;
+  row-gap: .4rem;
+
+  &__nick {
+    font-family: 'Inter-V';
+    font-size: .8rem;
+  }
+
+  &__text {
+    font-family: 'Inter-V';
+    font-size: 1rem;
+    overflow-wrap: break-word;
+    max-width: 80vw;
+  }
+
+  &__time {
+    font-family: 'Inter-V';
+    font-size: .6rem;
   }
 }

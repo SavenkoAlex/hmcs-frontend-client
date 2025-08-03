@@ -17,6 +17,7 @@ import Chat from '@/components/Chat/Chat'
 import BaseVideo from '@/components/Video/Video'
 import Loader from '@/components/general/Loader/Loader' 
 import DeviceConfigurationModal from '@/components/DeviceController/DeviceConfigurationModal'
+import Skeleton from 'primevue/skeleton'
 
 /** types */
 import { UserRole, MediaDevice, publisherHandlerKey, VideoErrorState, subscriberHandlerKey } from '@/types/global'
@@ -27,8 +28,8 @@ import {
   ConnectionState, 
   LeavMessage, 
   PublisherDescription, 
-  PublishersMessage 
 } from '@/types/janus'
+import { JanusJS } from 'janus-gateway'
 
 /** store */
 import { mapActions, mapGetters } from 'vuex'
@@ -37,7 +38,7 @@ import { mapActions, mapGetters } from 'vuex'
 import RoomLayout from '@/layouts/Room/Room'
 
 /** notifier */
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast';
 
 /**eventBus */
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
@@ -82,7 +83,15 @@ export default defineComponent({
 
     remoteMediaClass (): string {
       return this.clientStream ? 'publisher__media_small' : 'publisher__media_disabled' 
-    } 
+    },
+
+    chatRoom (): number {
+      if (!this.userData?.streamId) {
+        return 0
+      }
+
+      return (this.userData.streamId + 1) * 1000
+    }
   },
 
   setup () {
@@ -90,7 +99,6 @@ export default defineComponent({
     const clientNode = ref <HTMLVideoElement> ()
     const publisherStream = ref <MediaStream[]> ([])
     const clientStream = ref <MediaStream> ()
-    const publisherId = ref<number>()
 
     const constraints: MediaStreamConstraints[] = [{
       audio: false,
@@ -117,7 +125,6 @@ export default defineComponent({
       clientNode,
       publisherStream,
       clientStream,
-      publisherId,
       constraints,
       videoTrack,
       audioTrack,
@@ -262,18 +269,6 @@ export default defineComponent({
       }
     },
 
-    getNewPublisherId (): number | null {
-      if (!this.crypto) {
-        return null
-      }
-
-      const randomBuffer = new Uint32Array(1)
-      this.crypto.getRandomValues(randomBuffer)
-      const fraction = randomBuffer[0]
-      const publisherId = Math.floor(fraction * 6) + 1
-      return publisherId
-    },
-
     toggleStream (): void {
       if (this.isStreamConfigured) {
         this.destroyRoom()
@@ -320,6 +315,7 @@ export default defineComponent({
       this.publisherHandler?.emitter.on('janus-connectionState', (state) => {
         this.isHandlerConnected = state
         if (state === 'connected') {
+          console.log('connected connected')
           this.toast.success(this.$t('services.webrtc.success.webRTCIsAvailable'))
         } else if (state === 'failed') {
           this.toast.error(this.$t('services.webrtc.errors.webRTCIsNotAvailable'))
@@ -462,6 +458,10 @@ export default defineComponent({
       }
 
       return secret
+    },
+
+    onJoinRequest (msg: JanusJS.Message) {
+      console.log('on join request', msg)
     }
   },
 
@@ -488,19 +488,15 @@ export default defineComponent({
       {{
         media: () => <div class="publisher__media">
           <div class={this.localMediaClass}>
-            <TransitionGroup>
               {
-                this.publisherStream.map((stream: MediaStream, index: number) => {
-                  return <BaseVideo
-                    key={index}
-                    srcObject={stream} 
-                    autoplay
-                    playsinline
-                    pictureInPictureMode={!!index}
-                  /> 
-                })
+                this.publisherStream.map((stream: MediaStream, index: number) => <BaseVideo
+                  key={index}
+                  srcObject={stream} 
+                  autoplay
+                  playsinline
+                  pictureInPictureMode={!!index}
+                />)
               }
-            </TransitionGroup>
             </div>
             <div class={this.remoteMediaClass}>
               <BaseVideo
@@ -526,9 +522,10 @@ export default defineComponent({
             <Chat
               isReadyToPrivate={this.isReadyToPrivate}
               secret={this.secret}
-              room={this.userData.streamId}
+              room={this.chatRoom}
               chatName={this.userData.username || 'no-name'}
               isStreamAvailable={this.isStreamConfigured}
+              onJoin-request={this.onJoinRequest}
             />
           }
         </div>,

@@ -9,20 +9,21 @@ import '@/components/Streams/Streams.scss'
 
 /** types */
 import { subscriberHandlerKey } from '@/types/global'
-import { StreamsData } from '@/components/Streams/types'
+import { StreamsData, ExtendedUser } from '@/components/Streams/types'
 
 /** api */
 import userApi from '@/api/user'
 
 /** components */
 import StreamItem from '@/components/Streams/StreamItem'
+import DataView from 'primevue/dataview'
 
 /** webrtcHandler */
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 import Loader from '@/components/general/Loader/Loader'
 
 /** toast */
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast'
 
 export default defineComponent({
 
@@ -96,7 +97,7 @@ export default defineComponent({
       this.users = []
     },
 
-    markUsersOnline () {
+    markUsersOnline (): void {
       const extendedUsers = this.users.map(item => ({
         user: item,
         isOnline: (item.streamId && item.streamId in this.rooms) || false
@@ -122,24 +123,33 @@ export default defineComponent({
 
 
   render (): VNode {
-    return <div class='streamer-list'>
+    return <div class='streams'>
       <Loader
         isVisible={this.isLoading}
       />
-      {
-        this.userStreams.length 
-          ? this.userStreams.map(({ user, isOnline }) => 
-              <div class='streamer-list__item'>
+      <DataView 
+        value={this.userStreams}
+        layout={'grid'}
+        pt={{
+          emptyMessage: {
+            class: 'streams__list_empty'
+          }
+        }}
+      > 
+        {{
+          grid: (scope: {items: ExtendedUser[]}) => <div class='streams__list'>
+            {
+              scope.items.map(({ user, isOnline }) => <div class='streams__item'>
                 <StreamItem 
                   stream={ user }
                   online={ isOnline }
                 />
-              </div>
-            )
-          : <div class='streamer-list__empty'>
-            <p> { this.$t('components.streams.streamsListEmpty') } </p>
-          </div>
-      }
+              </div>)
+            }
+          </div>,
+          empty: () =>  <p> { this.$t('components.streams.streamsListEmpty') } </p>
+        }} 
+        </DataView>
     </div>
   }
 })

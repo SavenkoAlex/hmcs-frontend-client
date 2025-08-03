@@ -39,6 +39,28 @@
     padding: 0;
   } 
 
+  h5 {
+    font-weight: 400;
+    font-style: inherit;  
+    font-display: fallback;
+    letter-spacing: -.22px;
+    font-size: 16px;
+    line-height: 20.5px;
+    margin: 0;
+    padding: 0;
+  }
+
+  h6 {
+    font-weight: 400;
+    font-style: inherit;  
+    font-display: fallback;
+    letter-spacing: -.20px;
+    font-size: 14px;
+    line-height: 16.5px;
+    margin: 0;
+    padding: 0;
+  }
+
   p {
     overflow-wrap: break-word;
     max-width: 100%;

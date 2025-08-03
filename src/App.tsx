@@ -30,7 +30,8 @@ import { mapGetters, mapActions } from 'vuex'
 
 /** store */
 import { States } from '@/types/store'
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast'
+
 
 export default defineComponent({
 
@@ -53,7 +54,7 @@ export default defineComponent({
 
     const performanceObserver = ref <PerformanceObserver>()
 
-    const toast = useToast()
+    const toast = useToast
 
     return {
       chatHandler,

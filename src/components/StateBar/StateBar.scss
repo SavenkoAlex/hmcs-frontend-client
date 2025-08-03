@@ -1,3 +1,4 @@
+@use '../../assets/styles/colors.scss' as colors;
 
   .state-bar {
 
@@ -6,7 +7,7 @@
     &__panel {
       display: flex;
       border-radius: 24px;
-      background-color: rgba($color: $primary-5, $alpha: .6);
+      background-color: rgba($color: colors.$primary-5, $alpha: .6);
       padding: .8rem .8rem;
       column-gap: .5rem;
       
@@ -17,7 +18,7 @@
       &_hidden {
         display: flex;
         border-radius: 24px;
-        background-color: rgba($color: $primary-5, $alpha: .6);
+        background-color: rgba($color: colors.$primary-5, $alpha: .6);
         column-gap: 0;
 
         @media screen and (max-height: 667px) {
@@ -29,7 +30,7 @@
     &__live {
       display: inline-flex;
       position: fixed;
-      top: calc(8vh + 1rem);
+      top: calc(12vh + 1rem);
       left: 1rem;
       flex-direction: row;
       justify-content: center;
@@ -60,16 +61,16 @@
 
 .state-bar__stream-start {
   display: inline-block;
-  background-color: $primary-1;
-  border-top: 10px solid $secondary-4;
-  border-left: 20px solid $secondary-3;
-  border-bottom: 10px solid $secondary-4;
+  background-color: colors.$primary-1;
+  border-top: 10px solid colors.$primary-4;
+  border-left: 20px solid colors.$primary-3;
+  border-bottom: 10px solid colors.$primary-4;
   animation: fadeIn 5 linear forwards;
 }
 
 .state-bar__stream-stop {
   display: inline-block;
-  background-color: $secondary-5;
+  background-color: colors.$primary-5;
   animation: fadeOut 5 linear forwards;
 }
 

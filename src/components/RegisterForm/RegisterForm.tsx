@@ -4,11 +4,9 @@ import {
 } from 'vue'
 
 /** components */
-import TextInput from '@/components/general/inputs/TextInput/TextInput'
-import Checkbox from '@/components/general/inputs/Checkbox/Checkbox'
-import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import Form from '@/components/general/Form/Form'
 import Loader from '@/components/general/Loader/Loader'
+import { Checkbox, InputText, Button } from 'primevue'
 
 /** styles */
 import '@/components/RegisterForm/RegisterForm.scss'
@@ -19,7 +17,7 @@ import { emptyfieldValidation } from '@/helpers/helper'
 /** types */
 import { SidePosition, UserRole } from '@/types/global'
 import { register } from '@/api/login'
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast'
 
 /** toast */
 
@@ -28,8 +26,8 @@ export default defineComponent({
   name: 'RegisterForm',
 
   components: {
-    TextButton,
-    TextInput,
+    InputText,
+    Button,
     Form,
     Checkbox,
     Loader
@@ -92,69 +90,84 @@ export default defineComponent({
 
     const formBody = <div class='register-form__body'>
       <div class='register-form__input'>
-        <TextInput
-          label={{
-            text: this.$t('pages.registerForm.username')
-          }}
+        <InputText
           placeholder={this.$t('pages.registerForm.username')}
           modelValue={this.username}
-          onUpdate:modelValue={(event) => this.username = event}
-          validators={[emptyfieldValidation]}       
+          pt={{
+            root: {
+              style: {
+                width: '100%'
+              }
+            } 
+          }}
         />
       </div>
       <div class='register-form__input'>
-        <TextInput
-          label={{
-            text: this.$t('pages.registerForm.login')
-          }}
+        <InputText
           placeholder={this.$t('pages.registerForm.login')}
           modelValue={this.login}
-          onUpdate:modelValue={(event) => this.login = event}
-          validators={[emptyfieldValidation]}       
+          pt={{
+            root: {
+              style: {
+                width: '100%'
+              }
+            } 
+          }}
         />
       </div>
       <div class='register-form__input'>
-        <TextInput
-          label={{
-            text: this.$t('pages.registerForm.password')
-          }}
+        <InputText
           placeholder={this.$t('pages.registerForm.password')}
           type={'password'}
           modelValue={this.password}
-          onUpdate:modelValue={(event) => this.password = event}
-          validators={[emptyfieldValidation]}       
+          pt={{
+            root: {
+              style: {
+                width: '100%'
+              }
+            } 
+          }}
         />
       </div>
       <div class='register-form__input'>
-        <TextInput
-          label={{
-            text: this.$t('pages.registerForm.repeatPassword')
-          }}
+        <InputText
           placeholder={this.$t('pages.registerForm.password')}
           type={'password'}
           modelValue={this.passwordCheck}
-          onUpdate:modelValue={(event) => this.passwordCheck = event}
-          validators={[emptyfieldValidation]}       
+          pt={{
+            root: {
+              style: {
+                width: '100%'
+              }
+            } 
+          }}
         />
       </div> 
 
       <div class='register-form__input'>
+        <label for={'isPublisher'}>
+          { this.$t('pages.registerForm.isPublisher') }
+        </label>
+
         <Checkbox
-          label={{
-            text: this.$t('pages.registerForm.isPublisher')}
-          }
-          labelPosition={SidePosition.RIGHT}
-          modelValue={this.isPublisher}
-          onUpdate:modelValue={(value) => this.isPublisher = value}
+          inputId='isPublisher'
+          value={this.isPublisher}
         />
       </div> 
     </div>
 
     const formFooter = <div class='register-form__footer'>
       <div class='register-page__submit-button'>
-        <TextButton 
-          text={this.$t('pages.registerForm.submit')}
+        <Button
+          label={this.$t('pages.registerForm.submit')}
           onClick={this.register}
+          pt={{
+            root: {
+              style: {
+                width: '100%'
+              }
+            }
+          }}
         />
       </div>
     </div>

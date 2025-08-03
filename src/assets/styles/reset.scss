@@ -1,11 +1,10 @@
 /*reset.css*/
-/* RESETS */
-@import 'colors.scss';
-@import 'mixins.scss';
-@import 'typography.scss';
-@import 'toast.scss';
 
-//@import 'grid.scss';
+@use 'colors.scss';
+@use 'mixins.scss';
+@use 'typography.scss';
+@use 'toast.scss';
+
 
 *,
 *::before,
@@ -29,9 +28,11 @@ input {
   overflow: visible;
 }
 
+
 @font-face {
   font-family: 'Inter-V';
-  src: url('../fonts/InterVariable.woff2') format('woff2-variations');
+  src: url('.../fonts/InterVariable.woff2') format('woff2-variations');
+  src: local('Inter-Thin');
   font-weight: 100 900;
   font-display: fallback;
   font-style: oblique 0deg 10deg;
@@ -40,7 +41,6 @@ input {
 body {
   width: 100%;
   margin: 0 auto;
-  background-color: $primary-2;
   height: 100%;
   font-size: 1.2em;
   font-family: 'Inter-V', sans-serif;

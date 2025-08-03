@@ -67,6 +67,10 @@
     "repeatPassword":"повторите пароль",
     "save": "сохранить"
   },
+  "amount": {
+    "balance": "баланс",
+    "increase": "пополнить"
+  },
   "components": {
     "deviceController": {
       "devicesNotFound": "устройства не найдены",
@@ -75,7 +79,8 @@
       "mics": "Микрофоны"
     },
     "chat": {
-      "defaultChatName": "общий чат с"
+      "defaultChatName": "общий чат с",
+      "welcomeMessage": "Добро пожаловать в чат"
     },
     "streams": {
       "streamsListEmpty": "стримы не найдены, попробуйте позже"
@@ -114,5 +119,12 @@
         "chatConnected": "Соединение с чатом установлено"
       }
     }
+  },
+
+  "toast": {
+    "error": "ошибка",
+    "success": "успех",
+    "info": "информация",
+    "warning": "предупреждение"
   }
 }

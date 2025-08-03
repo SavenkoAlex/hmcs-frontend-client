@@ -27,9 +27,8 @@ import {
 /** components */
 import Modal from '@/components/general/Modal/Modal'
 import Label from '@/components/general/Label/Label'
-import TextButton from '@/components/general/Buttons/TextButton/TextButton'
-import Checkbox from '@/components/general/inputs/Checkbox/Checkbox'
 import { SidePosition } from '@/types/global'
+import { Button, Checkbox } from 'primevue'
 
 /** constants */
 import { VideoInputKind, MaxCameras, MaxMics } from '@/types/global'
@@ -193,11 +192,9 @@ export default defineComponent({
                   {
                     this.cameras && this.cameras.map((item: MediaDevice) => <li>
                       <Checkbox
-                        label={{text: item.label}}
-                        labelPosition={SidePosition.RIGHT}
-                        modelValue={item.selected}
-                        onUpdate:modelValue={(event) => this.onChecked(item, event)}
+                        v-model={item.selected}
                       />
+                      <label> { item.label } </label>
                     </li>)
                   }
               </ul>
@@ -206,27 +203,31 @@ export default defineComponent({
                   {
                     this.mics && this.mics.map((item: MediaDevice) => <li>
                       <Checkbox
-                        label={{text: item.label}}
-                        labelPosition={SidePosition.RIGHT}
-                        modelValue={item.selected}
-                        onUpdate:modelValue={(event) => this.onChecked(item, event)}
+                        v-model={item.selected}
                       />
+                      <label> { item.label } </label>
                     </li>)
                   }
               </ul>
               </div>
             : <div class='device-controller__no-devices'> <Label text={this.$t('components.deviceController.devicesNotFound')}/> </div>,
               
-          footer: () => [<TextButton 
-              text={this.$t('common.apply')}
-              disabled={!!this.devicesValidationError || !this.devices}
-              onClick={() => this.onDevicesAplly()}
-            />, 
-            <TextButton 
-              text={this.$t('common.cancel')}
-              onClick={() => this.$emit('closedevicesconfiguration')}
-            />
-          ],
+          footer: () => <div class='device-controller__footer'>
+            {
+              [<Button
+                label={this.$t('common.apply')}
+                disabled={!!this.devicesValidationError || !this.devices}
+                onClick={() => this.onDevicesAplly()}
+                size='small'
+              />, 
+              <Button
+                label={this.$t('common.cancel')}
+                onClick={() => this.$emit('closedevicesconfiguration')}
+                size='small'
+              />
+              ]
+            }
+          </div>
         }}
     </Modal>
   }

@@ -1,25 +1,39 @@
-import { 
+import {
   defineComponent,
-  VNode,
+  inject,
+  nextTick,
   PropType,
   ref,
-  Transition,
-  inject
+  VNode,
+  h
 } from 'vue'
 
 /** types */
-import { Chat, Data } from '@/components/Chat/types'
-import { ElementScale, UserRole, chatKey } from '@/types/global'
+import { Chat, Data, QueueMaxSize } from '@/components/Chat/types'
 import { JanusTextMessage } from '@/services/webrtc/webrtcDataExchange'
+import { chatKey, ElementScale, UserRole } from '@/types/global'
 
 /** styles */
 import '@/components/Chat/Chat.scss'
 
 /** components */
+import IconButton from '@/components/general/Buttons/IconButton/IconButton'
 import Label from '@/components/general/Label/Label'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
-import IconButton from '@/components/general/Buttons/IconButton/IconButton'
-import Send from '@/assets/images/small/send_24dp.svg'
+import {
+  Button,
+  Card,
+  InputGroup,
+  InputGroupAddon,
+  InputText,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Message,
+  Divider
+} from 'primevue'
 
 /** services */
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
@@ -31,11 +45,14 @@ import { mapGetters } from 'vuex'
 import { formatTime } from '@/helpers/helper'
 
 /** notifier */
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast'
 
-/** events */
-import emitter from '@/services/eventBus'
+/** chat service */
+import { MessageHandler, MessageType, UserMessage } from '@/services/MessageHandler/MessageHandler'
 
+/** icons */
+import { mdiSendCircleOutline } from '@mdi/js'
+import SvgIcon from '@jamescoyle/vue-icon'
 
 export default defineComponent({
 
@@ -44,7 +61,28 @@ export default defineComponent({
   components: {
     Label,
     TextInput,
-    IconButton
+    IconButton,
+    Card,
+    Tabs,
+    TabList,
+    Tab,
+    TabPanels,
+    TabPanel,
+    InputText,
+    Button,
+    SvgIcon
+  },
+
+  emits: {
+    'join-request': function(message: JanusTextMessage) {
+      return message
+    },
+    'request-allowed': function(message: JanusTextMessage) {
+      return message
+    },
+    'request-declined': function(message: JanusTextMessage) { 
+      return message 
+    } 
   },
 
   props: {
@@ -80,12 +118,8 @@ export default defineComponent({
   computed: {
     ...mapGetters('user', ['userData', 'userRole', 'isAuthentificated']),
 
-    chatRoom (): number {
-      return (this.room + 1) * 1000
-    },
-
     isChatDisabled (): boolean {
-      return !this.isStreamAvailable || !this.isRoomExists || !this.isAuthentificated
+      return !this.isStreamAvailable || !this.isRoomExists || !this.isAuthentificated || !this.room
     },
 
     isReadyToConnect (): boolean {
@@ -114,6 +148,15 @@ export default defineComponent({
       }
     },
 
+    'messageQueue.length': {
+      handler: function (newValue) {
+        if (newValue > QueueMaxSize) {
+          this.messageQueue.shift()
+          return
+        }
+      },
+    },
+
     chatName: {
       handler: function (newValue: string) {
 
@@ -125,7 +168,12 @@ export default defineComponent({
         this.chatLinks[newValue] = {
           id: `${newValue}`,
           name: `${this.currentChatName}`,
-          messages: []
+          messages: [{  
+            id: '1',
+            sender: 'me',
+            text: `${this.$t('components.chat.welcomeMessage')}`,
+            date: this.getMessageTime()
+          }]
         }
       },
       immediate: true
@@ -146,6 +194,8 @@ export default defineComponent({
     const inputMessage = ref <string> ('')
     const chatMessages = ref<HTMLBaseElement>()
     const toast = useToast()
+    const messageQueue = ref<Promise<void>[]>([])
+    const sendIconPath = mdiSendCircleOutline
 
     return {
       chatHandler,
@@ -154,13 +204,16 @@ export default defineComponent({
       isRoomExists,
       inputMessage,
       chatMessages,
-      toast
+      toast,
+      messageQueue,
+      sendIconPath
     }
   },
 
   data (): Data {
     return {
-      observer: null 
+      observer: null,
+      needToHandleMessages: false
     }
   },
 
@@ -179,7 +232,13 @@ export default defineComponent({
         return false
       }
 
-      const result = await this.chatHandler.sendMessage(text, this.chatRoom)
+      const message = MessageHandler.packMessage(MessageType.SIMPLEMESSAGE, text)
+
+      if (!message || !this.room) {
+        return false
+      }
+
+      const result = await this.chatHandler.sendMessage(message, this.room)
       return result
     },
 
@@ -187,21 +246,61 @@ export default defineComponent({
       this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
     },
 
-    handleData (data: string | JanusTextMessage): void {
-      try {
-        const dataParsed: JanusTextMessage = typeof data === 'string' ? JSON.parse(data) : data
+    handleData (data: JanusTextMessage): void {
+      this.messageQueue.push(this.handleMessageItem(data))
+    },
+    
+    handleMessageItem (message: JanusTextMessage): Promise<void> {
+      return nextTick(() => {
 
-        if (dataParsed.textroom === 'message' && this.currentChat) {
-          this.chatLinks[this.currentChat].messages.push({
-            id: dataParsed.from,
-            sender: dataParsed.from,
-            text: dataParsed.text || '',
-            date: dataParsed.date || ''
-          })
+        if (!message?.text || message?.textroom !== 'message' || !this.currentChat) {
+          return
         }
-      } catch (err) {
-        console.error(err)
+
+        const text = this.parseMessage(message)
+
+        if (!text) {
+          return
+        }
+        
+        this.chatLinks[this.currentChat].messages.push({
+          id: message.from,
+          sender: message.from,
+          text: text || '',
+          date: this.getMessageTime(message.date)
+        })
+
+        this.messageQueue.shift()
+      })
+    },
+
+    parseMessage (message: JanusTextMessage): string | undefined {
+      if (!message?.text) {
         return
+      }
+
+      const text = MessageHandler.unPackMessage(message.text)
+      const type = text?.type
+      message = { ...message, ...{ text: text?.text || '' } }
+
+      switch (type) {
+        case MessageType.JOINREQUEST:
+          this.$emit('join-request', message)
+          return
+
+        case MessageType.REQUESTALLOWED:
+          this.$emit('request-allowed', message)
+          return
+
+        case MessageType.REQUESTDECLINED:
+          this.$emit('request-declined', message)
+          return
+
+        case MessageType.SIMPLEMESSAGE:
+          return message.text
+
+        default:
+          return
       }
     },
 
@@ -213,7 +312,7 @@ export default defineComponent({
     observeChat (mutationRecords: MutationRecord[]) {
       mutationRecords.forEach(mutation => {
         if (mutation.type === 'childList') {
-          this.chatMessages?.scroll({
+           this.chatMessages?.scroll({
             top: 1000,
             behavior: 'smooth'
           })
@@ -226,7 +325,11 @@ export default defineComponent({
       return this.userData?.username === sender ? 'me' : 'guest'
     },
 
-    getMessageTime (date: string) {
+    getMessageTime (date?: string) {
+      if (!date) {
+        date = new Date().toString()
+      }
+
       const dateInstance = new Date(date)
 
       if (!dateInstance) {
@@ -236,7 +339,7 @@ export default defineComponent({
       const hours = formatTime(dateInstance.getHours())
       const minutes = formatTime(dateInstance.getMinutes())
       const seconds = formatTime(dateInstance.getSeconds())
-      return `${hours}.${minutes}.${seconds}`
+      return `${hours}:${minutes}:${seconds}`
     },
 
     /** create room and join */
@@ -247,7 +350,7 @@ export default defineComponent({
       } 
       
       if (!this.isRoomExists) {
-        this.isRoomExists = await this.chatHandler.createRoom(this.chatRoom)
+        this.isRoomExists = await this.chatHandler.createRoom(this.room)
       }
 
       if (this.isRoomExists) {
@@ -261,7 +364,7 @@ export default defineComponent({
         return
       }
 
-      const exists = await this.chatHandler?.exists(this.chatRoom)
+      const exists = await this.chatHandler?.exists(this.room)
       this.isRoomExists = exists
 
       if (this.isRoomExists && (this.userRole === UserRole.USER || this.userRole === UserRole.WORKER)) {
@@ -277,14 +380,14 @@ export default defineComponent({
 
     async register (): Promise <boolean> {
       if (!this.chatHandler) {
-        this.toast(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
+        this.toast.warning(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
         return false
       }
 
-      const result = await this.chatHandler.register(this.userData?.username || 'noname', this.chatRoom)
+      const result = await this.chatHandler.register(this.userData?.username || 'noname', this.room)
 
       if (!result) {
-        this.toast(this.$t('services.chat.errors.canNotConnectChat'))
+        this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
       }
       return result
     },
@@ -293,7 +396,7 @@ export default defineComponent({
       if (!this.chatHandler) {
         return
       }
-      this.chatHandler.destroyChat(this.chatRoom)
+      this.chatHandler.destroyChat(this.room)
     },
 
     addListeners () {
@@ -310,7 +413,7 @@ export default defineComponent({
       if (!this.chatHandler || !this.secret) {
         return false
       }
-      const result = await this.chatHandler.sendMessage(this.secret, this.chatRoom)
+      const result = await this.chatHandler.sendMessage(this.secret, this.room)
       return result
     } 
   },
@@ -333,69 +436,98 @@ export default defineComponent({
   },
 
   render (): VNode {
-    return <div class='chat'>
 
-      <div class='chat__list'>
-        {
-          this.chatLinks && Object.keys(this.chatLinks).map((chatId) => {
-            const chat = this.chatLinks[chatId]
-            return <Transition>
-              <div
-                class={chat.id === this.currentChat ? 'chat__item chat__item_current' : 'chat__item'}
-                onClick={() => this.currentChat = chat.id}
-              > 
-                <span>{this.chatLinks[chatId].name}</span>
-            </div>
-            </Transition>
-          })
-        }
-      </div>
-      <div class='chat__content' ref='chatMessages'>
-        {
-          this.currentChat && this.chatLinks[this.currentChat].messages.map((message) => {
-            return <div 
-                class='chat__message'
-                user-data={this.getUserAttr(message.sender)}
+    
+    return <div class='chat'>
+      <Tabs 
+        value={this.chatName} 
+        scrollable
+        pt={{
+          root: {
+            class: 'chat__tabs'
+          }
+        }}
+        dt={{
+          tabpanel: {
+            padding: 0
+          }
+        }}
+      >
+        <div class='chat__list'>
+          <TabList>
+            {
+              this.chatLinks && Object.keys(this.chatLinks).map((chatId) => <Tab 
+                key={this.chatLinks[chatId].name} 
+                value={this.chatLinks[chatId].id}
               >
-                <div class='chat__message_nick' user-data={ this.getUserAttr(message.sender) }>
-                  <Label
-                    text={message.sender}
-                    scale={ElementScale.LARGE}
-                  />
-                </div>
-                <div class='chat__message_text'>
-                  <p class='chat__message_paragraph'> { message.text || ''} </p>
-                </div>
-                <div class='chat__message_time'>
-                  <Label
-                    text={ this.getMessageTime(message.date) }
-                    scale={ElementScale.SMALL} 
-                  />
-                </div> 
-              </div>
-            })
-        }
-      </div>
-      <div class='chat__submit'>
-        <div class='chat__input'>
-          <TextInput
-            placeholder='Сообщение'
-            onEnter={() => this.addMessage()}
-            disabled={this.isChatDisabled}
-            modelValue={this.inputMessage}
-            onUpdate:modelValue={(data: string) => this.inputMessage = data}
-          >
-          </TextInput>
+                { this.chatLinks[chatId].name }
+              </Tab>)
+            }
+          </TabList>
         </div>
-        <div class='chat__button'>
-          <IconButton
-            mode={'primary'}
-            onClick={() => this.addMessage()}
-          >
-            <Send/>
-          </IconButton>
+        
+        <div class='chat__content'>
+          <TabPanels>
+            {
+              this.chatLinks && Object.keys(this.chatLinks).map(chatId => <TabPanel 
+                key={this.chatLinks[chatId].name} 
+                value={this.chatLinks[chatId].id}
+              >
+                <div 
+                  class='chat__messages' ref={'chatMessages'}
+                >
+                  {
+                    this.currentChat && this.chatLinks[this.currentChat].messages.map(message => <div 
+                      class='chat__message'
+                      user-data={this.getUserAttr(message.sender)}
+                    >
+                      <Message severity='secondary' 
+                        pt={{
+                          text: {
+                            class: 'message'
+                          }
+                        }}
+                      >
+                        {{
+                          default: () => <div class='message'>
+                            <span class='message__nick'>{ message.sender }</span>
+                            <p class='message__text'> { message.text } </p>
+                            <span class='message__time'>{ message.date }</span>
+                          </div>
+                        }}
+                      </Message>
+                    </div>
+                    )
+                  }
+
+                </div>
+              </TabPanel>)
+            }
+          </TabPanels>
         </div>
-      </div>       
+        <div class='chat__submit'>
+          <div class='chat__input'>
+            <InputGroup>
+              <InputText
+                placeholder='Сообщение'
+                disabled={this.isChatDisabled}
+                modelValue={this.inputMessage}
+                //@ts-ignore
+                onUpdate:modelValue={value => this.inputMessage = value}
+              />
+              <InputGroupAddon>
+                <Button severity={'secondary'}
+                  onClick={() => this.addMessage()} 
+                >
+                  {{
+                    icon: () => h(SvgIcon, { type: 'mdi', path: this.sendIconPath})
+                  }}
+                </Button>
+              </InputGroupAddon>
+            </InputGroup>
+          </div>
+        </div> 
+      </Tabs>
     </div>
   }
 })

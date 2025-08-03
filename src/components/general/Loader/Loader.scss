@@ -1,10 +1,12 @@
+@use '../../../assets/styles/colors.scss' as colors;
+
 .loader {
   position: absolute;
   top: 0;
   left: 0;
   height: 100%;
   width: 100%;
-  background-color: $primary-3;
+  background-color: colors.$primary-3;
   animation: appear .3s;
   animation-fill-mode: forwards;
   z-index: 1660;
@@ -18,7 +20,7 @@
     aspect-ratio: 1;
     border-radius: 50%;
     padding: 1px;
-    background: conic-gradient($primary-4 10%,$primary-7) content-box;
+    background: conic-gradient(colors.$primary-4 10%,colors.$primary-7) content-box;
     -webkit-mask:
       repeating-conic-gradient(#0000 0deg,#000 1deg 20deg,#0000 21deg 36deg),
       radial-gradient(farthest-side,#0000 calc(100% - var(--b) - 1px),#000 calc(100% - var(--b)));

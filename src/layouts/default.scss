@@ -10,6 +10,7 @@
     display: flex;
     flex: 0 0 8vh;
     width: 100%;
+    background-color: var(--p-slate-200);
   }
 
   &__content {
@@ -17,11 +18,19 @@
     flex: 1 0 auto;
     width: 100%;
     overflow: hidden;
+    background-color: var(--p-slate-200);
   }
 
   &__footer {
     display: flex;
     width: 100%;
     flex: 0 0 auto;
+    background-color: var(--p-slate-200);
+  }
+}
+
+.toast-summary {
+  @media  (max-width: 767px) {
+    font-size: 14px !important;
   }
 }

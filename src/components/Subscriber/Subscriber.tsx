@@ -4,7 +4,6 @@ import {
   Transition,
   VNode,
   inject,
-  useTemplateRef
 } from 'vue'
 
 /** store */
@@ -36,11 +35,14 @@ import RoomLayout from '@/layouts/Room/Room'
 import bg from '@/assets/images/taro-bg.jpg'
 
 /** notifier */
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast'
 
 /* locales */
 import { I18n, useI18n } from 'vue-i18n'
 import { States } from '@/types/store'
+
+/** services */
+import { MessageHandler, MessageType } from '@/services/MessageHandler/MessageHandler'
 
 export default defineComponent({
 
@@ -105,6 +107,13 @@ export default defineComponent({
         return 'publisher__avatar_disabled'
       }
       return 'publisher__avatar'
+    },
+
+    chatRoom (): number {
+      if (!this.remoteStreamId) {
+        return 0
+      }
+      return (this.remoteStreamId + 1) * 1000
     }
   },
 
@@ -255,11 +264,11 @@ export default defineComponent({
 
       switch (error) {
         case VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NO_SUCH_FEED:
-          this.toast(this.t('services.webrtc.info.noFeed'))
+          this.toast.error(this.t('services.webrtc.info.noFeed'))
           break;
 
         default: 
-          this.toast(this.t('services.webrtc.errors.canNotConnectStream'))
+          this.toast.error(this.t('services.webrtc.errors.canNotConnectStream'))
       }
     },
 
@@ -325,6 +334,26 @@ export default defineComponent({
       })
       
       this.subscriberHandler?.emitter?.emit('add-publisher', mountPoint)
+    },
+
+    async sendPrivateStreamOffer () {
+      if (!this.chatPluginHandler) {
+        console.warn('no chat plugin handler')
+        return 
+      }
+
+      if (!this.chatRoom) {
+        return
+      }
+
+      const message = MessageHandler.packMessage(MessageType.JOINREQUEST)
+
+      if (!message || !this.remoteStreamId) {
+        console.warn('no message')
+        return
+      }
+
+      this.chatPluginHandler.sendMessage(message, this.chatRoom)
     }
   },
 
@@ -377,13 +406,13 @@ export default defineComponent({
         controls: () => <StateBar
           userRole={this.userRole}
           amount={this.userAmount}
-          onPublish={this.onRequestPublish}
+          onPublish={this.sendPrivateStreamOffer}
         />,
         chat: () => <div class='subscriber__content'>
           {
             this.remoteStreamId && <Chat
               chatName={this.publisherName || '-'}
-              room={this.remoteStreamId}
+              room={this.chatRoom}
               isStreamAvailable={this.isJoined}
             />
           }

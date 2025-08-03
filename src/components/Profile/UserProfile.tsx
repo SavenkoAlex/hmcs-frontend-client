@@ -2,14 +2,17 @@ import {
   defineComponent,
   PropType,
   VNode,
-  inject
+  inject,
+  h
 } from 'vue'
 
 /** types */
-import { User, chatKey} from '@/types/global'
+import { User, chatKey, publisherHandlerKey, subscriberHandlerKey} from '@/types/global'
 import { UserDataProfile } from '@/components/Profile/types'
 import { States } from '@/types/store'
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
+import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 
 /** api */
 import userApi from '@/api/user'
@@ -18,20 +21,21 @@ import userApi from '@/api/user'
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
 import Label from '@/components/general/Label/Label'
-import Form from '@/components/general/Form/Form'
 import TextInput from '@/components/general/inputs/TextInput/TextInput'
+import { Card, Button, Avatar, InputText }  from 'primevue'
 
 /** icons */
-import DefaultAvatar from '@/assets/images/small/person_16dp.svg'
+import { mdiPlus } from '@mdi/js';
+import SvgIcon from '@jamescoyle/vue-icon'
 
 /** styles */
 import '@/components/Profile/Profile.scss'
 
 /** vuex */
-import {mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
-/** event bus */
-import eventBus from '@/services/eventBus'
+/** types */
+import { UserRole } from '@/types/global'
 
 export default defineComponent({
 
@@ -47,7 +51,8 @@ export default defineComponent({
     TextButton,
     IconButton,
     Label,
-    TextInput
+    TextInput,
+    Card
   },
 
   props: {
@@ -57,30 +62,49 @@ export default defineComponent({
     }
   },
 
+  watch: {
+
+  },
+
   computed: {
+    ...mapGetters(States.USER, [ 'userAmount' ]),
+
     avatarSrc () {
       if (!this.userData?.avatar) {
-        return null
+        return
       }
+
       const representation = this.userData.avatar
 
-      return this.userData.avatar
-        ? `data:image/jpg;base64,${representation}`
-        : null
+      return `data:image/jpg;base64,${representation}`
     }
   },
 
   data(): UserDataProfile {
     return {
-      userData: null
+      userData: {
+        username: '',
+        login: '',
+        role: UserRole.ANONYMOUS,
+        id: '',
+        streamId: 0,
+        avatar: ''
+      },
+      repeatPassword: '',
+      newPassword: '',
+      plusIconPath: mdiPlus
     }
   },
   
   setup () {
     const chatHandler = inject <ChatHandler | null> (chatKey, null)
+    const subscriberHandler = inject <SubscriberStreamHandler | null> (subscriberHandlerKey, null)
+    const publisherHandler = inject <PublisherStreamHandler | null> (publisherHandlerKey, null)
 
     return {
-      chatHandler
+      chatHandler,
+      subscriberHandler,
+      publisherHandler
     }
   },
 
@@ -103,6 +127,9 @@ export default defineComponent({
     },
 
     logout () {
+      this.chatHandler?.destroySession()
+      this.subscriberHandler?.destroySession()
+      this.publisherHandler?.destroySession()
       this.setUser(null)
       this.setUserProperty({isAuthentificated: false})
       localStorage.clear()
@@ -125,56 +152,114 @@ export default defineComponent({
   },
 
   render (): VNode {
-    return <div class='user-profile'>
-      <div class='user-profile__avatar'>
-        {
-          this.avatarSrc
-            ? <img src={this.avatarSrc} class='user-profile__avatar_img'/>
-            : <DefaultAvatar/>
-        }
-      </div>
-      <div class='user-profile__form'>
-        <Form>
-          {{
-            default: () => <div class='user-profile__form_body'>
-              <TextInput
-                label={{
-                  text: this.$t('common.username')
-                }}
-              />
-              <TextInput
-                label={{
-                  text: this.$t('common.login')
-                }}
-              />
-              <TextInput
-                label={{
-                  text: this.$t('common.password')
-                }}
-              />
-              <TextInput
-                label={{
-                  text: this.$t('common.repeatPassword')
-                }}
-              />
-            </div>,
-            footer: () => <div class='user-profile__form_footer'>
-              <TextButton
-                text={this.$t('common.save')}
-              />
-            </div>
-          }}
-        </Form>
+    const cardTitle = <Avatar
+      image={this.avatarSrc}
+      size={'xlarge'}
+    />
 
-      </div>
-      <div class='user-profile__logout'>
-        <TextButton
-          mode={'fourth'}
-          text={this.$t('common.exit')}
-          onClick={this.logout}
-        />
-      </div>
-     
+    const cardSubtitle = <Button
+      label={this.userAmount.toString()}
+      size='small'
+      variant='outlined' 
+      raised
+    >   
+      {{
+        icon: () => h(SvgIcon, { path: this.plusIconPath, type: 'mdi', size: '1rem'})
+      }} 
+    </Button>
+
+    const cardContent = <div class='user-profile__content'>
+
+      <InputText
+        placeholder= {this.$t('common.username')}
+        modelValue={this.userData?.username || ''}
+        //@ts-ignore
+        onUpdate:modelValue={(value: string) => this.userData.username = value}
+        pt={{
+          root: {
+            style: {
+              width: '100%'
+            }
+          }
+        }}
+      />
+
+      <InputText
+        placeholder= {this.$t('common.login')}
+        modelValue={this.userData?.login || ''}
+        //@ts-ignore
+        onUpdate:modelValue={(value: string) => this.userData.login = value}
+        pt={{
+          root: {
+            style: {
+              width: '100%'
+            }
+          }
+        }}
+      />
+      <InputText
+        placeholder={this.$t('common.password')}
+        type={'password'}
+        modelValue={this.newPassword}
+        //@ts-ignore
+        onUpdate:modelValue={(value: string) => this.newPassword = value}
+        pt={{
+          root: {
+            style: {
+              width: '100%'
+            }
+          }
+        }}
+      />
+      <InputText
+        placeholder={this.$t('common.repeatPassword')}
+        type={'password'}
+        modelValue={this.repeatPassword}
+        //@ts-ignore
+        onUpdate:modelValue={(value: string) => this.repeatPassword = value}
+        pt={{
+          root: {
+            style: {
+              width: '100%'
+            }
+          }
+        }}
+      />
+    </div>
+
+    const cardFooter = <div class='user-profile__footer'> 
+      <Button
+        label={this.$t('common.save')}
+      />
+      <Button
+        label={this.$t('common.exit')}
+        onClick={this.logout}
+      />
+    </div>
+
+    return <div class='user-profile'>
+      <Card
+        pt={{
+          root: {
+            style: {
+              width: '100%',
+              height: '100%',
+            }
+          },
+          body: {
+            style: {
+              height: '100%'
+            }
+          }
+        }}
+      >
+        {{
+          title: () => cardTitle,
+          subtitle: () => cardSubtitle,
+          content: () => cardContent,
+          footer: () => cardFooter
+        }}
+      </Card>
     </div>
   }
 })
