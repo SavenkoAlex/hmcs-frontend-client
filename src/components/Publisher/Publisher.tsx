@@ -17,6 +17,7 @@ import Chat from '@/components/Chat/Chat'
 import BaseVideo from '@/components/Video/Video'
 import Loader from '@/components/general/Loader/Loader' 
 import DeviceConfigurationModal from '@/components/DeviceController/DeviceConfigurationModal'
+import Skeleton from 'primevue/skeleton'
 
 /** types */
 import { UserRole, MediaDevice, publisherHandlerKey, VideoErrorState, subscriberHandlerKey } from '@/types/global'
@@ -37,7 +38,7 @@ import { mapActions, mapGetters } from 'vuex'
 import RoomLayout from '@/layouts/Room/Room'
 
 /** notifier */
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast';
 
 /**eventBus */
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
@@ -487,19 +488,15 @@ export default defineComponent({
       {{
         media: () => <div class="publisher__media">
           <div class={this.localMediaClass}>
-            <TransitionGroup>
               {
-                this.publisherStream.map((stream: MediaStream, index: number) => {
-                  return <BaseVideo
-                    key={index}
-                    srcObject={stream} 
-                    autoplay
-                    playsinline
-                    pictureInPictureMode={!!index}
-                  /> 
-                })
+                this.publisherStream.map((stream: MediaStream, index: number) => <BaseVideo
+                  key={index}
+                  srcObject={stream} 
+                  autoplay
+                  playsinline
+                  pictureInPictureMode={!!index}
+                />)
               }
-            </TransitionGroup>
             </div>
             <div class={this.remoteMediaClass}>
               <BaseVideo

@@ -99,7 +99,7 @@ export default defineComponent({
       }}
     >   
       {{
-        item: (item: { item: MenuItem }, props: MenubarProps ) => {
+        item: (item: { item: MenuItem } ) => {
           return <RouterLink to={item?.item?.to} custom> 
           {{
             default: ({ navigate }: {href: string, navigate: () => void}) => <span

@@ -17,7 +17,7 @@ import { emptyfieldValidation } from '@/helpers/helper'
 /** types */
 import { SidePosition, UserRole } from '@/types/global'
 import { register } from '@/api/login'
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast'
 
 /** toast */
 

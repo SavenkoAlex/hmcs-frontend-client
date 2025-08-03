@@ -35,7 +35,7 @@ import RoomLayout from '@/layouts/Room/Room'
 import bg from '@/assets/images/taro-bg.jpg'
 
 /** notifier */
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast'
 
 /* locales */
 import { I18n, useI18n } from 'vue-i18n'
@@ -264,11 +264,11 @@ export default defineComponent({
 
       switch (error) {
         case VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_NO_SUCH_FEED:
-          this.toast(this.t('services.webrtc.info.noFeed'))
+          this.toast.error(this.t('services.webrtc.info.noFeed'))
           break;
 
         default: 
-          this.toast(this.t('services.webrtc.errors.canNotConnectStream'))
+          this.toast.error(this.t('services.webrtc.errors.canNotConnectStream'))
       }
     },
 

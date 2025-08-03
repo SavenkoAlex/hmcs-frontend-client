@@ -9,7 +9,7 @@ import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import Form from '@/components/general/Form/Form'
 import Notifier from '@/components/Notifier/Notifier'
 import Button from 'primevue/button'
-import { InputText } from 'primevue'
+import { InputText, Toast } from 'primevue'
 
 /** styles */
 import '@/components/LoginForm/LoginForm.scss'
@@ -29,7 +29,7 @@ import { UserRole } from '@/types/global'
 import { RouterLink } from 'vue-router'
 
 /** notifier */
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast'
 
 /** validation */
 import { emptyfieldValidation } from '@/helpers/helper'

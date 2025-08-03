@@ -1,7 +1,7 @@
 
 .navbar {
   display: flex;
-  height: 100%;
+  max-height: 12vh;
   width: 100%;
 }
 
@@ -16,7 +16,7 @@
 
   &__item:first-child {
     display: inline-flex;
-    flex: 1 0 fit-content
+    flex: 1 0 fit-content;
   }
 
   &__item {

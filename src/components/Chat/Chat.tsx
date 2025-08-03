@@ -4,7 +4,8 @@ import {
   nextTick,
   PropType,
   ref,
-  VNode
+  VNode,
+  h
 } from 'vue'
 
 /** types */
@@ -44,7 +45,7 @@ import { mapGetters } from 'vuex'
 import { formatTime } from '@/helpers/helper'
 
 /** notifier */
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/services/toast/toast'
 
 /** chat service */
 import { MessageHandler, MessageType, UserMessage } from '@/services/MessageHandler/MessageHandler'
@@ -52,7 +53,6 @@ import { MessageHandler, MessageType, UserMessage } from '@/services/MessageHand
 /** icons */
 import { mdiSendCircleOutline } from '@mdi/js'
 import SvgIcon from '@jamescoyle/vue-icon'
-import { mode } from 'crypto-js'
 
 export default defineComponent({
 
@@ -380,14 +380,14 @@ export default defineComponent({
 
     async register (): Promise <boolean> {
       if (!this.chatHandler) {
-        this.toast(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
+        this.toast.warning(this.$t('services.chat.errors.chatHandlerIsNotAvailable'))
         return false
       }
 
       const result = await this.chatHandler.register(this.userData?.username || 'noname', this.room)
 
       if (!result) {
-        this.toast(this.$t('services.chat.errors.canNotConnectChat'))
+        this.toast.error(this.$t('services.chat.errors.canNotConnectChat'))
       }
       return result
     },
@@ -520,7 +520,7 @@ export default defineComponent({
                   onClick={() => this.addMessage()} 
                 >
                   {{
-                    icon: () => <SvgIcon type={'mdi'} path={this.sendIconPath} />
+                    icon: () => h(SvgIcon, { type: 'mdi', path: this.sendIconPath})
                   }}
                 </Button>
               </InputGroupAddon>

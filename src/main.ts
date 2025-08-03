@@ -6,13 +6,13 @@ import { store } from '@/store'
 import { createI18n } from 'vue-i18n'
 import ruLocale from '@/langs/ru.json'
 import enLocale from '@/langs/en.json'
-import Toast, { PluginOptions, POSITION } from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
 import PrimeVue from 'primevue/config'
 import { Ripple } from 'primevue'
 import { MyPreset } from '@/assets/styles/myPreset'
+import ToastService from 'primevue/toastservice'
 
-const i18n = createI18n({
+export const i18n = createI18n({
   locale: 'ru-RU',
   messages: {
     'ru-RU': ruLocale,
@@ -22,17 +22,8 @@ const i18n = createI18n({
   legacy: false
 })
 
-const toastOptions: PluginOptions = {
-  position: POSITION.BOTTOM_CENTER,
-  closeOnClick: true,
-  hideProgressBar: true,
-  toastClassName: 'toast-container',
-  maxToasts: 10
-}
-
 createApp(App)
-  // .use(store, keyMain, keyDevices)
-  .use(Toast, toastOptions)
+  .use(ToastService)
   .use(router)
   .use(vueCookies)
   .use(i18n)
@@ -46,5 +37,6 @@ createApp(App)
   .directive('ripple', Ripple)
   .provide <Crypto> ('crypto', globalThis.crypto)
   .mount('#app')
+
 
   

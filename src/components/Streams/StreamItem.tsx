@@ -11,9 +11,8 @@ import { User } from '@/types/global'
 import '@/components/Streams/StreamItem.scss'
 
 /** component */
-import Label from '@/components/general/Label/Label'
-import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import LiveIndicator from '@/components/LiveIndicator/LiveIndicator'
+import { Button, Avatar } from 'primevue' 
 
 /** icons */
 import CardsPic from '@/assets/images/small/error_16dp.svg'
@@ -21,11 +20,6 @@ import CardsPic from '@/assets/images/small/error_16dp.svg'
 export default defineComponent({
 
   name: 'StreamItem',
-
-  components: {
-    Label,
-    TextButton
-  },
 
   props: {
     stream: {
@@ -62,34 +56,23 @@ export default defineComponent({
 
   render (): VNode {
     return <div  class='streamer-item'>
-      <div class='streamer-item__description'>
-        
-        <div class='streamer-item__description_header'>
-          {
-            [
-              <div class='streamer-item__indicator'>
-                <LiveIndicator live={this.online} />
-              </div>,
-              <h3>{ this.stream.username || 'some streamer' }</h3>
-            ]
-          }
+      <div class='streamer-item__avatar'>
+        <Avatar image={this.stream.avatar || 'src/assets/images/small/error_16dp.svg'} size='xlarge' shape='circle' />
+      </div>
+        <div class='streamer-item__header'>
+          {[
+              <LiveIndicator live={this.online}/>,
+              <h5>{ this.stream.username || 'some streamer' }</h5>
+          ]}
         </div>
 
-        <Label text={'some stream description'} />
-
-        <TextButton 
-          text={this.$t('common.join')}
+        <Button
+          label={this.$t('common.join')}
           onClick={() => this.onJoin()}
+          variant='secondary'
+          raised
+          size='small'
         />
-      </div>
-
-      <div class='streamer-item__avatar'>
-        {
-          this.avatar 
-            ? <img src={this.avatar} class='streamer-item__avatar_img'/>
-            : <CardsPic/>
-        }
-      </div>
     </div>
   }
 })

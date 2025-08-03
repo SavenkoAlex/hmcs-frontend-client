@@ -28,3 +28,9 @@
     background-color: var(--p-slate-200);
   }
 }
+
+.toast-summary {
+  @media  (max-width: 767px) {
+    font-size: 14px !important;
+  }
+}

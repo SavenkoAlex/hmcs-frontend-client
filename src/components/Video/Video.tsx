@@ -9,6 +9,7 @@ import {
 
 import './Video.scss'
 
+
 export default defineComponent({
 
   name: 'BaseVideo',
@@ -44,6 +45,11 @@ export default defineComponent({
     pictureInPictureMode: {
       type: Boolean as PropType <boolean>,
       default: false
+    },
+
+    poster: {
+      type: String as PropType <string>,
+      default: 'src/assets/images/taro-bg.jpg'
     }
   },
 
@@ -144,7 +150,6 @@ export default defineComponent({
           ref={'video'}
           autoplay
           playsinline
-          //onMousedown={() => console.log('!!!')}
         > 
           { this.notSupprtedText }
         </video>
