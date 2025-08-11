@@ -3,10 +3,10 @@ import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import svgLoader from 'vite-svg-loader'
 import resolve from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'node:url'
+import commonjs from 'vite-plugin-commonjs'
 
 const externalId = fileURLToPath(new URL('node_modules/janus-gateway/dist/janus.es.js', import.meta.url))
 
@@ -69,10 +69,6 @@ export default defineConfig({
     include: ['node_modules']
   },
   build: {
-    commonjsOptions: {
-      include: [/node_modules/],
-      esmExternals: true
-    },
     rollupOptions: {
       treeshake: false,
       external: [externalId],
@@ -86,4 +82,3 @@ export default defineConfig({
     }
   },
 })
-
