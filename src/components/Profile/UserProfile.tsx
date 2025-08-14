@@ -8,7 +8,7 @@ import {
 
 /** types */
 import { User, chatKey, publisherHandlerKey, subscriberHandlerKey} from '@/types/global'
-import { UserDataProfile } from '@/components/Profile/types'
+import { UserDataProfile, MIN_AMOUNT } from '@/components/Profile/types'
 import { States } from '@/types/store'
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
@@ -18,15 +18,11 @@ import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 import userApi from '@/api/user'
 
 /** components */
-import TextButton from '@/components/general/Buttons/TextButton/TextButton'
-import IconButton from '@/components/general/Buttons/IconButton/IconButton'
-import Label from '@/components/general/Label/Label'
-import TextInput from '@/components/general/inputs/TextInput/TextInput'
-import { Card, Button, Avatar, InputText }  from 'primevue'
+import { Card, Button, Avatar, InputText, OverlayBadge }  from 'primevue'
 
 /** icons */
-import { mdiPlus } from '@mdi/js';
 import SvgIcon from '@jamescoyle/vue-icon'
+import { mdiPlus } from '@mdi/js';
 
 /** styles */
 import '@/components/Profile/Profile.scss'
@@ -48,10 +44,6 @@ export default defineComponent({
   },
 
   components: {
-    TextButton,
-    IconButton,
-    Label,
-    TextInput,
     Card
   },
 
@@ -92,7 +84,7 @@ export default defineComponent({
       },
       repeatPassword: '',
       newPassword: '',
-      plusIconPath: mdiPlus
+      plusIconPath: mdiPlus,
     }
   },
   
@@ -152,10 +144,17 @@ export default defineComponent({
   },
 
   render (): VNode {
-    const cardTitle = <Avatar
-      image={this.avatarSrc}
-      size={'xlarge'}
-    />
+    const cardTitle = <OverlayBadge 
+      value={this.userAmount} 
+      severity={this.userAmount >= MIN_AMOUNT ? 'success' :  'danger'}
+      class='inline-flex'
+    >
+      <Avatar
+        image={this.avatarSrc}
+        size={'xlarge'}
+        shape='circle'
+      />
+    </OverlayBadge>
 
     const cardSubtitle = <Button
       label={this.userAmount.toString()}
@@ -164,7 +163,7 @@ export default defineComponent({
       raised
     >   
       {{
-        icon: () => h(SvgIcon, { path: this.plusIconPath, type: 'mdi', size: '1rem'})
+        icon: () => h(SvgIcon, { path: this.plusIconPath, type: 'mdi' })
       }} 
     </Button>
 
@@ -243,19 +242,23 @@ export default defineComponent({
           root: {
             style: {
               width: '100%',
-              height: '100%',
+              height: '100%'
             }
           },
           body: {
-            style: {
-              height: '100%'
-            }
+            class: 'user-profile__body'
+          },
+          header: {
+            class: 'user-profile__header'
+          },
+          title: {
+            class: 'user-profile__title'
           }
         }}
       >
         {{
+          header: () => <img src={'/images/taro-bg.jpg'}/>,
           title: () => cardTitle,
-          subtitle: () => cardSubtitle,
           content: () => cardContent,
           footer: () => cardFooter
         }}
