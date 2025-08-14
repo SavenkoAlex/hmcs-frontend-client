@@ -32,11 +32,36 @@
     display: inline-flex;
     flex: 0 1 auto;
   }
+
+  &__title {
+    @media  (max-width: 647px) {
+      position: absolute;
+      top: 15vh;
+    }
+  }
+
   &__header {
     width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+
+    @media  (max-width: 647px) {
+      width: 100%;
+      height: 12%;
+      overflow: hidden;
+      display: inline-flex;
+      flex: 0 0 6rem;
+
+      img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+        background-color: var(--p-slate-100);
+      }
+    }
+  }
+
+  &__body {
+    display: inline-flex;
+    flex: 1 0 auto;
   }
 
   &__amount {
