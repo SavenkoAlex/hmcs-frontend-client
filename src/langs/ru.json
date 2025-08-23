@@ -34,7 +34,13 @@
     },
     "publisher": {
       "createRoom": "создать комнату",
-      "destroyRoom": "удалить комнату"
+      "destroyRoom": "удалить комнату",
+      "call": {
+        "title": "вызов",
+        "accept": "принять",
+        "decline": "отклонить",
+        "requestFrom": "запрос от"
+      }
     },
     "notFound": {
       "text": "Страница не найдена"

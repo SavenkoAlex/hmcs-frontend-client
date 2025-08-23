@@ -1,6 +1,5 @@
 import Janus, { JanusJS } from 'janus-gateway'
 import { StreamHandler } from '@/services/webrtc/webrtcAbstract'
-import { UserMessage } from '@/services/MessageHandler/MessageHandler'
 
  import { 
   JanusPlugin,   
@@ -109,7 +108,7 @@ export class ChatHandler extends StreamHandler {
 
   async handle () {
     const janusHandlers = await this.handler()
-    if (!janusHandlers?.janusHandler|| !janusHandlers?.janusInstance) {
+    if (!janusHandlers?.janusHandler || !janusHandlers?.janusInstance) {
       return
     }
     this.handlerInstance = janusHandlers.janusHandler

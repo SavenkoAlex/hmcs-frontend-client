@@ -283,6 +283,7 @@ export default defineComponent({
       const type = text?.type
       message = { ...message, ...{ text: text?.text || '' } }
 
+      console.log('message', message)
       switch (type) {
         case MessageType.JOINREQUEST:
           this.$emit('join-request', message)
