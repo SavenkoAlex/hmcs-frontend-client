@@ -9,6 +9,9 @@ import {
 
 import './Video.scss'
 
+/**components */
+import { Skeleton } from 'primevue'
+
 
 export default defineComponent({
 
@@ -21,21 +24,25 @@ export default defineComponent({
   },
 
   props: {
+
     /** stream */
     srcObject: {
       type: Object as PropType <MediaStream | undefined>,
       default: undefined
     },
+
     /** autoplay */
     autoplay: {
       type: Boolean as PropType <boolean>,
       default: true
     },
+
     /** playsinline */
     playsinline: {
       type: Boolean as PropType <boolean>,
       default: true
     },
+
     /** not supported text */
     notSupprtedText: {
       type: String as PropType <string>,
@@ -146,7 +153,7 @@ export default defineComponent({
         onPointerdown={ (event: MouseEvent) => this.onDrag(event)}  
         onDblclick={ (event: MouseEvent) => this.$emit('dbclick', event)}
       >
-        <video 
+        <video
           ref={'video'}
           autoplay
           playsinline

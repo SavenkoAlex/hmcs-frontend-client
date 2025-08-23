@@ -31,8 +31,7 @@ input {
 
 @font-face {
   font-family: 'Inter-V';
-  src: url('.../fonts/InterVariable.woff2') format('woff2-variations');
-  src: local('Inter-Thin');
+  src: url('/fonts/InterVariable.woff2') format('woff2-variations');
   font-weight: 100 900;
   font-display: fallback;
   font-style: oblique 0deg 10deg;
