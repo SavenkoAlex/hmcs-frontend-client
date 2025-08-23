@@ -2,13 +2,13 @@
   display: flex;
   flex-direction: column;
   justify-content: start;
+  align-items: center;
   width: 100%;
   height: 100%;
+  padding: 1rem;
 
-  &__title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  &__username {
+    padding-top: .2rem;
   }
 
   &__content {
@@ -27,36 +27,42 @@
     justify-content: flex-end;
   }
 
+  &__header {
+    display: flex;
+    flex-direction: column;
+  }
+
   &__logout {
     width: 100%;
     display: inline-flex;
     flex: 0 1 auto;
   }
 
+  &__avatar {
+    display: flex;
+    margin-left: 2.5rem;
+  }
+
   &__title {
-    @media  (max-width: 647px) {
-      position: absolute;
-      top: 15vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__image {
+    @media (max-width: 767px) {
+      width: 7rem !important;
+      height: 7rem !important;
     }
   }
 
-  &__header {
-    width: 100%;
-
-    @media  (max-width: 647px) {
-      width: 100%;
-      height: 12%;
-      overflow: hidden;
-      display: inline-flex;
-      flex: 0 0 6rem;
-
-      img {
-        width: 100%;
-        height: auto;
-        object-fit: cover;
-        background-color: var(--p-slate-100);
-      }
-    }
+  &__edit-button {
+    position: relative;
+    top: 0; 
+    bottom: 0;
+    padding: 0;
+    margin: 0;
+    left: -1rem;
   }
 
   &__body {
@@ -66,21 +72,23 @@
 
   &__amount {
     display: inline-flex;
-    flex-direction: column;
     justify-content: flex-start;
+    align-items: center;
+    padding: .5rem 1rem;
+    background-color: var(--p-slate-300);
+    border: 1px solid var(--p-slate-400);
+    border-radius: .5rem;
+    font-size: large;
+    color: var(--p-slate-700);
+    opacity: .8;;
   }
 
-  &__avatar {
+  &__increase-button {
     display: inline-flex;
-    align-self: flex-end;
-
-    &_img {
-      object-fit: fill;
-      width: 8rem;
-      border-radius: 50%;
-    }
+    margin-left: auto;
   }
 
+  
   &__form {
     width: 100%;
     display: flex;

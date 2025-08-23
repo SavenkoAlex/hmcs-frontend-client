@@ -382,7 +382,6 @@ export default defineComponent({
 
           newPublishers.push({ id: publisher?.id, display: publisher?.display })
         }
-        console.log(newPublishers)
         this.acceptStreams(newPublishers)
       })
     },

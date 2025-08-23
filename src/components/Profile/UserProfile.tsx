@@ -18,11 +18,11 @@ import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 import userApi from '@/api/user'
 
 /** components */
-import { Card, Button, Avatar, InputText, OverlayBadge }  from 'primevue'
+import { Card, Button, Avatar, InputText, SplitButton }  from 'primevue'
 
 /** icons */
 import SvgIcon from '@jamescoyle/vue-icon'
-import { mdiPlus } from '@mdi/js';
+import { mdiPencil, mdiPlus } from '@mdi/js';
 
 /** styles */
 import '@/components/Profile/Profile.scss'
@@ -69,7 +69,8 @@ export default defineComponent({
       const representation = this.userData.avatar
 
       return `data:image/jpg;base64,${representation}`
-    }
+    },
+
   },
 
   data(): UserDataProfile {
@@ -84,7 +85,8 @@ export default defineComponent({
       },
       repeatPassword: '',
       newPassword: '',
-      plusIconPath: mdiPlus,
+      penIconPath: mdiPencil,
+      plusIcon: mdiPlus
     }
   },
   
@@ -144,31 +146,63 @@ export default defineComponent({
   },
 
   render (): VNode {
-    const cardTitle = <OverlayBadge 
-      value={this.userAmount} 
-      severity={this.userAmount >= MIN_AMOUNT ? 'success' :  'danger'}
-      class='inline-flex'
-    >
-      <Avatar
-        image={this.avatarSrc}
-        size={'xlarge'}
-        shape='circle'
-      />
-    </OverlayBadge>
+    const cardTitle = <div class='user-profile__header'>
+      <div class='user-profile__avatar'>
+        <Avatar
+          shape='circle'
+          image='images/logo.svg'
+          pt={{
+            root: {
+              class: 'user-profile__image',
+            }
+          }}
+        />
+        <Button 
+          rounded 
+          variant='text'
+          aria-label='Edit' 
+          pt={{ 
+            root: { 
+              class: 'user-profile__edit-button' 
+            } 
+          }}
+        >
+          {{
+            icon: () => h(SvgIcon, { type: 'mdi', path: this.penIconPath})
+          }}
+        </Button>
+      </div>
+      <div class='user-profile__title'>
+        <label
+          class={'user-profile__username'}
+        >
+          {this.userData?.username || 'Anonymous'}
+        </label>
+      </div>
+    </div>
+      
 
-    const cardSubtitle = <Button
-      label={this.userAmount.toString()}
-      size='small'
-      variant='outlined' 
-      raised
-    >   
-      {{
-        icon: () => h(SvgIcon, { path: this.plusIconPath, type: 'mdi' })
-      }} 
-    </Button>
 
     const cardContent = <div class='user-profile__content'>
 
+      <div class='user-profile__amount'>
+        <div class='user-profile__balance'> 
+          <span> {`${this.$t('amount.balance')}: `} </span>
+          <span>{this.userAmount || 0} </span>
+        </div>
+        <div class='user-profile__increase-button'>
+          <Button 
+            severity='contrast' 
+            variant='text' 
+            rounded 
+            aria-label='Increase' 
+          >
+            {{
+              icon: () => h(SvgIcon, { type: 'mdi', path: this.plusIcon})
+            }}
+          </Button>        
+        </div>
+      </div>
       <InputText
         placeholder= {this.$t('common.username')}
         modelValue={this.userData?.username || ''}
@@ -237,32 +271,11 @@ export default defineComponent({
     </div>
 
     return <div class='user-profile'>
-      <Card
-        pt={{
-          root: {
-            style: {
-              width: '100%',
-              height: '100%'
-            }
-          },
-          body: {
-            class: 'user-profile__body'
-          },
-          header: {
-            class: 'user-profile__header'
-          },
-          title: {
-            class: 'user-profile__title'
-          }
-        }}
-      >
-        {{
-          header: () => <img src={'/images/taro-bg.jpg'}/>,
-          title: () => cardTitle,
-          content: () => cardContent,
-          footer: () => cardFooter
-        }}
-      </Card>
+      {[
+          cardTitle,
+          cardContent,
+          cardFooter
+      ]}
     </div>
   }
 })
