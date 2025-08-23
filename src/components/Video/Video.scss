@@ -29,9 +29,12 @@
   }
 
   video {
-    object-fit: cover;
     width: 100%;
     height: auto;
+    max-height: 60vh; /* Оставляем 40% экрана для контента */
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 }
 
