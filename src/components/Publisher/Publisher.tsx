@@ -11,17 +11,15 @@ import {
 import './Publisher.scss'
 
 /** components */
-import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import StateBar from '@/components/StateBar/StateBar'
 import Chat from '@/components/Chat/Chat'
 import BaseVideo from '@/components/Video/Video'
 import Loader from '@/components/general/Loader/Loader' 
 import DeviceConfigurationModal from '@/components/DeviceController/DeviceConfigurationModal'
-import Skeleton from 'primevue/skeleton'
+import CallModal from '@/components/Publisher/CallModal'
 
 /** types */
-import { UserRole, MediaDevice, publisherHandlerKey, VideoErrorState, subscriberHandlerKey } from '@/types/global'
-import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
+import { UserRole, MediaDevice, publisherHandlerKey, VideoErrorState, subscriberHandlerKey, chatKey } from '@/types/global'
 import { States } from '@/types/store'
 import { 
   VideoRoomPluginError, 
@@ -29,6 +27,7 @@ import {
   LeavMessage, 
   PublisherDescription, 
 } from '@/types/janus'
+
 import { JanusJS } from 'janus-gateway'
 
 /** store */
@@ -42,6 +41,9 @@ import { useToast } from '@/services/toast/toast';
 
 /**eventBus */
 import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
+import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
+import { MessageHandler, MessageType } from '@/services/MessageHandler/MessageHandler'
 
 export default defineComponent({
 
@@ -50,12 +52,12 @@ export default defineComponent({
   emits: ['inithandler'],
 
   components: {
-    TextButton,
     Chat,
     BaseVideo,
     RoomLayout,
     Loader,
-    DeviceConfigurationModal
+    DeviceConfigurationModal,
+    CallModal
   },
 
   computed: {
@@ -110,6 +112,7 @@ export default defineComponent({
     const crypto = inject<Crypto>('crypto')
     const publisherHandler = inject <PublisherStreamHandler | null> (publisherHandlerKey, null)
     const subscriberHandler = inject <SubscriberStreamHandler | null> (subscriberHandlerKey, null)
+    const chatHandler = inject <ChatHandler | null> (chatKey, null)
     const isStreamConfigured = ref<boolean> (false)
     const isLoading = ref<boolean>(false)
     const toast = useToast()
@@ -119,7 +122,9 @@ export default defineComponent({
     const secret = ref<string | null>(null)
     const isReadyToPrivate = ref<boolean>(false)
     const publishers = ref <Record <number, PublisherDescription>> ({})
-
+    const isCallModalVisible = ref <boolean> (false)
+    const requestMessage = ref <JanusJS.Message | null> (null)
+    
     return {
       publisherNode,
       clientNode,
@@ -139,7 +144,10 @@ export default defineComponent({
       secret,
       isReadyToPrivate,
       subscriberHandler,
-      publishers
+      publishers,
+      isCallModalVisible,
+      requestMessage,
+      chatHandler
     }
   },
 
@@ -461,6 +469,38 @@ export default defineComponent({
 
     onJoinRequest (msg: JanusJS.Message) {
       console.log('on join request', msg)
+      this.requestMessage = msg
+      this.isCallModalVisible = true
+    },
+
+    acceptCall () {
+      this.isCallModalVisible = false
+      this.sendPrivateResponseOffer(true)
+    },
+
+    declineCall () {
+      this.isCallModalVisible = false
+      this.sendPrivateResponseOffer(false)
+    },
+
+    async sendPrivateResponseOffer (accepted: boolean) {
+      if (!this.chatHandler) {
+        console.warn('no chat plugin handler')
+        return 
+      }
+
+      if (!this.chatRoom) {
+        return
+      }
+
+      const message = MessageHandler.packMessage(accepted ? MessageType.REQUESTALLOWED : MessageType.REQUESTDECLINED)
+
+      if (!message || !this.chatRoom) {
+        console.warn('no message')
+        return
+      }
+
+      this.chatHandler.sendMessage(message, this.chatRoom)
     }
   },
 
@@ -483,6 +523,14 @@ export default defineComponent({
   },
 
   render (): VNode {
+    const callModal = <CallModal
+      isVisible={this.isCallModalVisible}
+      message={this.requestMessage as {from: string, date: string}}
+      onAccept={this.acceptCall}
+      onClose={this.declineCall}
+      onDecline={this.declineCall}
+    />
+
     return <RoomLayout>
       {{
         media: () => <div class="publisher__media">
@@ -529,6 +577,7 @@ export default defineComponent({
           }
         </div>,
         default: () => <div>
+          { callModal }
           <DeviceConfigurationModal
             isModalVisible={this.isDeviceConfigurationVisible}
             onApplydevices={() => this.applyDevices}

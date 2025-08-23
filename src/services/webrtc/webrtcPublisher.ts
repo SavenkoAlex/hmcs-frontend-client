@@ -115,7 +115,6 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
         this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
       }
     })
-
   }
 
   protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT | 'event', msg: JanusJS.Message) {

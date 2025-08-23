@@ -354,6 +354,15 @@ export default defineComponent({
       }
 
       this.chatPluginHandler.sendMessage(message, this.chatRoom)
+    },
+
+    onRequestAllowed () {
+      console.log('request allowed')
+      this.onRequestPublish()
+    },
+
+    onRequestDeclined () {
+      console.log('request declined')
     }
   },
 
@@ -414,6 +423,8 @@ export default defineComponent({
               chatName={this.publisherName || '-'}
               room={this.chatRoom}
               isStreamAvailable={this.isJoined}
+              onRequest-allowed={this.onRequestAllowed}
+              onRequest-declined={this.onRequestDeclined}
             />
           }
         </div>,
