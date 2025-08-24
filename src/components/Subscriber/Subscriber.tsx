@@ -194,7 +194,7 @@ export default defineComponent({
     const subscriberStream = ref <MediaStream> ()
 
     const constraints = {
-      audio: false,
+      audio: true,
       video: true
     }
     const subscriberName = ref <string>('sasha the programmer')
