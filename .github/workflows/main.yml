@@ -3,6 +3,7 @@ on:
   push:
     branches: 
       - main
+      - beta
   pull_request:
     branches:
       - main
@@ -10,28 +11,38 @@ on:
 env:
   BUILD_ARTIFACT: 'build-artifact'
   ARTIFACT_PATH: 'dist'
-
+  VITE_WEBRTC_SERVER: '/janus'
+  VITE_STORAGE_KEY: 'ff3490c3-9191-4b02-8b98-cb0ceb40ac45'
+  VITE_USER_DATA: 'd4a251e9-c34f-44c5-9b4a-b942f20a4cab'
+  VITE_IS_AUTHENTIFICATED: '3a7e86da-7755-4fa5-a3a1-195bad874af4'
+  VITE_ACCESS_TOKEN: 'aae00ff1-9aac-4192-b8d3-52c1f3f61521'
+  VITE_AMOUNT: '1ddfa187-beb8-4ef0-ad78-1ce37e205b26'
+  
 jobs:
   build:
     runs-on: ubuntu-latest
-    env: 
-      VITE_ACCESS_TOKEN: ${{ vars.vite_build.VITE_ACCESS_TOKEN }}
-      VITE_AMOUNT: ${{ vars.vite_build.VITE_AMOUNT }}
-      VITE_IS_AUTHENTIFICATED: ${{ vars.vite_build.VITE_IS_AUTHENTIFICATED }}
-      VITE_STORAGE_KEY: ${{ vars.vite_build.VITE_STORAGE_KEY }}
-      VITE_USER_DATA: ${{ vars.vite_build.VITE_USER_DATA }}
-      VITE_WEBRTC_SERVER: ${{ vars.vite_build.VITE_WEBRTC_SERVER }}
+    environment: production
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
+      
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+    - run: |
+        touch .env.local
+        echo VITE_WEBRTC_SERVER=${{ env.VITE_WEBRTC_SERVER }} >> .env.local
+        echo VITE_STORAGE_KEY=${{ env.VITE_STORAGE_KEY }} >> .env.local
+        echo VITE_USER_DATA=${{ env.VITE_USER_DATA }} >> .env.local
+        echo VITE_IS_AUTHENTIFICATED=${{ env.VITE_IS_AUTHENTIFICATED }} >> .env.local
+        echo VITE_ACCESS_TOKEN=${{ env.VITE_ACCESS_TOKEN }} >> .env.local
+        echo VITE_AMOUNT=${{ env.VITE_AMOUNT }} >> .env.local
+    - run: cat .env.local
     - run: npm ci
     - run: npm run build --if-present
     - run: tar -cvf "${{ env.ARTIFACT_PATH }}.tar.gz" ${{env.ARTIFACT_PATH }}
@@ -41,6 +52,7 @@ jobs:
       with:
         name: ${{ env.BUILD_ARTIFACT }}
         path: "${{ env.ARTIFACT_PATH }}.tar.gz"
+
     
   semantic:
     runs-on: ubuntu-latest
@@ -54,7 +66,6 @@ jobs:
         with:
           name: ${{ env.BUILD_ARTIFACT }}
           path: "${{ env.ARTIFACT_PATH }}.tar.gz"
-      - run: ls -1lr
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
         with:

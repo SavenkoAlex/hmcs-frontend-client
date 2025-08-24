@@ -1,18 +1,20 @@
+@use '../../assets/styles/colors.scss' as colors;
+
 .live-indicator__lamp {
   display: inline-block;
-  height: 16px;
-  width: 16px;
+  height: .8rem;
+  width: .8rem;
   border-radius: 50%;
   animation: blink 1.5s infinite;
   opacity: .5;
 }
 
 [user-data^="online"] {
-  background-color: $secondary-3;
+  background-color: colors.$secondary-3;
 }
 
 [user-data^="offline"] {
-  background-color: $primary-10;
+  background-color: colors.$primary-10;
 }
 
 @keyframes blink {

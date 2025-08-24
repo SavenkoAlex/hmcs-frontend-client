@@ -13,7 +13,10 @@
       "password": "пароль",
       "register": "Регистрация",
       "success": "успешно",
-      "error": "ошибка входа"
+      "error": "ошибка входа",
+      "errors": {
+        "login": "Учетные данные введены неверно"
+      }
     },
 
     "registerForm": {
@@ -31,7 +34,13 @@
     },
     "publisher": {
       "createRoom": "создать комнату",
-      "destroyRoom": "удалить комнату"
+      "destroyRoom": "удалить комнату",
+      "call": {
+        "title": "вызов",
+        "accept": "принять",
+        "decline": "отклонить",
+        "requestFrom": "запрос от"
+      }
     },
     "notFound": {
       "text": "Страница не найдена"
@@ -46,12 +55,12 @@
     }
   },
   "routes": {
-    "streams": "Стримы",
-    "stream": "Стрим",
+    "streams": "Эфиры",
+    "stream": "Эфир",
     "login": "Вход",
     "register": "Регистрация",
     "user": "Профиль",
-    "live": "Стрим"
+    "live": "Эфир"
   },
   "common": {
     "apply": "применить",
@@ -64,6 +73,10 @@
     "repeatPassword":"повторите пароль",
     "save": "сохранить"
   },
+  "amount": {
+    "balance": "баланс",
+    "increase": "пополнить"
+  },
   "components": {
     "deviceController": {
       "devicesNotFound": "устройства не найдены",
@@ -72,7 +85,8 @@
       "mics": "Микрофоны"
     },
     "chat": {
-      "defaultChatName": "общий чат с"
+      "defaultChatName": "общий чат с",
+      "welcomeMessage": "Добро пожаловать в чат"
     },
     "streams": {
       "streamsListEmpty": "стримы не найдены, попробуйте позже"
@@ -81,8 +95,42 @@
   "services": {
     "webrtc": {
       "errors": {
-        "webRTCIsNotAvailable": "Соединение не установлено, передача видео не возможна"
+        "webRTCIsNotAvailable": "Соединение не установлено, попробуйте обновить страницу",
+        "canNotStartStream": "Не возможно начать эфир",
+        "canNotStopStream": "Не возможно остановить эфир",
+        "userVideoIsNotAvailable": "Видео пользователя недоступно",
+        "commonStreamError": "Произошла ошибка при передаче видео, попробуйте обновить страницу",
+        "canNotConnectStream": "Не удалось подключиться к эфиру",
+        "canNotStartPrivate": "Не удалось начать приватгновый эфир"
+      },
+      "success": {
+        "streamStarted": "Эфир начался, Вы онлайн",
+        "streamStopped": "Эфир закончен",
+        "webRTCIsAvailable": "Соединение c сервером установлено"
+      },
+      "info": {
+        "tryToRestartStream": "Попробуйте перезапустить эфир",
+        "webRTCIsDisconnected": "Соединение с сервером разорвано",
+        "reloadToStart": "Что бы снова начать эфир - обновите страницу",
+        "noFeed": "Эфир недоступен",
+        "hasLeft": "покинул эфир"
+      }
+    },
+    "chat": {
+      "errors": {
+        "chatHandlerIsNotAvailable": "Чат недоступен",
+        "canNotConnectChat": "Не удалось подключиться к чату"
+      },
+      "success": {
+        "chatConnected": "Соединение с чатом установлено"
       }
     }
+  },
+
+  "toast": {
+    "error": "ошибка",
+    "success": "успех",
+    "info": "информация",
+    "warning": "предупреждение"
   }
 }

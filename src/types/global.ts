@@ -1,6 +1,11 @@
-import eventEmitter from 'events'
 import Janus, { JanusJS } from 'janus-gateway'
 import { InjectionKey } from 'vue'
+import { VideoRoomPluginError } from '@/types/janus'
+import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
+import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
+import emitter from '@/services/eventBus'
+
+export type MaybeId = string | number | unknown
 
 export type Room = {       
   room : number
@@ -30,6 +35,27 @@ export type Room = {
   'videoorient_ext': boolean
   'playoutdelay_ext': boolean
   'transport_wide_cc_ext': boolean
+}
+
+/** Stream data  for attached event*/
+export type Stream = {
+  mindex: MaybeId,
+  mid: MaybeId,
+  type: 'audio' | 'video' | 'data',
+  active: boolean,
+  feed_id: MaybeId,
+  feed_mid: MaybeId,
+  feed_display: Maybe <string>,
+  send: boolean,
+  codec: Maybe <string>,
+  'h264-profile': unknown,
+  'vp9-profile': unknown,
+  ready: boolean,
+  simulcast: unknown,
+  svc: unknown,
+  'playout-delay': unknown,
+  sources: Maybe<number>
+  source_ids: string[]
 }
 
 /** Join response data */
@@ -135,14 +161,14 @@ export type UserAccount = {
   amount: number
 }
 
-
-export const storeUserKeyMap: Record <keyof User, string> = {
+export const storeUserKeyMap: Record <keyof User & keyof UserAccount, string> = {
   login: 'nl',
   username: 'eu',
   role: 'er',
   id: 'di',
   avatar: 'av',
-  streamId: 'si'
+  streamId: 'si',
+  amount: 'ma'
 }
 
 /** session storage key */
@@ -172,8 +198,8 @@ export type Handler = JanusJS.PluginHandle
 
 /** webrtc plugin init function result */
 export type InitResult <T extends Handler>= {
-  handler: T,
-  emitter: eventEmitter.EventEmitter
+  emitter: ReturnType <typeof emitter>,
+  handler: () => Promise<{janusHandler: T, janusInstance: Janus} | null>
 } | null
 
 /** janus plugins */
@@ -184,21 +210,63 @@ export const enum JanusPlugin {
 
 /** plugin handler parameters */
 export interface HandlerDescription {
-  streamId: number
+  // stream id of publisher used as room id
+  roomId: number
   displayName: string,
 }
 
 export type WebRTCHandlerConstructor = {
-  plugin: typeof Janus,
-  handler: JanusJS.PluginHandle, 
-  emitter: eventEmitter.EventEmitter,
-  options?: HandlerDescription
+  handler: () => Promise <{ janusHandler: JanusJS.PluginHandle, janusInstance: Janus }| null>, 
+  emitter: ReturnType<typeof emitter>,
+  options: HandlerDescription
 }
 
 /** plugin handlers */
-export const supKey = Symbol('subscriberHandler') as InjectionKey<string>
-export const pubKey = Symbol('publisherHandler') as InjectionKey<string>
+export const subscriberHandlerKey = Symbol('subscriberHandler') as InjectionKey <string>
+export const publisherHandlerKey = Symbol('publisherHandler') as InjectionKey <string>
 export const chatKey = Symbol('chatHandler') as InjectionKey<string>
 
 /** outputs type */
 export type Output = 'log' | 'error' | 'warn'
+
+/** 
+ * default retry number 
+ * count of same plugin error that can be handled some how
+ */
+export const errorRetryNumber = 3
+
+/**
+ * video server response error code with number of attempts to fix 
+ */
+export type VideoErrorState = {
+  state: VideoRoomPluginError,
+  retry: number
+}
+
+/** video handler */
+export type VideoHandler <T extends UserRole> = T extends UserRole.WORKER
+  ? PublisherStreamHandler
+  : SubscriberStreamHandler
+
+export type ConnectionState = 'connected' | 'failed' | 'disconnected' | 'closed'
+export type MediaState = { medium: 'audio' | 'video', receiving: boolean, mid?: number }
+export type SlowLink = { uplink: boolean, lost: number, mid: string }
+export type RemoteTrack = { 
+  track: MediaStreamTrack, 
+  mid: string, 
+  on: boolean,
+  metadata?: unknown
+}
+export type LocalTrack = { 
+  track: MediaStreamTrack, 
+  on: boolean
+}
+
+export type JanusMessageEvent = {
+  msg: JanusJS.Message,
+  jsep?: JanusJS.JSEP
+}
+/** Prefix type need to avoid mixinf events */
+export type Prefix <T extends string, K extends string> = `${T}-${K}`
+
+export type HandlerType = 'pub' | 'sub' 

@@ -14,7 +14,7 @@ import {
 export const user: Module <UserState, State> = {
   namespaced: true,
   state: {
-    amount: <number> encryptStorage.getItem(amount) || 0,
+    amount: <string> encryptStorage.getItem(amount),
     accessToken: localStorage.getItem('accessToken'),
     isAuthentificated: <boolean> encryptStorage.getItem(isAuthentificated),
     userData: <string> encryptStorage.getItem(userData)
@@ -24,4 +24,4 @@ export const user: Module <UserState, State> = {
   mutations
 }
 
-export const userStateKey: InjectionKey <Store <UserState>> = Symbol()
+export const userStateKey: InjectionKey <Store <UserState>> = Symbol('user')

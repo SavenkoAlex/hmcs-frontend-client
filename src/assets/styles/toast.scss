@@ -1,0 +1,8 @@
+.toast-container {
+  @media (max-width: 430px) {
+    border: 5px solid inherit;
+    border-radius: 1rem !important;
+    width: 98vw !important;
+    margin-left: 1vw;
+  }
+}

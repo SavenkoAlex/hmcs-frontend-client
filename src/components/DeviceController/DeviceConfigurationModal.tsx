@@ -1,0 +1,234 @@
+import {
+  defineComponent,
+  VNode,
+  PropType,
+} from 'vue'
+
+/** store */
+import { 
+  mapActions,
+  mapGetters
+} from 'vuex'
+
+/** styles */
+import '@/components/DeviceController/DeviceConfigurationModal.scss'
+
+/** types */
+import { 
+  Data,
+ } from '@/components/DeviceController/types'
+
+ import { 
+  ValidationError,
+  MediaDevice,
+  AudioInputKind
+ } from '@/types/global'
+
+/** components */
+import Modal from '@/components/general/Modal/Modal'
+import Label from '@/components/general/Label/Label'
+import { SidePosition } from '@/types/global'
+import { Button, Checkbox } from 'primevue'
+
+/** constants */
+import { VideoInputKind, MaxCameras, MaxMics } from '@/types/global'
+
+/** helpers */
+import { MediaControl } from '@/services/mediaDevice/mediaControl'
+
+export default defineComponent({
+
+  name: 'DeviceConfigurationModal',
+
+  emits: ['applydevices', 'closedevicesconfiguration'],
+
+  props: {
+
+    isModalVisible: {
+      type: Boolean as PropType <boolean>,
+      default: false
+    }
+  },
+
+  computed: {
+    ...mapGetters('app', ['devices']),
+  },
+
+  watch: {
+    isModalVisible (newValue) {
+      if (!newValue) {
+        return
+      }
+
+      this.showCameraModal()
+    }
+  },
+
+  data (): Data {
+    return {
+      devicesValidationError: null,
+      cameras: [],
+      mics: []
+    }
+  },
+
+  methods: {
+    ...mapActions('app', ['setDevice']),
+
+    /**
+     * validates media devices selection
+     * @param devices 
+     * @returns 
+     */
+    validateMediaDevicesSelection (): void {
+      let videoDevicesCounter = 0
+      let audioDevicesCounter = 0
+
+      for (const item of this.cameras) {
+        if (item.selected) {
+          videoDevicesCounter += 1
+        }
+      }
+
+      if (videoDevicesCounter > MaxCameras) {
+        this.devicesValidationError = ValidationError.CAMERAS_NUMBER_REACHED
+        return
+      }
+
+      if (videoDevicesCounter === 0) {
+        this.devicesValidationError = ValidationError.CAMERAS_NUMBER_EMPTY
+        return
+      }
+
+      for (const item of this.mics) {
+        if (item.selected) {
+          audioDevicesCounter += 1
+        }
+      }
+
+      if (audioDevicesCounter > MaxMics) {
+        this.devicesValidationError = ValidationError.MICS_NUMBER_REACHED
+        return
+      }
+
+      if (audioDevicesCounter === 0) {
+        this.devicesValidationError = ValidationError.MICS_NUMBER_EMPTY
+        return
+      }
+
+      this.devicesValidationError = false
+
+    },
+
+    /** obtains devices list */
+    async getDevices (): Promise <void> {
+
+      try {
+        const devices = await MediaControl.getDevices()
+
+        if (devices.length === 0) {
+          return
+        }
+        
+        devices.forEach((item) => {
+          this.setDevice({
+            ...item,
+            selected: this.devices?.[item.deviceId]?.selected || false,
+            muted: this.devices?.[item.deviceId]?.muted || true,
+          })
+        })
+
+        const deviceArray: MediaDevice[] = Object.values(this.devices)
+        this.cameras = deviceArray.filter((item: MediaDevice) => item.kind === VideoInputKind)
+        this.mics = deviceArray.filter((item: MediaDevice) => item.kind === AudioInputKind)
+      } catch (err) {
+        console.error(err)
+        return
+      }
+    },
+
+    /** opens modal with available cameras */
+    async showCameraModal (): Promise <void> {
+      try {
+        await this.getDevices()
+      } catch (err) {
+        console.error(err)
+        this.devices = null
+      }
+    },
+
+    applySelectedCameras (): void {
+      this.$emit('closedevicesconfiguration')
+      if (!this.devices) {
+        return
+      }
+
+      [...this.cameras, ...this.mics].forEach(item => {
+        this.setDevice(item)
+      })
+    },
+
+    onChecked (item: MediaDevice, event: unknown): void {
+      item.selected = !!event
+      this.validateMediaDevicesSelection()
+    },
+    onDevicesAplly (): void {
+      this.applySelectedCameras()
+      this.$emit('applydevices')
+    }
+  },
+
+  render (): VNode {
+    return <Modal
+      isVisible={this.isModalVisible}
+      onClose={() => this.$emit('closedevicesconfiguration')}
+    > 
+        {{
+          header: () => <Label text={this.$t('components.deviceController.selectDevices')}/>,
+          default: () => this.cameras || this.devices
+            ? <div class='device-controller__devices'>
+                <Label text={this.$t('components.deviceController.cameras')}/>
+                <ul class='device-controller__cameras'>
+                  {
+                    this.cameras && this.cameras.map((item: MediaDevice) => <li>
+                      <Checkbox
+                        v-model={item.selected}
+                      />
+                      <label> { item.label } </label>
+                    </li>)
+                  }
+              </ul>
+              <Label text={this.$t('components.deviceController.mics')}/>
+                <ul class='device-controller__mics'>
+                  {
+                    this.mics && this.mics.map((item: MediaDevice) => <li>
+                      <Checkbox
+                        v-model={item.selected}
+                      />
+                      <label> { item.label } </label>
+                    </li>)
+                  }
+              </ul>
+              </div>
+            : <div class='device-controller__no-devices'> <Label text={this.$t('components.deviceController.devicesNotFound')}/> </div>,
+              
+          footer: () => <div class='device-controller__footer'>
+            {
+              [<Button
+                label={this.$t('common.apply')}
+                disabled={!!this.devicesValidationError || !this.devices}
+                onClick={() => this.onDevicesAplly()}
+                size='small'
+              />, 
+              <Button
+                label={this.$t('common.cancel')}
+                onClick={() => this.$emit('closedevicesconfiguration')}
+                size='small'
+              />
+              ]
+            }
+          </div>
+        }}
+    </Modal>
+  }
+})

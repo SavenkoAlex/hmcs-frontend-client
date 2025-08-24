@@ -1,14 +1,41 @@
 .base-video {
   width: 100%;
-  border-radius: 26px;
+  border-radius: 1rem;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex: 0 1 auto;
   overflow: hidden;
+
+  @media (aspect-ratio: 3/4) {
+    padding-bottom: 50%;
+  }
+
+  @media (min-aspect-ratio > 3/4) and (max-aspect-ratio: 9/19.5) {
+    padding-bottom: 60%;
+  }
   
+  @media (aspect-ratio: 9/16){
+  }
+
+  @media (aspect-ratio: 16/9) {
+    padding-bottom: 56.25%;
+  }
+
+  @media (aspect-ratio: 5/3) {
+    padding-bottom: 60%;
+  }
+
+  @media (aspect-ratio: 5/4) {
+    padding-bottom: 80%;
+  }
+
   video {
-    width: 100%;
-    height: auto;
+    @media (max-height: 767px) {
+      width: 100%;
+      height: auto;
+      max-height: 60dvh; /* Оставляем 40% экрана для контента */
+      object-fit: contain;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
   }
 }
 

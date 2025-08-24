@@ -1,9 +1,10 @@
 /*reset.css*/
-/* RESETS */
-@import 'colors.scss';
-@import 'mixins.scss';
-@import 'typography.scss';
-//@import 'grid.scss';
+
+@use 'colors.scss';
+@use 'mixins.scss';
+@use 'typography.scss';
+@use 'toast.scss';
+
 
 *,
 *::before,
@@ -14,6 +15,7 @@
 ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 button,
@@ -26,9 +28,10 @@ input {
   overflow: visible;
 }
 
+
 @font-face {
   font-family: 'Inter-V';
-  src: url('../fonts/InterVariable.woff2') format('woff2-variations');
+  src: url('/fonts/InterVariable.woff2') format('woff2-variations');
   font-weight: 100 900;
   font-display: fallback;
   font-style: oblique 0deg 10deg;
@@ -37,7 +40,6 @@ input {
 body {
   width: 100%;
   margin: 0 auto;
-  background-color: $primary-2;
   height: 100%;
   font-size: 1.2em;
   font-family: 'Inter-V', sans-serif;
@@ -46,7 +48,7 @@ body {
 
 @supports (font-variation-settings: 'wdth' 200) {
   body {
-    font-family: 'Inter-V';
+    font-family: 'Inter-V', sans-serif;
     font-variation-settings: 'wght' 300, 'slnt' -4;
     font-feature-settings: 'cv08', 'cv05';
   }
@@ -78,3 +80,5 @@ body {
     transform: translateX(0px);
   }
 }
+
+

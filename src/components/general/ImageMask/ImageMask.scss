@@ -1,9 +1,11 @@
+@use '../../../assets/styles/colors.scss' as colors;
+
 .mask-image {
   display: flex;
   justify-content: center;
   width: 100%;
   padding: 4rem 0;
-  background-color: $primary-3;
+  background-color: colors.$primary-3;
   border: 1px solid transparent;
   border-radius: 24px;
   flex: 1 0 100vh;
@@ -12,10 +14,12 @@
     animation: moveMask 6s infinite alternate;
     letter-spacing: 1rem;
     background-size: cover;
+    background-position: center;
     font-size: 4rem;
     line-height: 6rem;
     font-weight: 900;
     background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }
 

@@ -1,14 +1,13 @@
 import Janus, { JanusJS } from 'janus-gateway'
-import eventEmitter from 'events'
-import { 
-  StreamHandler, 
- } from '@/services/webrtc/webrtcAbstract'
+import { StreamHandler } from '@/services/webrtc/webrtcAbstract'
 
  import { 
   JanusPlugin,   
   HandlerDescription,
   WebRTCHandlerConstructor 
 } from '@/types/global'
+
+import { TEXT_ROOM_PLUGIN_EVENT, TextRoomPluginError, TextRoomPluginEvent } from '@/types/janus'
 
 /** message type */
 export const enum MessageType {
@@ -60,8 +59,8 @@ export type JanustMessage = {
 
 /** janus text message  */
 export type JanusTextMessage = {
-  date?: string //"2024-07-14T14:44:18-0400"
-  from: string
+  date?: string,
+  from: string,
   room: number,
   text?: string,
   exists?: boolean,
@@ -69,29 +68,28 @@ export type JanusTextMessage = {
   transaction?: string
 }
 
-transaction: "oorzya5UTd6J"
 export class ChatHandler extends StreamHandler {
 
-  private options?: HandlerDescription
   transaction: string
   transactions: Record <string, unknown>
+  private handlerInstance: JanusJS.PluginHandle | null
+  private janusInstance: Janus  | null
+  isHandlerEstbilished: boolean
 
   private constructor({
-    plugin,
     handler,
     emitter,
-    options
-  }: WebRTCHandlerConstructor) {
-    super({plugin, handler, emitter})
+  }: Omit<WebRTCHandlerConstructor, 'options'>) {
+    super({ handler, emitter })
     this.transaction = Janus.randomString(12)
     this.transactions = {}
-    if (options) {
-      this.options = options
-    }
+    this.handlerInstance = null
+    this.isHandlerEstbilished = false
+    this.janusInstance = null
   }
 
-  static async init (plugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription) {
-    const result = await super.init(plugin, pluginName)
+  static init (webrtcPlugin: typeof Janus, pluginName: JanusPlugin, options?: HandlerDescription) {
+    const result = super.init(webrtcPlugin, pluginName)
 
     if (!result) {
       return null
@@ -100,25 +98,34 @@ export class ChatHandler extends StreamHandler {
     const { handler, emitter } = result
 
     const chatHandler = new ChatHandler({
-      plugin,
       handler,
-      emitter,
-      options: options || undefined
+      emitter
     })
 
     chatHandler.listen()
     return chatHandler
   }
 
+  async handle () {
+    const janusHandlers = await this.handler()
+    if (!janusHandlers?.janusHandler || !janusHandlers?.janusInstance) {
+      return
+    }
+    this.handlerInstance = janusHandlers.janusHandler
+    this.janusInstance = janusHandlers.janusInstance
+    this.isHandlerEstbilished = true
+  }
+
   protected listen(): void {
-    this.emitter.on('message', ({ msg, jsep }: { msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
+
+    this.emitter.on('janus-onmessage', async ({ msg, jsep }) => {
       if (msg.error) {
-        this.emitter.emit('pluginerror', msg.error)
+        this.handlePluginError(msg.error_code)
         return
       }
 
-      if (jsep) {
-        this.handler.createAnswer({
+      if (jsep && msg.textroom) {
+        this.handlerInstance?.createAnswer({
           jsep,
           tracks: [{type: 'data', capture: false}],
           success: (jsep: JanusJS.JSEP) => {
@@ -126,34 +133,120 @@ export class ChatHandler extends StreamHandler {
               request: 'ack',
             }
 
-            this.handler.send({ 
+            this.handlerInstance?.send({ 
               message, 
               jsep, 
-              success: () => this.emitter.emit('connected') ,
-              error: err => this.emitter.emit('pluginerror', err)
+              error: err => {
+                console.error(err)
+                this.handlePluginError({
+                  error_code: TextRoomPluginError.JANUS_TEXTROOM_ERROR_UNKNOWN_ERROR
+                })
+              }
             })
           },
-          error: (err) => this.emitter.emit('pluginerror', err)
+          error: err => {
+            console.error(err)
+            this.handlePluginError({
+              error_code: TextRoomPluginError.JANUS_TEXTROOM_ERROR_UNKNOWN_ERROR
+            })
+          }
         })
         return
       }
 
-      this.emitter.emit('plugindata', msg)
-    })
+      const msgType: TEXT_ROOM_PLUGIN_EVENT = msg.textroom
 
-    this.emitter.on('data', data => {
-      if (data?.textroom?.error) {
-        this.emitter.emit('handlererror', data)
+      if (!msgType) {
         return
       }
-      /** data recieved */
-      this.emitter.emit('handlerdata', data)
-    }),
-    
-    /** data channel openned */
-    this.emitter.on('dataopen', (label) => {
-      this.emitter.emit('dataisopen', label)
+
+      try {
+        await this.handlePluginEvent(msgType, msg)
+      } catch (err) {
+        this.handlePluginError(err)
+      }
     })
+
+    this.emitter.on('janus-ondata', data => {
+      try {
+        const parsed = typeof data === 'string' ? JSON.parse(data) : data
+        const msgType: TEXT_ROOM_PLUGIN_EVENT = parsed.textroom
+        this.handlePluginEvent(msgType, parsed)
+      } catch (err) {
+        this.handlePluginError(err)
+      }
+    })
+  }
+
+  protected async handlePluginEvent (eventType: TEXT_ROOM_PLUGIN_EVENT | 'event', msg: JanusJS.Message) {
+    switch (eventType) {
+
+      case TEXT_ROOM_PLUGIN_EVENT.JOIN:
+        this.emitter.emit('text-join')
+        break;
+
+      case TEXT_ROOM_PLUGIN_EVENT.SUCCESS:
+        this.emitter.emit('text-success', msg)
+        break
+
+      case TEXT_ROOM_PLUGIN_EVENT.MESSAGE:
+        this.emitter.emit('text-message', { 
+          from: msg.from, 
+          text: msg.text,
+          date: msg.date,
+          room: msg.room,
+          textroom: msg.textroom
+        })
+        break
+
+      case TEXT_ROOM_PLUGIN_EVENT.DESTROYED:
+        this.emitter.emit('text-destroyed')
+        break
+      
+      case TEXT_ROOM_PLUGIN_EVENT.KICKED:
+        this.emitter.emit('text-kicked')
+        break
+      
+      case TEXT_ROOM_PLUGIN_EVENT.EDITED:
+        this.emitter.emit('text-edited')
+        break
+      
+      case TEXT_ROOM_PLUGIN_EVENT.LEAVE:
+        this.emitter.emit('text-leave')
+        break
+
+      case 'event':
+        let extendetEventType  = null
+        for (const event of Object.values(TextRoomPluginEvent)) {
+          if (msg[event]) {
+            extendetEventType = event
+          }
+        }
+
+        if (!extendetEventType) {
+          console.warn('unhandled message ', eventType, msg)
+          return
+        }
+        this.emitter.emit(`text-${extendetEventType}`)
+        break
+
+      default:
+        console.warn('unhandled message ', eventType, msg)
+    }
+  }
+
+  protected handlePluginError (msg: JanusJS.Message | unknown) {
+    let errorCode = TextRoomPluginError.JANUS_TEXTROOM_ERROR_UNKNOWN_ERROR
+
+    if ('error_code' in (msg as JanusJS.Message)) {
+      errorCode = (msg as JanusJS.Message).error_code
+    }
+
+    switch (errorCode) {
+
+      default:
+        this.emitter.emit('janus-error', errorCode)
+    }
   }
 
   /** register an user in chat */
@@ -176,12 +269,12 @@ export class ChatHandler extends StreamHandler {
       this.transactions[this.transaction] = (response: Response) => {
         if (response.error) {
           console.error(response.error)
-          this.emitter.emit('error', response.error)
+          this.emitter.emit('text-error', response.error)
           return
         }
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: JSON.stringify(register),
         success: () => resolve(true),
         error: (err) => { console.error(err); resolve(false) }
@@ -199,13 +292,14 @@ export class ChatHandler extends StreamHandler {
       const message = {
         request: 'create',
         room: streamId,
-        transaction: this.transaction 
+        transaction: this.transaction,
+        permanent: false
       }
 
-      this.handler.send({ 
+      this.handlerInstance?.send({ 
         message,
-        error: (err) => { console.error(err); resolve(false) },
-        success: (data) => { console.log('success ', data); resolve(true)}
+        error: (err) => resolve(false),
+        success: (data) => resolve(true)
       })
     })
   }
@@ -222,27 +316,31 @@ export class ChatHandler extends StreamHandler {
         textroom: 'message',
         transaction: this.transaction,
         room: streamId,
+        ack: true,
         text
       }
 
       let stringified 
+
       try {
         stringified = JSON.stringify(message) 
       } catch (err) {
         console.error(err)
-        Promise.resolve(false)
+        resolve(false)
         return
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: stringified,
-        success: () => resolve(true),
+        success: (data) => {
+          console.log(data); 
+          resolve(true)
+        },
         error: (err) => { console.error(err); resolve(false) }
       })
     })
   }
 
-  /** send private massege */
   sendPrivateMessage (text: string, to: string, streamId: number): Promise <boolean> {
     return new Promise (resolve => {
       if (!text || !to) {
@@ -253,11 +351,11 @@ export class ChatHandler extends StreamHandler {
         textroom: 'message',
         transaction: Janus.randomString(12),
         room: streamId,
-        to,
+        tos: to,
         text
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: JSON.stringify(message),
         error: (err) => { console.error(err); resolve(false) },
         success: () => resolve(true)
@@ -265,15 +363,16 @@ export class ChatHandler extends StreamHandler {
     })
   }
 
-  destroyHandler (streamId: number): Promise <boolean> {
+  destroyChat (streamId: number): Promise <boolean> {
     
     return new Promise (resolve => {
       const message = {
         textroom: 'destroy',
-        room: streamId
+        room: streamId,
+        permanent: false
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: JSON.stringify(message),
         error: (err => { console.error(err); resolve(false) }),
         success: () => resolve(true)
@@ -289,7 +388,7 @@ export class ChatHandler extends StreamHandler {
         room: streamId
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: JSON.stringify(message),
         error: (err) => { console.error(err); resolve(false)},
         success: () => resolve(true)
@@ -309,7 +408,7 @@ export class ChatHandler extends StreamHandler {
         transaction: this.transaction
       }
 
-      this.handler.data({
+      this.handlerInstance?.data({
         text: JSON.stringify(message),
         success: () => resolve(true),
         error: err => { console.error(err); resolve(false) }
@@ -330,10 +429,21 @@ export class ChatHandler extends StreamHandler {
         transaction: this.transaction
       }
 
-      this.handler.send({
+      this.handlerInstance?.send({
         message,
         success: (data) => resolve(!!(data as {exists: boolean})?.exists),
         error: (err) => resolve(false)
+      })
+    })
+  }
+
+  destroySession (): Promise <boolean> {
+    return new Promise (resolve => {
+      this.janusInstance?.destroy({
+        cleanupHandles: true,
+        notifyDestroyed: true,
+        success: () => resolve(true),
+        error: () => resolve(false)
       })
     })
   }

@@ -1,6 +1,4 @@
-.publisher-stream {
-  @media (min-width: 1200px) {
-  }
+.publisher {
 
   @media (max-width: 767px) {
     display: flex;
@@ -8,6 +6,12 @@
     justify-content: center;
     width: 100%;
     height: 100%;
+
+    &__media {
+      width: 100%;
+      min-height: 10rem;
+    }
+
 
     &__client-video {
       max-width: 100%;
@@ -20,6 +24,9 @@
 
     &__controls {
       width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       button {
         border: 24px;
       }

@@ -1,7 +1,8 @@
 import {
   defineComponent,
   VNode,
-  PropType
+  PropType,
+  useTemplateRef
 } from 'vue'
 
 /* styles */
@@ -16,7 +17,7 @@ import {
 
 import { Data } from '@/components/StateBar/types'
 
-import { BarConfiguration, BarConfigutations, StateBarElements } from '@/components/StateBar/types'
+import { BarConfigutations, StateBarElements } from '@/components/StateBar/types'
 
 /** components */
 import TextButton from '@/components/general/Buttons/TextButton/TextButton'
@@ -27,10 +28,16 @@ import MicMuteController from '@/components/MicMuteController/MicMuteController'
 import CameraMuteController from '@/components/CameraMuteController/CameraMuteController'
 import StreamController from '@/components/StreamController/StreamController'
 import AccountIndicator from '@/components/AccountIndicator/AccountIndicator'
+import HidePanelController from '@/components/HidePanelController/HidePanelController'
 
 /** icons */
-import AddCallIcon from '@/assets/images/video_call_32.svg'
-import PayIcon from '@/assets/images/credit_card_32.svg'
+import AddCallIcon from '@/assets/images/small/video_call_16dp.svg'
+import PayIcon from '@/assets/images/small/send_money_16dp.svg'
+
+/** store */ 
+
+/** event bus */
+import eventBus from '@/services/eventBus'
 
 export default defineComponent({
 
@@ -41,13 +48,14 @@ export default defineComponent({
     IconButton,
     DeviceController,
     MicMuteController,
-    AccountIndicator
+    AccountIndicator,
+    HidePanelController,
   },
 
   props: {
     /** logged user role */
     userRole: {
-      type: String as unknown as PropType <UserRole>,
+      type: Number as PropType <UserRole>,
       required: true,
     },
     /** do we have a stream */
@@ -58,16 +66,28 @@ export default defineComponent({
     amount: {
       type: Number as PropType <number>,
       default: 0
+    },
+    isStartStreamDisabled: {
+      type: Boolean as PropType <boolean>,
+      default: false
     }
   },
 
-  emits: [
-    'streamtoggle',
-    'muteAudio',
-    'muteVideo',
-    'updateDevices',
-    'applydevices'
-  ],
+  emits: {
+    streamtoggle: () => true,
+    muteAudio: (value: boolean ) => {
+      return typeof value === 'boolean'
+    },
+    muteVideo: (value: boolean ) => {
+      return typeof value === 'boolean'
+    },
+    updateDevices: () => true,
+    applydevices: () => true,
+    showdevicesconfiguration: () => true,
+    publish: (value: boolean) => {
+      return typeof value === 'boolean'
+    }
+  },
 
   computed: {
 
@@ -91,6 +111,22 @@ export default defineComponent({
       return this.isStreaming
         ? this.$t('pages.stateBar.stopStream')
         : this.$t('pages.stateBar.startStream')
+    },
+
+    panelStyle () {
+      return this.isControlHidden
+        ? 'state-bar__panel_hidden'
+        : 'state-bar__panel'
+    },
+    
+    controlStyle () {
+      return this.isControlHidden
+        ? 'state-bar__control_hidden'
+        : 'state-bar__control'
+    },
+
+    isRequestActive (): boolean {
+      return this.amount > 0 && this.userRole === UserRole.USER
     }
   },
 
@@ -100,11 +136,20 @@ export default defineComponent({
       userId: null,
       live: false,
       isStreaming: true,
-      isRequestActive: false,
       user: null,
       account: null,
       isCameraMuted: false,
-      isMicMuted: false
+      isMicMuted: false,
+      isControlHidden: false,
+      isDeviceConfigurationVisible: false
+    }
+  },
+
+  setup () {
+    const stateBar = useTemplateRef <HTMLElement> ('statebar')
+
+    return {
+      stateBar
     }
   },
 
@@ -118,6 +163,10 @@ export default defineComponent({
     onVideoMute () {
       this.isCameraMuted = !this.isCameraMuted
       this.$emit('muteVideo', this.isCameraMuted)
+    },
+
+    collapsePanel(isHidden: boolean): void {
+      this.isControlHidden = isHidden
     }
   },
 
@@ -133,13 +182,14 @@ export default defineComponent({
         <IconButton
           mode={'tertiary'}
           disabled={!this.isRequestActive}
+          onClick={() => this.$emit('publish', true)}
         >
           <AddCallIcon/>
         </IconButton>
     </div>
 
     const devices = <DeviceController
-      onApplydevices={() => this.$emit('applydevices')}
+      onShowdevicesconfiguration={() => this.$emit('showdevicesconfiguration')}
     />
 
     const mic = <MicMuteController 
@@ -152,6 +202,7 @@ export default defineComponent({
       // TODO: Do check
       onUpdate:modelValue={this.onVideoMute}  
     />
+
     const increase = <div class='state-bar__increase'>
       <IconButton
         mode={'primary'}
@@ -170,12 +221,15 @@ export default defineComponent({
     const stream = <StreamController
       modelValue={this.isStreamActive}
       onUpdate:modelValue={() => this.$emit('streamtoggle')}
+      disabled={this.isStartStreamDisabled}
     />
 
+    const hide = <HidePanelController
+      onCollapsepanel={(isHidden: boolean) => this.collapsePanel(isHidden)}
+    />
     const empty = <div></div>
 
     const elements: Record <StateBarElements, VNode> = {
-      live,
       joinreq,
       devices,
       camera,
@@ -184,19 +238,26 @@ export default defineComponent({
       amount,
       fee,
       stream,
-      empty
+      empty,
+      hide
     }
 
     return <div class='state-bar'>
-      {
-        this.barElements 
-          ? this.barElements.map((item, index) => {
-            return <div class='state-bar__control'>
-                { elements[item] || null } 
+      <div class={this.panelStyle} ref={'statebar'}>
+        {
+          this.barElements 
+            ? this.barElements.map((item, index) => {
+              return <div 
+                class={index === this.barElements.length - 1 ? 'state-bar__control' : this.controlStyle}>
+                  { elements[item] || null } 
               </div>
-          })
-          : null
-      }  
+            })
+            : null
+        }
+      </div>
+      <div class='state-bar__info'>
+        { live }
+      </div>
     </div>
   }
 })

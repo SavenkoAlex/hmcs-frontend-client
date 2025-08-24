@@ -1,26 +1,36 @@
 import {
-  mapActions
+  mapActions,
+  mapGetters
 } from 'vuex'
 
 /** types */
 import { States } from '@/types/store'
+import { UserRole } from '@/types/global'
 
 /** router */
-import { useRouter } from 'vue-router'
 
 export const userMixin = {
   
+  events: {
+    logout: (): void => {
+      return
+    }
+  },
+
+  computed: {
+    ...mapGetters(States.USER, {
+      userRole: 'userRole'
+    })
+  },
+
   methods: {
     ...mapActions(States.USER, {
       setUser: 'setUser',
       setUserProperty: 'setUserProperty'
     }),
 
-    logout () {
-      this.setUser(null)
-      this.setUserProperty({isAuthentificated: false})
-      localStorage.clear()
-      location.replace('/')
+    logout (role: UserRole) {
+      
     }
   }
 }

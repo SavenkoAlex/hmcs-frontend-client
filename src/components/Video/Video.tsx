@@ -3,31 +3,46 @@ import {
   PropType,
   VNode,
   Transition,
-  ref
+  ref,
+  useTemplateRef
 } from 'vue'
 
 import './Video.scss'
+
+/**components */
+import { Skeleton } from 'primevue'
+
 
 export default defineComponent({
 
   name: 'BaseVideo',
 
+  emits: {
+    'dbclick': (event: MouseEvent) => {
+      return event instanceof MouseEvent
+    }
+  },
+
   props: {
+
     /** stream */
     srcObject: {
       type: Object as PropType <MediaStream | undefined>,
-      required: true
+      default: undefined
     },
+
     /** autoplay */
     autoplay: {
       type: Boolean as PropType <boolean>,
       default: true
     },
+
     /** playsinline */
     playsinline: {
       type: Boolean as PropType <boolean>,
       default: true
     },
+
     /** not supported text */
     notSupprtedText: {
       type: String as PropType <string>,
@@ -37,6 +52,11 @@ export default defineComponent({
     pictureInPictureMode: {
       type: Boolean as PropType <boolean>,
       default: false
+    },
+
+    poster: {
+      type: String as PropType <string>,
+      default: 'src/assets/images/taro-bg.jpg'
     }
   },
 
@@ -58,9 +78,20 @@ export default defineComponent({
 
   setup () {
     const videoWrapper = ref <HTMLDivElement> ()
+    const videoNode = useTemplateRef <HTMLMediaElement> ('video')
 
     return {
-      videoWrapper
+      videoWrapper,
+      videoNode
+    }
+  },
+
+  watch: {
+    srcObject (newValue: MediaStream) {
+      if (!newValue) {
+        return
+      }
+      this.setVideoSrc()
     }
   },
 
@@ -70,10 +101,10 @@ export default defineComponent({
       if (!this.videoWrapper) {
         return
       }
-      this.videoWrapper.onmouseup = this.stopDrag
+      this.videoWrapper.onpointerleave = this.stopDrag
       this.xFinite = event.clientX
       this.yFinite = event.clientY
-      this.videoWrapper.onmousemove = this.dragElement 
+      this.videoWrapper.onpointermove = this.dragElement 
     },
 
     dragElement (event: MouseEvent) {
@@ -97,21 +128,35 @@ export default defineComponent({
 
       this.videoWrapper.onmouseup = null
       this.videoWrapper.onmousemove = null
+    },
+
+    setVideoSrc () {
+      if (!this.videoNode || !this.srcObject) {
+        return
+      }
+
+      this.videoNode.onloadedmetadata = () => {
+        this.videoNode?.play()
+      }
+      this.videoNode.srcObject = this.srcObject
     }
+  },
+
+  mounted () {
+    this.setVideoSrc()
   },
 
   render (): VNode {
     return  <Transition name='video'>
       <div 
         class={this.class}
-        onMousedown={ (event: MouseEvent) => this.pictureInPictureMode ? this.onDrag(event) : undefined}  
-        ref='videoWrapper'
+        onPointerdown={ (event: MouseEvent) => this.onDrag(event)}  
+        onDblclick={ (event: MouseEvent) => this.$emit('dbclick', event)}
       >
-        <video 
-          srcObject={this.srcObject} 
+        <video
+          ref={'video'}
           autoplay
           playsinline
-          onMousedown={() => console.log('!!!')}
         > 
           { this.notSupprtedText }
         </video>

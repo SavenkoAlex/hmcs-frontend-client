@@ -4,9 +4,6 @@ import { LoginResponse } from '@/api/types'
 /** types */
 import { RegisterUserData } from '@/types/global'
 
-/** helpers */
-import { printf } from '@/helpers/helper'
-
 export const authentificate =  async (login: string, password: string): Promise <LoginResponse | null> => {
   try {
     const response = await axios.request<{login: string, password: string},
@@ -43,7 +40,7 @@ export const register = async (data: RegisterUserData): Promise <boolean> => {
 
     return response.status === 200
   } catch (err) {
-    printf(err, 'error')
+    console.error(err)
     return false
   }
 }

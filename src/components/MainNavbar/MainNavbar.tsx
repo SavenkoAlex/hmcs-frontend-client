@@ -1,37 +1,29 @@
 import {
   defineComponent,
   VNode,
-  ref,
-  computed,
-  provide
 } from 'vue'
 
 /** Style */
 import './MainNavbar.scss'
 
 /** components */
-import LogoIcon from '@/assets/images/logo48.svg'
+import LogoIcon from '@/assets/images/logo.svg'
 import { RouterLink } from 'vue-router'
-
-/** store */
-import { useStore } from '@/store'
+import { Menubar } from 'primevue'
 
 /** types */
-import { UserRole, Maybe, JanusPlugin } from '@/types/global'
+import { UserRole } from '@/types/global'
 import { States } from '@/types/store'
 import { userLinks } from '@/router/types'
 import { mapGetters } from 'vuex'
-import { Data } from '@/components/MainNavbar/types'
+import { Data, MenuItem } from '@/components/MainNavbar/types'
+import { MenubarProps } from 'primevue/menubar'
 
-/** webrtc handler */
-import Janus, { JanusJS } from 'janus-gateway'
-import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 
 export default defineComponent({
 
   name: 'MainNavbar',
 
-  setup () {},
   data (): Data {
     return {
       links: userLinks[UserRole.ANONYMOUS]
@@ -43,6 +35,22 @@ export default defineComponent({
       userRole: 'userRole', 
       isAuthentificated: 'isAuthentificated'
     }),
+
+    menuItems (): MenuItem[] {
+      const links = this.links.map(item => {
+        return {
+          label: this.$t(`routes.${item}`),
+          to: `/${item}`
+        }
+      })
+
+      const logo = {
+        label: <LogoIcon /> as unknown as string,
+        to: '/'
+      }
+
+      return [logo, ...links]
+    }
   },
 
   watch: {
@@ -75,26 +83,38 @@ export default defineComponent({
   },
 
   render(): VNode {
-
-    const navbar = <ul>
-      {
-        this.links.map(item => {
-        return <li>
-          <div class='navbar__option_visible'>
-            <RouterLink to={`/${item}`}> { this.$t(`routes.${item}`) } </RouterLink>
-          </div>
-          </li>
-        })
-      }
-    </ul>
+    const navbar = <Menubar 
+      model={this.menuItems}
+      breakpoint='sm'
+      pt={{
+        item: {
+          class: 'menu__item'
+        },
+        rootList: {
+          class: 'menu__container'
+        },
+        root: {
+          class: 'menu',
+        }
+      }}
+    >   
+      {{
+        item: (item: { item: MenuItem } ) => {
+          return <RouterLink to={item?.item?.to} custom> 
+          {{
+            default: ({ navigate }: {href: string, navigate: () => void}) => <span
+              onClick={navigate}
+            >
+                { item.item?.label} 
+              </span>  
+          }}
+          </RouterLink>
+        }
+      }}
+    </Menubar>
 
     return <div class={'navbar'}>
-        <div class={'navbar__logo'}>
-          <LogoIcon/>
-        </div>
-        <div class={'navbar__menu'}>
-          { navbar }
-        </div>
-      </div>
+      { navbar }
+    </div>
   }
 })

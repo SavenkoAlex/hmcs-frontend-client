@@ -5,8 +5,8 @@ import {
 } from 'vue'
 
 /** icons */
-import PlayIcon from '@/assets/images/play_32.svg'
-import StopIcon from '@/assets/images/stop_32.svg'
+import PlayIcon from '@/assets/images/small/play_16dp.svg'
+import StopIcon from '@/assets/images/small/stop_16dp.svg'
 
 /** components  */
 import IconButton from '@/components/general/Buttons/IconButton/IconButton'
@@ -26,6 +26,11 @@ export default defineComponent({
       type: Boolean as PropType <boolean>,
       default: false
     },
+
+    disabled: {
+      type: Boolean as PropType <boolean>,
+      default: false
+    }
   },
 
   render (): VNode {
@@ -33,6 +38,7 @@ export default defineComponent({
       <IconButton 
         mode={this.modelValue ? 'fourth' : 'active'}
         onClick={() => this.$emit('update:modelValue', !this.modelValue)}
+        disabled={this.disabled}
       >
         { this.modelValue ?  <StopIcon/> : <PlayIcon/>  }
       </IconButton>

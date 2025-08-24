@@ -26,7 +26,6 @@ export default defineComponent({
     style () {
       return {
         'background-image': `url(${this.image})`,
-        
       }
     }
   },
@@ -35,9 +34,7 @@ export default defineComponent({
     return <div
       class='mask-image'
     >
-      <h2
-        style={this.style}
-      >
+      <h2 style={this.style}>
         { this.text }
       </h2>
     </div>

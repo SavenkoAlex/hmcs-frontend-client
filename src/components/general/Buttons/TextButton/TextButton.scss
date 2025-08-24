@@ -1,3 +1,6 @@
+@use '../../../../assets/styles/colors.scss' as colors;
+@use '../../../../assets/styles/mixins.scss' as *;
+
 @media screen {
 
   @media (max-width: 767px) {
@@ -8,7 +11,7 @@
         font-size: 16px;
         line-height: 24px;
         letter-spacing: .9px;
-        @include text-button ($primary-2, $primary-5);
+        @include text-button (colors.$primary-2, colors.$primary-5);
       }
 
       &__tertiary {
@@ -16,7 +19,7 @@
         font-size: 16px;
         line-height: 24px;
         letter-spacing: .9px;
-        @include text-button ($primary-7, $secondary-4);
+        @include text-button (colors.$primary-7, colors.$primary-4);
       }
 
       &__fourth {
@@ -24,11 +27,11 @@
         font-size: 16px;
         line-height: 24px;
         letter-spacing: .9px;
-        @include text-button ($primary-7, $secondary-6);
+        @include text-button (colors.$primary-7, colors.$primary-6);
       }
 
       &:active {
-        @include text-button ($primary-2, $primary-7);
+        @include text-button (colors.$primary-2, colors.$primary-7);
       }
 
       &__disabled {
@@ -36,7 +39,7 @@
         font-size: 16px;
         line-height: 24px;
         letter-spacing: .9px;
-        @include text-button ($primary-8, $secondary-7);
+        @include text-button (colors.$primary-8, colors.$primary-7);
       }
     }
   }

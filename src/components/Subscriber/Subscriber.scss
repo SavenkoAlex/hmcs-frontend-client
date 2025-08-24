@@ -5,6 +5,14 @@ video {
 }
 
 @media (max-width: 767px) {
+  .publisher__avatar {
+    width: 100%;
+
+    &_disabled {
+      display: none;
+    }
+  }
+
   .subscriber {
     display: flex;
     flex-direction: column;
@@ -14,17 +22,29 @@ video {
       width: 100%;
     }
 
-    &__publisher-media {
+    &__media {
       display: flex;
-      justify-content: center;
       width: 100%;
-      border: 1px solid transparent;
-      overflow: hidden;
+
+      &_large {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        border: 1px solid transparent;
+        overflow: hidden;
+      }
+
+      &_small {
+        max-width: 45%;
+        height: auto;
+      }
+
+      &_disabled {
+        display: none
+      }
     }
 
-    &__publisher-avatar {
-      width: 100%;
-    }
+    
   }
 }
 

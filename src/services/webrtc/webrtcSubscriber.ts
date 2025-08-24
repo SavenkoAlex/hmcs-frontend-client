@@ -1,65 +1,62 @@
-import Janus, { JanusJS } from 'janus-gateway'
-import eventEmitter from 'events'
-import { 
-  StreamHandler,
- } from  '@/services/webrtc/webrtcAbstract'
+import Janus, { JanusJS,  } from 'janus-gateway'
+import { StreamHandler } from  '@/services/webrtc/webrtcAbstract'
 
  import { 
-  HandlerDescription, 
   JanusPlugin,
   WebRTCHandlerConstructor,
   Room
 } from '@/types/global'
 
+import { 
+  VIDEO_ROOM_PLUGIN_EVENT, 
+  VideoRoomPluginError,
+} from '@/types/janus'
+import { textChangeRangeIsUnchanged } from 'typescript'
+
 /**
  * WebRTCHandler main functions to control webrtc connection (subscriber)
  */
 export interface WebRTCHandler {
-  join: (track?: MediaStreamTrack[]) => Promise <boolean>
-  leave: () => Promise <boolean>
-  getPublishers: () => Promise<Room[] | null>
+  connect: (room: number, to: number) => Promise <boolean>
+  leave: (from: number) => Promise <boolean>
+  getStreams: () => Promise<Room[] | null>
   requestPrivate?: (subscribers: unknown[], mountId: number) => Promise <boolean>
   sendMessage?: (mes: string) => Promise <boolean>
 }
 
-
-type Publisher = {
-  id: number, 
-  display: string, 
-  publisher: boolean
-}
-
 export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHandler { 
   
-  private mediaTrack: MediaStreamTrack | null
-  private publisher: Publisher | null
-  options? : HandlerDescription
+  private mediaTracks: MediaStreamTrack[]
+  private handlerInstance: JanusJS.PluginHandle | null
+  private janusInstance: Janus | null
+  isHandlerEstbilished: boolean
 
   private constructor ({
-    plugin,
     handler, 
     emitter,
   }: Omit<WebRTCHandlerConstructor, 'options'>) {
-    super({plugin, handler, emitter})
-    this.mediaTrack = null
-    this.publisher = null
+    super({ handler, emitter })
+    this.mediaTracks = []
+    this.handlerInstance = null
+    this.isHandlerEstbilished = false
+    this.janusInstance = null
   }
 
   // Static constructor
-  static async init (
-    plugin: typeof Janus, 
+  static init (
+    webrtcPlugin: typeof Janus, 
     pluginName: JanusPlugin.VITE_WEBRTC_PLUGIN, 
-    options?: HandlerDescription
-  ): Promise<SubscriberStreamHandler | null> {
+  ): SubscriberStreamHandler | null {
     
     try {
-      const result = await super.init(plugin, pluginName)
+      const result = super.init(webrtcPlugin, pluginName)
 
       if (!result) {
         return null
       }
+
       const { handler, emitter } = result
-      const streamHandler = new SubscriberStreamHandler({plugin, handler, emitter})
+      const streamHandler = new SubscriberStreamHandler({ handler, emitter })
       streamHandler.listen()
       return streamHandler
     } catch (err) {
@@ -68,158 +65,229 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
     }
   }
 
+  async handle () {
+    const janusHandlers = await this.handler()
+    if (!janusHandlers?.janusHandler|| !janusHandlers?.janusInstance) {
+      return
+    }
+    this.handlerInstance = janusHandlers.janusHandler
+    this.janusInstance = janusHandlers.janusInstance
+    this.isHandlerEstbilished = true
+  }
+
   // attach a event listener on janus events
   protected listen () {
     // Catching Janus on message event
-    this.emitter.on('message', ({msg, jsep}: {msg: JanusJS.Message, jsep: JanusJS.JSEP}) => {
-      if (jsep) {
-        this.handler.createAnswer({
-          jsep,
-          success: (sdp) => this.connect(sdp)
-        })
+    this.emitter.on('janus-onmessage', async ({jsep, msg}) => {
+      if (msg.error) {
+        console.error(msg.error)
+        this.emitter.emit('janus-error', msg.error_code)
+        return
+      }
+
+      const eventType: VIDEO_ROOM_PLUGIN_EVENT = msg.videoroom
+
+      try {
+        await this.handlePluginEvent(eventType, msg, jsep)
+      } catch (err) {
+        console.error(err)
+        this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
       }
     })
+  }
 
-    this.emitter.on('remotetrack', (track, mid, on, metadata) => {
-      this.emitter.emit('track', {
-        track,
-        mid,
-        on,
-        metadata
+  protected async handlePluginEvent (eventType: VIDEO_ROOM_PLUGIN_EVENT | 'event', msg: JanusJS.Message, jsep?: JanusJS.JSEP) {
+    switch (eventType) {
+      case VIDEO_ROOM_PLUGIN_EVENT.SUB_JOINED:
+        this.emitter.emit('video-subscribed', msg)
+        break
+
+      case VIDEO_ROOM_PLUGIN_EVENT.DESTROYED:
+        this.emitter.emit('video-destroyed')
+        break
+
+      case VIDEO_ROOM_PLUGIN_EVENT.ATTACHED:
+        if (!jsep) {
+          this.emitter.emit('janus-error', VideoRoomPluginError.JANUS_VIDEOROOM_ERROR_UNKNOWN_ERROR)
+          break
+        }
+
+        this.emitter.emit('video-attached', msg.streams)
+
+        this.handlerInstance?.createAnswer({
+          jsep,
+          success: (sdp) => this.attach(sdp)
+        })
+        break
+
+      case VIDEO_ROOM_PLUGIN_EVENT.STARTED:
+        if (msg.started) {
+          this.emitter.emit('video-started', msg.started === 'ok')
+        }
+        break
+
+      case 'event': 
+        /*
+        let extendetEventType  = null
+        for (const event of Object.values(videoRoomPluginEvent)) {
+          if (msg[event]) {
+            extendetEventType = event
+          }
+        }
+
+        if (!extendetEventType) {
+          console.warn('unhandled message ', eventType, msg)
+          break
+        }
+        this.emitter.emit(`video-${extendetEventType}`)
+        */
+        break
+
+      default:
+        console.warn('unhandled message ', eventType)
+    }
+  }
+
+  async leave (): Promise <boolean> {
+    return new Promise (resolve => {
+      const message = {
+        request: 'leave',
+      }
+
+      this.handlerInstance?.send({
+        message,
+        success: () => resolve(true),
+        error: () => resolve(false)
       })
-    }) 
-
+    })
   }
 
-  async join () {
-    /*
-    const publisher = await this.getPublisher()
+  /** check if room exists */
+  async isStreamAvailable (roomId: number): Promise <boolean> {
+    return new Promise (resolve => {
+        if (!roomId) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'exists',
+        room: roomId
+      }
+      
+      this.handlerInstance?.send({
+        message,
+        success: (data) => resolve(!!data?.exists),
+        error: () => resolve(false)
+      })
+    })
     
-    if (!publisher) {
-      return false
-    }
-    this.publisher = publisher
-
-    const subscriber = await this.joinAsSubscriber()
-    return !!subscriber
-    */
-
-    return true
   }
 
-  async leave () {
-    return this.unsubscribe()
-  }
+  getStreams(): Promise <Room[]> {
 
-  /**
-   * Extracts first participant with publisher status
-   * @returns 
-   */
-  private async getPublisher (): Promise <Publisher | null> {
-    /*
-    const publishers = await this.getPublishers()
-    if (!publishers || !publishers.length) {
-      return null
-    }
-    
-    const activePublishers = publishers.filter(p => p.room)
-    if (activePublishers.length) {
-      return activePublishers[0]
-    }
-    */
-    return null
-  }
-
-  getPublishers (): Promise <Room[] | null> {
-
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       if (!this.handler) {
-        reject('No plugin handler available')
+        return []
       }
 
       const message = {
         request: 'list',
       }
 
-      this.handler?.send({
+      this.handlerInstance?.send({
         message,
-        success: (res) => resolve(res.list as Room[]),
-        error: err => reject(null)
+        success: (res) => {
+          if (res?.list && Array.isArray(res.list)) {
+            resolve(res.list)
+            return
+          }
+          resolve([])
+        },
+        error: err => {
+          console.error(err)
+          resolve([])
+        }
       })
     })
-    /*
-    return new Promise ((resolve, reject) => {
-      if (!this.handler) {
-        reject('No plugin handler available')
-      }
-
-      const message = {
-        request: 'listparticipants',
-        room: this.options.streamId
-      }
-
-      this.handler?.send({
-        message,
-        success: (res) => resolve(res.participants as Publisher[]),
-        error: err => reject(null)
-      })
-    })
-    return Promise.resolve(null)
-      */
-    
   }
 
-  private joinAsSubscriber (): Promise <unknown> {
-    return Promise.resolve(null)
-    /*
-    return new Promise ((resolve, reject) => {
-      if (!this.handler) {
-        reject('No plugin handler available')
+  async connect (room: number, to?: number): Promise <boolean> {
+    return new Promise (resolve => {
+      if (!this.handler || !room) {
+        resolve(false)
       }
 
       const message = {
         request: 'join',
         ptype: 'subscriber',
-        room: this.options.streamId,
+        room,
         streams: [{
-          feed: this.publisher?.id
+          feed: to || room
         }]
       }
 
-      this.handler?.send({
+      this.handlerInstance?.send({
         message,
-        success: result => resolve(result),
-        error: err => reject(err)
+        success: () => resolve(true),
+        error: () => resolve(false)
       })
     })
-    */
   }
 
-  private unsubscribe (): Promise <boolean> {
-    return new Promise ((resolve, reject) => {
-      if (!this.handler) {
-        reject('No plugin handler available')
+  join (to: number): Promise <boolean> {
+    return new Promise (resolve => {
+      if (!this.handler || !to) {
+        resolve(false)
+        return
+      }
+
+      const message = {
+        request: 'join',
+        ptype: 'publisher',
+        room: to
+      }
+
+      this.handlerInstance?.send({
+        message,
+        success: () => resolve(true),
+        error: (err) => {
+          console.error(err)
+          resolve(false)
+        }
+      })
+    })
+  }
+  
+  unsubscribe (from: number): Promise <boolean> {
+    return new Promise (resolve => {
+      if (!this.handler || !from) {
+        resolve(false)
+        return
       }
 
       const message = {
         request: 'unsubscribe',
         streams: [{
-          feed: this.publisher?.id
+          feed: from
         }]
       }
 
-      this.handler?.send({
+      this.handlerInstance?.send({
         message,
         success: () => resolve(true),
-        error: () => reject(false)
+        error: (err) => {
+          console.error(err)
+          resolve(false)
+        }
       })
     })
   }
 
-  private connect (sdp: JanusJS.JSEP): Promise <true | false> {
-    return new Promise ((resolve, reject) => {
+  private attach (sdp: JanusJS.JSEP): Promise <true | false> {
+    return new Promise (resolve => {
       if (!this.handler) {
-        reject('No plugin available')
+        resolve(false)
         return
       }
 
@@ -227,12 +295,59 @@ export class SubscriberStreamHandler extends StreamHandler implements  WebRTCHan
         request: 'start',
       }
 
-      this.handler.send({ 
+      this.handlerInstance?.send({ 
         message,
         jsep: sdp,
-        success: (data) =>  resolve(true),
-        error: (error) => resolve(false)
-        })
+        success: () =>  resolve(true),
+        error: (error) => { 
+          console.error(error)
+          resolve(false)
+        }
+      })
+    })
+  }
+
+  async destroySession (): Promise<boolean> {
+    return new Promise ((resolve, reject) => {
+      this.janusInstance?.destroy({
+        cleanupHandles: true,
+        notifyDestroyed: true,
+        success: () => resolve(true),
+        error: () => resolve(false)
+      })
+    })
+  }
+
+   private async createOffer (): Promise <JanusJS.JSEP | false> {
+    return new Promise (resolve => {
+      
+      if (!this.handlerInstance || !this.mediaTracks?.length) {
+        resolve(false)
+        return
+      }
+
+      const tracks: JanusJS.TrackOption[] = this.mediaTracks.map(track => ({
+        type: 'video',
+        capture: track
+      }))
+      
+      if (!tracks.length) {
+        return false
+      }
+
+      tracks.push({
+        type: 'data',
+        capture: false
+      })
+
+      this.handlerInstance?.createOffer({
+        tracks,
+        success: (jsep) => resolve (jsep),
+        error: (err) => {
+          console.error(err)
+          resolve(false)
+        }
+      })
     })
   }
 }
