@@ -103,7 +103,7 @@ export default defineComponent({
     const clientStream = ref <MediaStream> ()
 
     const constraints: MediaStreamConstraints[] = [{
-      audio: false,
+      audio: true,
       video: true
     }]
 

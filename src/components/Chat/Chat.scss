@@ -23,7 +23,6 @@
   }
 
   &__messages {
-    background-color: var(--p-slate-300);
     width: 100%;
     overflow-y: scroll;
   }
@@ -31,7 +30,6 @@
   &__content {
     height: 100%;
     width: 100%;
-    background-color: colors.$primary-2;
     display: inline-flex;
     flex-direction: column;
     flex: 1 0 1rem;

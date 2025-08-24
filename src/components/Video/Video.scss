@@ -32,7 +32,7 @@
     @media (max-height: 767px) {
       width: 100%;
       height: auto;
-      max-height: 50dvh; /* Оставляем 40% экрана для контента */
+      max-height: 60dvh; /* Оставляем 40% экрана для контента */
       object-fit: contain;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
