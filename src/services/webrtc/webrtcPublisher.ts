@@ -345,7 +345,12 @@ export class PublisherStreamHandler extends StreamHandler implements  WebRTCHand
       this.handlerInstance?.createOffer({
         tracks: [{
           type: 'video',
-          capture: this.mediaTrack
+          capture: true,
+          recv: true
+        }, {
+          type: 'audio',
+          capture: true,
+          recv: true
         },{
           type: 'data',
           capture: false

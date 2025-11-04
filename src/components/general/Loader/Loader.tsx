@@ -25,15 +25,6 @@ export default defineComponent({
     }
   },
 
-  computed: {
-    style () {
-      if (this.isVisible || this.timeout) {
-        return { display: 'block' }
-      } 
-      return { display: 'none' }
-    }
-  },
-
   watch: {
     isVisible: {
       handler: function (newValue: boolean) {
@@ -67,8 +58,10 @@ export default defineComponent({
   },
 
   render(): VNode {
-    return <div class='loader' style={this.style}>
+    return this.isVisible 
+    ? <div class='loader'>
       <div class='loader__spinner'></div>
     </div>
+    : <> </>
   }
 })
