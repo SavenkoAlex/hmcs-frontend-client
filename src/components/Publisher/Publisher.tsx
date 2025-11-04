@@ -5,6 +5,8 @@ import {
   ref,
   inject,
   TransitionGroup,
+  Transition,
+  useTemplateRef
 } from 'vue'
 
 // style
@@ -44,6 +46,7 @@ import { SubscriberStreamHandler } from '@/services/webrtc/webrtcSubscriber'
 import { PublisherStreamHandler } from '@/services/webrtc/webrtcPublisher'
 import { ChatHandler } from '@/services/webrtc/webrtcDataExchange'
 import { MessageHandler, MessageType } from '@/services/MessageHandler/MessageHandler'
+import { keyCodesByKeyName } from 'node_modules/@vue/test-utils/dist/createDomEvent'
 
 export default defineComponent({
 
@@ -80,11 +83,23 @@ export default defineComponent({
     },
 
     localMediaClass (): string {
-      return 'publisher__media_large'
+      const clientsNumber = this.isRemoteVideoReady
+      if (clientsNumber === 1) {
+        return 'media_small'
+      }
+      return 'media_large'
     },
 
     remoteMediaClass (): string {
-      return this.clientStream ? 'publisher__media_small' : 'publisher__media_disabled' 
+      const clientsNumber = this.isRemoteVideoReady
+
+      if (clientsNumber > 1) {
+        return 'media_small'
+      } else if (clientsNumber === 1) {
+        return 'media_large'
+      }
+
+      return 'media_disabled'
     },
 
     chatRoom (): number {
@@ -93,14 +108,20 @@ export default defineComponent({
       }
 
       return (this.userData.streamId + 1) * 1000
+    },
+
+    isLocalVideoReady (): boolean {
+      return this.videoTrack && this.audioTrack
+    },
+
+    isRemoteVideoReady (): number {
+      return Object.keys(this.clientStream)?.length || 0
     }
   },
 
   setup () {
-    const publisherNode = ref <HTMLMediaElement[]> ([])
-    const clientNode = ref <HTMLVideoElement> ()
     const publisherStream = ref <MediaStream[]> ([])
-    const clientStream = ref <MediaStream> ()
+    const clientStream = ref <Record <string, MediaStream[]>> ({})
 
     const constraints: MediaStreamConstraints[] = [{
       audio: true,
@@ -124,10 +145,11 @@ export default defineComponent({
     const publishers = ref <Record <number, PublisherDescription>> ({})
     const isCallModalVisible = ref <boolean> (false)
     const requestMessage = ref <JanusJS.Message | null> (null)
+    const isDragging = ref <boolean> (false)
+    const offsetX = ref <number> (0)
+    const offsetY = ref <number> (0)
     
     return {
-      publisherNode,
-      clientNode,
       publisherStream,
       clientStream,
       constraints,
@@ -147,7 +169,10 @@ export default defineComponent({
       publishers,
       isCallModalVisible,
       requestMessage,
-      chatHandler
+      chatHandler,
+      isDragging,
+      offsetX,
+      offsetY
     }
   },
 
@@ -211,7 +236,8 @@ export default defineComponent({
       return Promise.all(this.constraints.map((item: MediaStreamConstraints) => {
         return navigator.mediaDevices.getUserMedia(item)
       })).then((streams: MediaStream[]) => {
-        this.publisherStream = streams
+        this.videoTrack = streams[0].getVideoTracks()[0]
+        this.audioTrack = streams[0].getAudioTracks()[0]
       })
     },
 
@@ -267,7 +293,7 @@ export default defineComponent({
 
       this.isLoading = true
 
-      const startResult = await this.publisherHandler.connect(this.videoTrack)
+      const startResult = await this.publisherHandler.connect(new MediaStream([this.videoTrack, this.audioTrack]))
 
       if (!startResult.success) {
         this.isLoading = false
@@ -338,7 +364,7 @@ export default defineComponent({
       this.publisherHandler?.emitter.on('video-destroyed', () => {
         this.isLoading = false
         this.isStreamConfigured = false
-        this.isHandlerConnected = 'disconnected'
+        this.isHandlerthis.publishedStreamConnected = 'disconnected'
         this.toast.info(this.$t('services.webrtc.info.reloadToStart'))
       })
 
@@ -373,7 +399,20 @@ export default defineComponent({
       })
 
       this.publisherHandler?.emitter.on('janus-onremotetrack', ({ track, mid, on, metadata }) => {
-        this.clientStream = new MediaStream([track])
+      })
+
+      this.publisherHandler?.emitter.on('janus-onlocaltrack', ({ track, on }) => {
+        switch (track.kind) {
+          case 'video':
+            this.videoTrack = track
+            break
+          case 'audio':
+            this.audioTrack = track
+            break
+          default:
+            return
+        }
+        console.log('local track on', { track, on })
       })
       
 
@@ -396,7 +435,9 @@ export default defineComponent({
 
     listenToSubscriber (): void {
       this.subscriberHandler?.emitter.on('janus-onremotetrack', ({ track, mid, on, metadata }) => {
-        this.clientStream = new MediaStream([track])
+        this.clientStream[mid] =  this.clientStream[mid] 
+          ? this.clientStream[mid] = [...this.clientStream[mid], track] 
+          : this.clientStream[mid] = [track]
       })
     },
 
@@ -416,7 +457,7 @@ export default defineComponent({
         return
       }
 
-      this.publisherHandler.reJoin(this.videoTrack, this.secret || undefined)
+      this.publisherHandler.reJoin(this.publishedStream, this.secret || undefined)
     },
 
     executeAction (videoErrorState: VideoErrorState): void {
@@ -501,12 +542,13 @@ export default defineComponent({
       }
 
       this.chatHandler.sendMessage(message, this.chatRoom)
-    }
+    },
   },
 
   async mounted () {
-    this.getUserMedia().then(() => {
+    this.getUserMedia({audio: true, video: true}).then(() => {
 
+      /*
       this.publisherStream.forEach(stream => stream.getTracks().forEach(track => {
         const deviceId = track.getSettings().deviceId
         if (deviceId) {
@@ -519,6 +561,7 @@ export default defineComponent({
           })
         }
       }))
+        */
     })
   },
 
@@ -533,27 +576,32 @@ export default defineComponent({
 
     return <RoomLayout>
       {{
-        media: () => <div class="publisher__media">
+        media: () => <div class='media'>
           <div class={this.localMediaClass}>
-              {
-                this.publisherStream.map((stream: MediaStream, index: number) => <BaseVideo
-                  key={index}
-                  srcObject={stream} 
-                  autoplay
-                  playsinline
-                  pictureInPictureMode={!!index}
-                />)
-              }
-            </div>
-            <div class={this.remoteMediaClass}>
-              <BaseVideo
-                srcObject={this.clientStream} 
-                autoplay
-                playsinline
-                pictureInPictureMode
-              /> 
-            </div>
-          </div>,
+            <BaseVideo
+              srcObject={this.isLocalVideoReady && new MediaStream([this.videoTrack, this.audioTrack])} 
+              autoplay
+              playsinline
+            />
+          </div>
+            {
+              !!this.isRemoteVideoReady 
+                ? Object.entries(this.clientStream).map(([mid, value], index) => {
+                  return <div 
+                    class={this.remoteMediaClass}
+                  >
+                    <BaseVideo
+                      key={mid}
+                      srcObject={new MediaStream(value)}
+                      autoplay
+                      playsinline
+                      data-mid={`client-video-${index}`}
+                    />
+                  </div>
+                })
+                : <> </>
+            }
+        </div>,
         controls: () => <StateBar 
           userRole={UserRole.WORKER}
           onStreamtoggle={() => this.toggleStream()}
@@ -564,18 +612,14 @@ export default defineComponent({
           onApplydevices={() => this.applyDevices()}
           onShowdevicesconfiguration={() => this.isDeviceConfigurationVisible = true}
         />,
-        chat: () => <div class='publisher__chat'>
-          { 
-            <Chat
-              isReadyToPrivate={this.isReadyToPrivate}
-              secret={this.secret}
-              room={this.chatRoom}
-              chatName={this.userData.username || 'no-name'}
-              isStreamAvailable={this.isStreamConfigured}
-              onJoin-request={this.onJoinRequest}
-            />
-          }
-        </div>,
+        chat: () => <Chat
+          isReadyToPrivate={this.isReadyToPrivate}
+          secret={this.secret}
+          room={this.chatRoom}
+          chatName={this.userData.username || 'no-name'}
+          isStreamAvailable={this.isStreamConfigured}
+          onJoin-request={this.onJoinRequest}
+        />,
         default: () => <div>
           { callModal }
           <DeviceConfigurationModal

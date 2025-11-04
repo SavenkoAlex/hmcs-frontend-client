@@ -35,8 +35,8 @@ export default defineConfig({
   server: process.env.NODE_ENV === 'production' ? {} : {
   origin: 'https://trft.ru',
   https: {
-      key: fs.readFileSync(path.resolve(__dirname, 'certs/taro.com.key')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'certs/taro.com.crt'))
+      key: fs.readFileSync(path.resolve(__dirname, 'certs/taro.key')),
+      cert: fs.readFileSync(path.resolve(__dirname, 'certs/taro.crt'))
     },
     cors: {
       origin: true
