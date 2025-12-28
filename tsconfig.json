@@ -41,7 +41,7 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.tsx",
-    "assets/icons/*.svg",
+    "assets/icons/*.svg", "src/assets/styles/myPreset.js",
   ],
   "isolatedModules": true,
 }

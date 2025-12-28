@@ -1,6 +1,7 @@
 import {
   defineComponent,
   VNode,
+  TransitionGroup
 } from 'vue'
 
 /** Style */
@@ -17,7 +18,6 @@ import { States } from '@/types/store'
 import { userLinks } from '@/router/types'
 import { mapGetters } from 'vuex'
 import { Data, MenuItem } from '@/components/MainNavbar/types'
-import { MenubarProps } from 'primevue/menubar'
 
 
 export default defineComponent({
@@ -45,7 +45,7 @@ export default defineComponent({
       })
 
       const logo = {
-        label: <LogoIcon /> as unknown as string,
+        label: 'AuraLive',
         to: '/'
       }
 
@@ -83,35 +83,38 @@ export default defineComponent({
   },
 
   render(): VNode {
-    const navbar = <Menubar 
-      model={this.menuItems}
-      breakpoint='sm'
-      pt={{
-        item: {
-          class: 'menu__item'
-        },
-        rootList: {
-          class: 'menu__container'
-        },
-        root: {
-          class: 'menu',
-        }
-      }}
-    >   
-      {{
-        item: (item: { item: MenuItem } ) => {
-          return <RouterLink to={item?.item?.to} custom> 
-          {{
-            default: ({ navigate }: {href: string, navigate: () => void}) => <span
-              onClick={navigate}
-            >
-                { item.item?.label} 
-              </span>  
-          }}
-          </RouterLink>
-        }
-      }}
-    </Menubar>
+    const navbar = <TransitionGroup name="navbar">
+      <Menubar
+        model={this.menuItems}
+        breakpoint='sm'
+        pt={{
+          item: {
+            class: 'menu__item'
+          },
+          rootList: {
+            class: 'menu__container'
+          },
+          root: {
+            class: 'menu',
+          }
+        }}
+        key="menubar"
+      >
+        {{
+          item: (item: { item: MenuItem } ) => {
+            return <RouterLink to={item?.item?.to} custom>
+            {{
+              default: ({ navigate }: {href: string, navigate: () => void}) => <span
+                onClick={navigate}
+              >
+                  { item.item?.label}
+                </span>
+            }}
+            </RouterLink>
+          }
+        }}
+      </Menubar>
+    </TransitionGroup>
 
     return <div class={'navbar'}>
       { navbar }

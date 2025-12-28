@@ -9,7 +9,7 @@ import TextButton from '@/components/general/Buttons/TextButton/TextButton'
 import Form from '@/components/general/Form/Form'
 import Notifier from '@/components/Notifier/Notifier'
 import Button from 'primevue/button'
-import { InputText, Toast } from 'primevue'
+import { InputText } from 'primevue'
 
 /** styles */
 import '@/components/LoginForm/LoginForm.scss'
@@ -33,7 +33,9 @@ import { useToast } from '@/services/toast/toast'
 
 /** validation */
 import { emptyfieldValidation } from '@/helpers/helper'
-import { mode } from 'crypto-js'
+
+/**logo */
+import AppLogo from '@/components/Logo/AppLogo'
 
 export default defineComponent({
 
@@ -158,6 +160,16 @@ export default defineComponent({
     </div>
 
     const formBody = <div class='login-form__body'>
+      <div class='login-form__logo'>
+        <AppLogo
+          particlesCount={12}
+          sphereSize={200}
+          animationSpeed={20}
+          theme="dark"
+          interactive={true}
+          showInfo={false}
+        />
+      </div>
       <div class='login-form__input'>
         <InputText
           autofocus={true}
@@ -188,7 +200,7 @@ export default defineComponent({
           pt={{
             root: {
               style: {
-                width: '100%'
+                width: '100%',
               }
             }
           }}

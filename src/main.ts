@@ -9,7 +9,7 @@ import enLocale from '@/langs/en.json'
 import 'vue-toastification/dist/index.css'
 import PrimeVue from 'primevue/config'
 import { Ripple } from 'primevue'
-import { MyPreset } from '@/assets/styles/myPreset'
+import { AuraPurplePrimary } from '@/assets/styles/myPreset'
 import ToastService from 'primevue/toastservice'
 
 export const i18n = createI18n({
@@ -18,7 +18,7 @@ export const i18n = createI18n({
     'ru-RU': ruLocale,
     'en_US': enLocale
   },
-  fallbackLocale: 'en-US',
+  fallbackLocale: 'en_US',
   legacy: false
 })
 
@@ -31,7 +31,7 @@ createApp(App)
   .use(PrimeVue, {
     ripple: true,
     theme: {
-      preset: MyPreset
+      preset: AuraPurplePrimary
     }
   })
   .directive('ripple', Ripple)

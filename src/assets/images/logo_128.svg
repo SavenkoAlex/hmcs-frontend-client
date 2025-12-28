@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    version="1.1"
-   width="427.33887"
-   height="427.33887"
+   width="128"
+   height="128"
    id="svg194"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
@@ -59,7 +59,7 @@
        r="213.66945"
        gradientUnits="userSpaceOnUse"
        spreadMethod="reflect"
-       gradientTransform="translate(-485.08742,-388.24761)" />
+       gradientTransform="matrix(0.2995281,0,0,0.2995281,-145.29729,-116.29106)" />
     <radialGradient
        xlink:href="#linearGradient196"
        id="radialGradient197"
@@ -69,12 +69,12 @@
        fy="601.91705"
        r="213.66945"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-485.08742,-388.24761)" />
+       gradientTransform="matrix(0.2995281,0,0,0.2995281,-145.29729,-116.29106)" />
     <linearGradient
        xlink:href="#swatch203"
        id="linearGradient5"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.81442472,0,0,0.81442472,-406.37872,-241.11618)"
+       gradientTransform="matrix(0.24394308,0,0,0.24394308,-121.72183,-72.221071)"
        x1="500.86163"
        y1="516.08838"
        x2="1082.3817"
@@ -83,16 +83,16 @@
   <path
      style="opacity:0.311558;fill:url(#radialGradient195);stroke:url(#radialGradient197);stroke-width:0;stroke-miterlimit:35.2;paint-order:normal"
      id="path194"
-     d="M 423.842,175.17103 A 213.66945,213.66945 0 0 1 252.40021,423.7993 213.66945,213.66945 0 0 1 3.5825223,252.63253 213.66945,213.66945 0 0 1 174.47406,3.6257332 213.66945,213.66945 0 0 1 423.66967,174.24183" />
+     d="M 126.95258,52.468646 A 64,64 0 0 1 75.600955,126.9398 64,64 0 0 1 1.0730706,75.670542 64,64 0 0 1 52.259885,1.0860135 64,64 0 0 1 126.90097,52.190327" />
   <text
      xml:space="preserve"
-     style="font-size:117.277px;line-height:4.8;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:0.562814;mix-blend-mode:normal;fill:url(#linearGradient5);stroke:#000000;stroke-width:0;stroke-miterlimit:35.2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.745133;paint-order:normal"
-     x="240.17279"
-     y="223.27415"
+     style="font-size:35.1278px;line-height:4.8;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:0.562814;mix-blend-mode:normal;fill:url(#linearGradient5);stroke:#000000;stroke-width:0;stroke-miterlimit:35.2;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.745133;paint-order:normal"
+     x="71.938454"
+     y="66.876923"
      id="text198"
      transform="scale(0.88414156,1.1310406)"><tspan
        id="tspan198"
-       x="240.17279"
-       y="223.27415"
-       style="font-size:117.277px;opacity:1;fill:url(#linearGradient5);fill-opacity:0.704425;fill-rule:evenodd;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">AuraLive</tspan></text>
+       x="71.938454"
+       y="66.876923"
+       style="font-size:35.1278px;opacity:1;fill:url(#linearGradient5);fill-opacity:0.704425;fill-rule:evenodd;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">AuraLive</tspan></text>
 </svg>
